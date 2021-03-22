@@ -1,3 +1,1 @@
-export const format = (text: string) => {
-    
-}
+export const format = (text: string) => {}
