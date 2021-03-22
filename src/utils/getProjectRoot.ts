@@ -1,7 +1,12 @@
 import path from 'path'
 import { fileExists } from '@sasjs/utils/file'
 
-export async function getProjectRoot() {
+/**
+ * Returns the absolute path to the location of the .sasjslint file.
+ * Traverses the folder tree until the .sasjslint file is found.
+ * @returns {Promise<string>} the path to the folder containing the lint config.
+ */
+export async function getProjectRoot(): Promise<string> {
   let root = ''
   let rootFound = false
   let i = 1

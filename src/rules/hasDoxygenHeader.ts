@@ -15,6 +15,9 @@ const test = (value: string) => {
   }
 }
 
+/**
+ * Lint rule that checks for the presence of a Doxygen header in a given file.
+ */
 export const hasDoxygenHeader: FileLintRule = {
   type: LintRuleType.File,
   name,

@@ -9,6 +9,9 @@ const test = (value: string, lineNumber: number) =>
     ? []
     : [{ warning, lineNumber, columnNumber: value.trimEnd().length + 1 }]
 
+/**
+ * Lint rule that checks for the presence of trailing space(s) in a given line of text.
+ */
 export const noTrailingSpaces: LineLintRule = {
   type: LintRuleType.Line,
   name,

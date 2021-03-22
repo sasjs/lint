@@ -15,6 +15,9 @@ const test = (value: string, lineNumber: number) => {
   }))
 }
 
+/**
+ * Lint rule that checks for the presence of encoded password(s) in a given line of text.
+ */
 export const noEncodedPasswords: LineLintRule = {
   type: LintRuleType.Line,
   name,

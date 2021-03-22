@@ -2,11 +2,21 @@ import { Diagnostic } from './types/Diagnostic'
 import { LintConfig } from './types/LintConfig'
 import { getLintConfig } from './utils/getLintConfig'
 
+/**
+ * Analyses and produces a set of diagnostics for the given text content.
+ * @param {string} text - the text content to be linted.
+ * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
+ */
 export const lint = async (text: string) => {
   const config = await getLintConfig()
   return processText(text, config)
 }
 
+/**
+ * Splits the given content into a list of lines, regardless of CRLF or LF line endings.
+ * @param {string} text - the text content to be split into lines.
+ * @returns {string[]} an array of lines from the given text
+ */
 export const splitText = (text: string): string[] => {
   if (!text) return []
   return text.replace(/\r\n/g, '\n').split('\n')

@@ -1,5 +1,9 @@
 import { lint } from './lint'
 
+/**
+ * Example which tests a piece of text with all known violations.
+ */
+
 const text = `/**
    @file
    @brief Returns an unused libref
