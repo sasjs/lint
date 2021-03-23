@@ -6,6 +6,17 @@ describe('noEncodedPasswords', () => {
     expect(noEncodedPasswords.test(line, 1)).toEqual([])
   })
 
+  it('should return an array with a single diagnostic when the line has a SASENC password', () => {
+    const line = "%put '{SASENC}';  "
+    expect(noEncodedPasswords.test(line, 1)).toEqual([
+      {
+        warning: 'Line contains encoded password',
+        lineNumber: 1,
+        columnNumber: 7
+      }
+    ])
+  })
+
   it('should return an array with a single diagnostic when the line has an encoded password', () => {
     const line = "%put '{SAS001}';  "
     expect(noEncodedPasswords.test(line, 1)).toEqual([
