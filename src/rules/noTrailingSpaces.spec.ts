@@ -1,3 +1,4 @@
+import { Severity } from '../types/Severity'
 import { noTrailingSpaces } from './noTrailingSpaces'
 
 describe('noTrailingSpaces', () => {
@@ -10,9 +11,11 @@ describe('noTrailingSpaces', () => {
     const line = "%put 'hello';  "
     expect(noTrailingSpaces.test(line, 1)).toEqual([
       {
-        warning: 'Line contains trailing spaces',
+        message: 'Line contains trailing spaces',
         lineNumber: 1,
-        columnNumber: 14
+        startColumnNumber: 14,
+        endColumnNumber: 15,
+        severity: Severity.Warning
       }
     ])
   })

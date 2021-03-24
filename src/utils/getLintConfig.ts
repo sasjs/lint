@@ -10,14 +10,15 @@ const defaultConfiguration = {
 }
 /**
  * Fetches the config from the .sasjslint file and creates a LintConfig object.
+ * Returns the default configuration when a .sasjslint file is unavailable.
  * @returns {Promise<LintConfig>} resolves with an object representing the current lint configuration.
  */
 export async function getLintConfig(): Promise<LintConfig> {
   const projectRoot = await getProjectRoot()
   const configuration = await readFile(
     path.join(projectRoot, '.sasjslint')
-  ).catch((e) => {
-    console.error('Error reading .sasjslint file', e)
+  ).catch((_) => {
+    console.warn('Unable to load .sasjslint file. Using default configuration.')
     return JSON.stringify(defaultConfiguration)
   })
   return new LintConfig(JSON.parse(configuration))
