@@ -1,5 +1,6 @@
 {
     "noTrailingSpaces": true,
     "noEncodedPasswords": true,
-    "hasDoxygenHeader": true
+    "hasDoxygenHeader": true,
+    "noSpacesInFileNames": true
 }

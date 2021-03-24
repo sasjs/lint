@@ -1,4 +1,4 @@
-import { lint } from './lint'
+import { lintText } from './lint'
 
 /**
  * Example which tests a piece of text with all known violations.
@@ -46,4 +46,4 @@ const text = `/**
  %mend;
 `
 
-lint(text).then((diagnostics) => console.table(diagnostics))
+lintText(text).then((diagnostics) => console.table(diagnostics))

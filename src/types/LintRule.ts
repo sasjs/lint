@@ -10,7 +10,6 @@ export interface LintRule {
   name: string
   description: string
   message: string
-  test: (value: string, lineNumber: number) => Diagnostic[]
 }
 
 /**
@@ -18,6 +17,7 @@ export interface LintRule {
  */
 export interface LineLintRule extends LintRule {
   type: LintRuleType.Line
+  test: (value: string, lineNumber: number) => Diagnostic[]
 }
 
 /**
@@ -25,5 +25,13 @@ export interface LineLintRule extends LintRule {
  */
 export interface FileLintRule extends LintRule {
   type: LintRuleType.File
+  test: (value: string) => Diagnostic[]
+}
+
+/**
+ * A PathLintRule is run once per file.
+ */
+export interface PathLintRule extends LintRule {
+  type: LintRuleType.Path
   test: (value: string) => Diagnostic[]
 }

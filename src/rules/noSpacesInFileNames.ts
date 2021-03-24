@@ -1,0 +1,34 @@
+import { PathLintRule } from '../types/LintRule'
+import { LintRuleType } from '../types/LintRuleType'
+import path from 'path'
+import { Severity } from '../types/Severity'
+
+const name = 'noSpacesInFileNames'
+const description = 'Enforce the absence of spaces within file names.'
+const message = 'File name contains spaces'
+const test = (value: string) => {
+  const fileName = path.basename(value)
+  if (fileName.includes(' ')) {
+    return [
+      {
+        message,
+        lineNumber: 1,
+        startColumnNumber: 1,
+        endColumnNumber: 1,
+        severity: Severity.Warning
+      }
+    ]
+  }
+  return []
+}
+
+/**
+ * Lint rule that checks for the absence of spaces in a given file name.
+ */
+export const noSpacesInFileNames: PathLintRule = {
+  type: LintRuleType.Path,
+  name,
+  description,
+  message,
+  test
+}
