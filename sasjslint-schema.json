@@ -24,32 +24,32 @@
       "type": "boolean",
       "title": "noTrailingSpaces",
       "description": "Enforces no trailing spaces in lines of SAS code. Shows a warning when they are present.",
-      "default": "true",
-      "examples": ["true", "false"]
+      "default": true,
+      "examples": [true, false]
     },
     "noEncodedPasswords": {
       "$id": "#/properties/noEncodedPasswords",
       "type": "boolean",
       "title": "noEncodedPasswords",
       "description": "Enforces no encoded passwords such as {SAS001} or {SASENC} in lines of SAS code. Shows an error when they are present.",
-      "default": "true",
-      "examples": ["true", "false"]
+      "default": true,
+      "examples": [true, false]
     },
     "hasDoxygenHeader": {
       "$id": "#/properties/hasDoxygenHeader",
       "type": "boolean",
       "title": "hasDoxygenHeader",
       "description": "Enforces the presence of a Doxygen header in the form of a comment block at the start of each SAS file. Shows a warning when one is absent.",
-      "default": "true",
-      "examples": ["true", "false"]
+      "default": true,
+      "examples": [true, false]
     },
     "noSpacesInFileNames": {
       "$id": "#/properties/noSpacesInFileNames",
       "type": "boolean",
       "title": "noSpacesInFileNames",
       "description": "Enforces no spaces in file names. Shows a warning when they are present.",
-      "default": "true",
-      "examples": ["true", "false"]
+      "default": true,
+      "examples": [true, false]
     }
   }
 }
