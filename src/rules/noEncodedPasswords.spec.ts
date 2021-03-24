@@ -1,3 +1,4 @@
+import { Severity } from '../types/Severity'
 import { noEncodedPasswords } from './noEncodedPasswords'
 
 describe('noEncodedPasswords', () => {
@@ -10,9 +11,11 @@ describe('noEncodedPasswords', () => {
     const line = "%put '{SASENC}';  "
     expect(noEncodedPasswords.test(line, 1)).toEqual([
       {
-        warning: 'Line contains encoded password',
+        message: 'Line contains encoded password',
         lineNumber: 1,
-        columnNumber: 7
+        startColumnNumber: 7,
+        endColumnNumber: 15,
+        severity: Severity.Error
       }
     ])
   })
@@ -21,9 +24,11 @@ describe('noEncodedPasswords', () => {
     const line = "%put '{SAS001}';  "
     expect(noEncodedPasswords.test(line, 1)).toEqual([
       {
-        warning: 'Line contains encoded password',
+        message: 'Line contains encoded password',
         lineNumber: 1,
-        columnNumber: 7
+        startColumnNumber: 7,
+        endColumnNumber: 15,
+        severity: Severity.Error
       }
     ])
   })
@@ -32,14 +37,18 @@ describe('noEncodedPasswords', () => {
     const line = "%put '{SAS001} {SAS002}';  "
     expect(noEncodedPasswords.test(line, 1)).toEqual([
       {
-        warning: 'Line contains encoded password',
+        message: 'Line contains encoded password',
         lineNumber: 1,
-        columnNumber: 7
+        startColumnNumber: 7,
+        endColumnNumber: 15,
+        severity: Severity.Error
       },
       {
-        warning: 'Line contains encoded password',
+        message: 'Line contains encoded password',
         lineNumber: 1,
-        columnNumber: 16
+        startColumnNumber: 16,
+        endColumnNumber: 24,
+        severity: Severity.Error
       }
     ])
   })

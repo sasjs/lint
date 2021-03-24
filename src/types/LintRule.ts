@@ -2,14 +2,14 @@ import { Diagnostic } from './Diagnostic'
 import { LintRuleType } from './LintRuleType'
 
 /**
- * A lint rule is defined by a type, name, description, warning text and a test function.
+ * A lint rule is defined by a type, name, description, message text and a test function.
  * The test function produces a set of diagnostics when executed.
  */
 export interface LintRule {
   type: LintRuleType
   name: string
   description: string
-  warning: string
+  message: string
   test: (value: string, lineNumber: number) => Diagnostic[]
 }
 

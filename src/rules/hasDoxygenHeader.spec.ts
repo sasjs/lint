@@ -1,3 +1,4 @@
+import { Severity } from '../types/Severity'
 import { hasDoxygenHeader } from './hasDoxygenHeader'
 
 describe('hasDoxygenHeader', () => {
@@ -23,7 +24,13 @@ describe('hasDoxygenHeader', () => {
    %do x=0 %to &maxtries;`
 
     expect(hasDoxygenHeader.test(content)).toEqual([
-      { warning: 'File missing Doxygen header', lineNumber: 1, columnNumber: 1 }
+      {
+        message: 'File missing Doxygen header',
+        lineNumber: 1,
+        startColumnNumber: 1,
+        endColumnNumber: 1,
+        severity: Severity.Warning
+      }
     ])
   })
 
@@ -31,7 +38,13 @@ describe('hasDoxygenHeader', () => {
     const content = undefined
 
     expect(hasDoxygenHeader.test((content as unknown) as string)).toEqual([
-      { warning: 'File missing Doxygen header', lineNumber: 1, columnNumber: 1 }
+      {
+        message: 'File missing Doxygen header',
+        lineNumber: 1,
+        startColumnNumber: 1,
+        endColumnNumber: 1,
+        severity: Severity.Warning
+      }
     ])
   })
 })

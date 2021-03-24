@@ -1,4 +1,5 @@
 import { lint, splitText } from './lint'
+import { Severity } from './types/Severity'
 
 describe('lint', () => {
   it('should identify trailing spaces', async () => {
@@ -11,14 +12,18 @@ describe('lint', () => {
 
     expect(results.length).toEqual(2)
     expect(results[0]).toEqual({
-      warning: 'Line contains trailing spaces',
+      message: 'Line contains trailing spaces',
       lineNumber: 4,
-      columnNumber: 18
+      startColumnNumber: 18,
+      endColumnNumber: 18,
+      severity: Severity.Warning
     })
     expect(results[1]).toEqual({
-      warning: 'Line contains trailing spaces',
+      message: 'Line contains trailing spaces',
       lineNumber: 5,
-      columnNumber: 22
+      startColumnNumber: 22,
+      endColumnNumber: 23,
+      severity: Severity.Warning
     })
   })
 
@@ -31,9 +36,11 @@ describe('lint', () => {
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual({
-      warning: 'Line contains encoded password',
+      message: 'Line contains encoded password',
       lineNumber: 4,
-      columnNumber: 11
+      startColumnNumber: 11,
+      endColumnNumber: 19,
+      severity: Severity.Error
     })
   })
 
@@ -43,9 +50,11 @@ describe('lint', () => {
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual({
-      warning: 'File missing Doxygen header',
+      message: 'File missing Doxygen header',
       lineNumber: 1,
-      columnNumber: 1
+      startColumnNumber: 1,
+      endColumnNumber: 1,
+      severity: Severity.Warning
     })
   })
 
