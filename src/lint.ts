@@ -1,3 +1,4 @@
+import { readFile } from '@sasjs/utils/file'
 import { Diagnostic } from './types/Diagnostic'
 import { LintConfig } from './types/LintConfig'
 import { getLintConfig } from './utils/getLintConfig'
@@ -7,9 +8,24 @@ import { getLintConfig } from './utils/getLintConfig'
  * @param {string} text - the text content to be linted.
  * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
  */
-export const lint = async (text: string) => {
+export const lintText = async (text: string) => {
   const config = await getLintConfig()
   return processText(text, config)
+}
+
+/**
+ * Analyses and produces a set of diagnostics for the file at the given path.
+ * @param {string} filePath - the path to the file to be linted.
+ * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
+ */
+export const lintFile = async (filePath: string) => {
+  const config = await getLintConfig()
+  const text = await readFile(filePath)
+
+  const fileDiagnostics = processFile(filePath, config)
+  const textDiagnostics = processText(text, config)
+
+  return [...fileDiagnostics, ...textDiagnostics]
 }
 
 /**
@@ -25,7 +41,7 @@ export const splitText = (text: string): string[] => {
 const processText = (text: string, config: LintConfig) => {
   const lines = splitText(text)
   const diagnostics: Diagnostic[] = []
-  diagnostics.push(...processFile(config, text))
+  diagnostics.push(...processContent(config, text))
   lines.forEach((line, index) => {
     diagnostics.push(...processLine(config, line, index + 1))
   })
@@ -33,10 +49,10 @@ const processText = (text: string, config: LintConfig) => {
   return diagnostics
 }
 
-const processFile = (config: LintConfig, fileContent: string): Diagnostic[] => {
+const processContent = (config: LintConfig, content: string): Diagnostic[] => {
   const diagnostics: Diagnostic[] = []
   config.fileLintRules.forEach((rule) => {
-    diagnostics.push(...rule.test(fileContent))
+    diagnostics.push(...rule.test(content))
   })
 
   return diagnostics
@@ -50,6 +66,15 @@ const processLine = (
   const diagnostics: Diagnostic[] = []
   config.lineLintRules.forEach((rule) => {
     diagnostics.push(...rule.test(line, lineNumber))
+  })
+
+  return diagnostics
+}
+
+const processFile = (filePath: string, config: LintConfig): Diagnostic[] => {
+  const diagnostics: Diagnostic[] = []
+  config.pathLintRules.forEach((rule) => {
+    diagnostics.push(...rule.test(filePath))
   })
 
   return diagnostics

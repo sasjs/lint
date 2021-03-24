@@ -1,14 +1,15 @@
-import { lint, splitText } from './lint'
+import { lintFile, lintText, splitText } from './lint'
 import { Severity } from './types/Severity'
+import path from 'path'
 
-describe('lint', () => {
+describe('lintText', () => {
   it('should identify trailing spaces', async () => {
     const text = `/**
       @file
     **/
     %put 'hello'; 
         %put 'world';  `
-    const results = await lint(text)
+    const results = await lintText(text)
 
     expect(results.length).toEqual(2)
     expect(results[0]).toEqual({
@@ -32,7 +33,7 @@ describe('lint', () => {
       @file
     **/
     %put '{SAS001}';`
-    const results = await lint(text)
+    const results = await lintText(text)
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual({
@@ -46,7 +47,7 @@ describe('lint', () => {
 
   it('should identify missing doxygen header', async () => {
     const text = `%put 'hello';`
-    const results = await lint(text)
+    const results = await lintText(text)
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual({
@@ -62,9 +63,52 @@ describe('lint', () => {
     const text = `/**
       @file
     **/`
-    const results = await lint(text)
+    const results = await lintText(text)
 
     expect(results.length).toEqual(0)
+  })
+})
+
+describe('lintFile', () => {
+  it('should identify lint issues in a given file', async () => {
+    const results = await lintFile(path.join(__dirname, 'example file.sas'))
+
+    expect(results.length).toEqual(5)
+    expect(results).toContainEqual({
+      message: 'Line contains trailing spaces',
+      lineNumber: 1,
+      startColumnNumber: 1,
+      endColumnNumber: 2,
+      severity: Severity.Warning
+    })
+    expect(results).toContainEqual({
+      message: 'Line contains trailing spaces',
+      lineNumber: 2,
+      startColumnNumber: 1,
+      endColumnNumber: 2,
+      severity: Severity.Warning
+    })
+    expect(results).toContainEqual({
+      message: 'File name contains spaces',
+      lineNumber: 1,
+      startColumnNumber: 1,
+      endColumnNumber: 1,
+      severity: Severity.Warning
+    })
+    expect(results).toContainEqual({
+      message: 'File missing Doxygen header',
+      lineNumber: 1,
+      startColumnNumber: 1,
+      endColumnNumber: 1,
+      severity: Severity.Warning
+    })
+    expect(results).toContainEqual({
+      message: 'Line contains encoded password',
+      lineNumber: 5,
+      startColumnNumber: 11,
+      endColumnNumber: 19,
+      severity: Severity.Error
+    })
   })
 })
 

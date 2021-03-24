@@ -1,7 +1,8 @@
 import { hasDoxygenHeader } from '../rules/hasDoxygenHeader'
 import { noEncodedPasswords } from '../rules/noEncodedPasswords'
+import { noSpacesInFileNames } from '../rules/noSpacesInFileNames'
 import { noTrailingSpaces } from '../rules/noTrailingSpaces'
-import { FileLintRule, LineLintRule } from './LintRule'
+import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 
 /**
  * LintConfig is the logical representation of the .sasjslint file.
@@ -13,6 +14,7 @@ import { FileLintRule, LineLintRule } from './LintRule'
 export class LintConfig {
   readonly lineLintRules: LineLintRule[] = []
   readonly fileLintRules: FileLintRule[] = []
+  readonly pathLintRules: PathLintRule[] = []
 
   constructor(json?: any) {
     if (json?.noTrailingSpaces) {
@@ -25,6 +27,10 @@ export class LintConfig {
 
     if (json?.hasDoxygenHeader) {
       this.fileLintRules.push(hasDoxygenHeader)
+    }
+
+    if (json?.noSpacesInFileNames) {
+      this.pathLintRules.push(noSpacesInFileNames)
     }
   }
 }
