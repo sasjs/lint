@@ -8,14 +8,20 @@
     "noTrailingSpaces": true,
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
-    "noSpacesInFileNames": true
+    "noSpacesInFileNames": true,
+    "lowerCaseFileNames": true,
+    "maxLineLength": 80,
+    "noTabIndentation": true
   },
   "examples": [
     {
       "noTrailingSpaces": true,
       "noEncodedPasswords": true,
       "hasDoxygenHeader": true,
-      "noSpacesInFileNames": true
+      "noSpacesInFileNames": true,
+      "lowerCaseFileNames": true,
+      "maxLineLength": 80,
+      "noTabIndentation": true
     }
   ],
   "properties": {
@@ -48,6 +54,30 @@
       "type": "boolean",
       "title": "noSpacesInFileNames",
       "description": "Enforces no spaces in file names. Shows a warning when they are present.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "lowerCaseFileNames": {
+      "$id": "#/properties/lowerCaseFileNames",
+      "type": "boolean",
+      "title": "lowerCaseFileNames",
+      "description": "Enforces no uppercase characters in file names. Shows a warning when they are present.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "maxLineLength": {
+      "$id": "#/properties/maxLineLength",
+      "type": "number",
+      "title": "maxLineLength",
+      "description": "Enforces a configurable maximum line length. Shows a warning for lines exceeding this length.",
+      "default": 80,
+      "examples": [60, 80, 120]
+    },
+    "noTabIndentation": {
+      "$id": "#/properties/noTabIndentation",
+      "type": "boolean",
+      "title": "noTabIndentation",
+      "description": "Enforces no indentation using tabs. Shows a warning when a line starts with a tab.",
       "default": true,
       "examples": [true, false]
     }

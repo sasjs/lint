@@ -1,4 +1,5 @@
 import { Diagnostic } from './Diagnostic'
+import { LintConfig } from './LintConfig'
 import { LintRuleType } from './LintRuleType'
 
 /**
@@ -17,7 +18,7 @@ export interface LintRule {
  */
 export interface LineLintRule extends LintRule {
   type: LintRuleType.Line
-  test: (value: string, lineNumber: number) => Diagnostic[]
+  test: (value: string, lineNumber: number, config?: LintConfig) => Diagnostic[]
 }
 
 /**

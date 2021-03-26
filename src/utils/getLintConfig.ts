@@ -6,7 +6,11 @@ import { getProjectRoot } from './getProjectRoot'
 const defaultConfiguration = {
   noTrailingSpaces: true,
   noEncodedPasswords: true,
-  hasDoxygenHeader: true
+  hasDoxygenHeader: true,
+  noSpacesInFileNames: true,
+  lowerCaseFileNames: true,
+  maxLineLength: 80,
+  noTabIndentation: true
 }
 /**
  * Fetches the config from the .sasjslint file and creates a LintConfig object.

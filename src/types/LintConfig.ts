@@ -1,6 +1,9 @@
 import { hasDoxygenHeader } from '../rules/hasDoxygenHeader'
+import { lowerCaseFileNames } from '../rules/lowerCaseFileNames'
+import { maxLineLength } from '../rules/maxLineLength'
 import { noEncodedPasswords } from '../rules/noEncodedPasswords'
 import { noSpacesInFileNames } from '../rules/noSpacesInFileNames'
+import { noTabIndentation } from '../rules/noTabIndentation'
 import { noTrailingSpaces } from '../rules/noTrailingSpaces'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 
@@ -15,6 +18,7 @@ export class LintConfig {
   readonly lineLintRules: LineLintRule[] = []
   readonly fileLintRules: FileLintRule[] = []
   readonly pathLintRules: PathLintRule[] = []
+  readonly maxLineLength = 80
 
   constructor(json?: any) {
     if (json?.noTrailingSpaces) {
@@ -25,12 +29,25 @@ export class LintConfig {
       this.lineLintRules.push(noEncodedPasswords)
     }
 
+    if (json?.noTabIndentation) {
+      this.lineLintRules.push(noTabIndentation)
+    }
+
+    if (json?.maxLineLength) {
+      this.maxLineLength = json.maxLineLength
+      this.lineLintRules.push(maxLineLength)
+    }
+
     if (json?.hasDoxygenHeader) {
       this.fileLintRules.push(hasDoxygenHeader)
     }
 
     if (json?.noSpacesInFileNames) {
       this.pathLintRules.push(noSpacesInFileNames)
+    }
+
+    if (json?.lowerCaseFileNames) {
+      this.pathLintRules.push(lowerCaseFileNames)
     }
   }
 }

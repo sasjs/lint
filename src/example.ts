@@ -1,4 +1,5 @@
-import { lintText } from './lint'
+import { lintFile, lintText } from './lint'
+import path from 'path'
 
 /**
  * Example which tests a piece of text with all known violations.
@@ -30,8 +31,8 @@ const text = `/**
   
   
  %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
-   %local x libref;
-   %let x={SAS002};
+	%local x libref;
+	%let x={SAS002};
    %do x=0 %to &maxtries;
    %if %sysfunc(libref(&prefix&x)) ne 0 %then %do;
      %let libref=&prefix&x;
@@ -44,6 +45,15 @@ const text = `/**
    %end;
    %put unable to find available libref in range &prefix.0-&maxtries;
  %mend;
+
 `
 
-lintText(text).then((diagnostics) => console.table(diagnostics))
+lintText(text).then((diagnostics) => {
+  console.log('Text lint results:')
+  console.table(diagnostics)
+})
+
+lintFile(path.join(__dirname, 'Example File.sas')).then((diagnostics) => {
+  console.log('File lint results:')
+  console.table(diagnostics)
+})

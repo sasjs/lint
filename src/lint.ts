@@ -65,7 +65,7 @@ const processLine = (
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = []
   config.lineLintRules.forEach((rule) => {
-    diagnostics.push(...rule.test(line, lineNumber))
+    diagnostics.push(...rule.test(line, lineNumber, config))
   })
 
   return diagnostics
