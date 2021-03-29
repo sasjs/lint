@@ -1,7 +1,7 @@
 import { PathLintRule } from '../types/LintRule'
 import { LintRuleType } from '../types/LintRuleType'
-import path from 'path'
 import { Severity } from '../types/Severity'
+import path from 'path'
 
 const name = 'noSpacesInFileNames'
 const description = 'Enforce the absence of spaces within file names.'

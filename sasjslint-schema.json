@@ -8,14 +8,22 @@
     "noTrailingSpaces": true,
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
-    "noSpacesInFileNames": true
+    "noSpacesInFileNames": true,
+    "lowerCaseFileNames": true,
+    "maxLineLength": 80,
+    "noTabIndentation": true,
+    "indentationMultiple": 2
   },
   "examples": [
     {
       "noTrailingSpaces": true,
       "noEncodedPasswords": true,
       "hasDoxygenHeader": true,
-      "noSpacesInFileNames": true
+      "noSpacesInFileNames": true,
+      "lowerCaseFileNames": true,
+      "maxLineLength": 80,
+      "noTabIndentation": true,
+      "indentationMultiple": 4
     }
   ],
   "properties": {
@@ -50,6 +58,38 @@
       "description": "Enforces no spaces in file names. Shows a warning when they are present.",
       "default": true,
       "examples": [true, false]
+    },
+    "lowerCaseFileNames": {
+      "$id": "#/properties/lowerCaseFileNames",
+      "type": "boolean",
+      "title": "lowerCaseFileNames",
+      "description": "Enforces no uppercase characters in file names. Shows a warning when they are present.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "maxLineLength": {
+      "$id": "#/properties/maxLineLength",
+      "type": "number",
+      "title": "maxLineLength",
+      "description": "Enforces a configurable maximum line length. Shows a warning for lines exceeding this length.",
+      "default": 80,
+      "examples": [60, 80, 120]
+    },
+    "noTabIndentation": {
+      "$id": "#/properties/noTabIndentation",
+      "type": "boolean",
+      "title": "noTabIndentation",
+      "description": "Enforces no indentation using tabs. Shows a warning when a line starts with a tab.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "indentationMultiple": {
+      "$id": "#/properties/indentationMultiple",
+      "type": "number",
+      "title": "indentationMultiple",
+      "description": "Enforces a configurable multiple for the number of spaces for indentation. Shows a warning for lines that are not indented by a multiple of this number.",
+      "default": 2,
+      "examples": [2, 3, 4]
     }
   }
 }

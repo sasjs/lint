@@ -18,6 +18,7 @@ describe('getLintConfig', () => {
 
     expect(config).toBeInstanceOf(LintConfig)
     expect(config.fileLintRules.length).toEqual(1)
-    expect(config.lineLintRules.length).toEqual(2)
+    expect(config.lineLintRules.length).toEqual(5)
+    expect(config.pathLintRules.length).toEqual(2)
   })
 })

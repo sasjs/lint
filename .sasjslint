@@ -2,5 +2,9 @@
     "noTrailingSpaces": true,
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
-    "noSpacesInFileNames": true
+    "noSpacesInFileNames": true,
+    "maxLineLength": 80,
+    "lowerCaseFileNames": true,
+    "noTabIndentation": true,
+    "indentationMultiple": 2
 }

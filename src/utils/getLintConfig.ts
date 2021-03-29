@@ -3,11 +3,20 @@ import { LintConfig } from '../types/LintConfig'
 import { readFile } from '@sasjs/utils/file'
 import { getProjectRoot } from './getProjectRoot'
 
-const defaultConfiguration = {
+/**
+ * Default configuration that is used when a .sasjslint file is not found
+ */
+export const DefaultLintConfiguration = {
   noTrailingSpaces: true,
   noEncodedPasswords: true,
-  hasDoxygenHeader: true
+  hasDoxygenHeader: true,
+  noSpacesInFileNames: true,
+  lowerCaseFileNames: true,
+  maxLineLength: 80,
+  noTabIndentation: true,
+  indentationMultiple: 2
 }
+
 /**
  * Fetches the config from the .sasjslint file and creates a LintConfig object.
  * Returns the default configuration when a .sasjslint file is unavailable.
@@ -19,7 +28,7 @@ export async function getLintConfig(): Promise<LintConfig> {
     path.join(projectRoot, '.sasjslint')
   ).catch((_) => {
     console.warn('Unable to load .sasjslint file. Using default configuration.')
-    return JSON.stringify(defaultConfiguration)
+    return JSON.stringify(DefaultLintConfiguration)
   })
   return new LintConfig(JSON.parse(configuration))
 }
