@@ -11,7 +11,8 @@
     "noSpacesInFileNames": true,
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
-    "noTabIndentation": true
+    "noTabIndentation": true,
+    "indentationMultiple": 2
   },
   "examples": [
     {
@@ -21,7 +22,8 @@
       "noSpacesInFileNames": true,
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
-      "noTabIndentation": true
+      "noTabIndentation": true,
+      "indentationMultiple": 4
     }
   ],
   "properties": {
@@ -80,6 +82,14 @@
       "description": "Enforces no indentation using tabs. Shows a warning when a line starts with a tab.",
       "default": true,
       "examples": [true, false]
+    },
+    "indentationMultiple": {
+      "$id": "#/properties/indentationMultiple",
+      "type": "number",
+      "title": "indentationMultiple",
+      "description": "Enforces a configurable multiple for the number of spaces for indentation. Shows a warning for lines that are not indented by a multiple of this number.",
+      "default": 2,
+      "examples": [2, 3, 4]
     }
   }
 }
