@@ -71,9 +71,9 @@ describe('lintText', () => {
 
 describe('lintFile', () => {
   it('should identify lint issues in a given file', async () => {
-    const results = await lintFile(path.join(__dirname, 'example file.sas'))
+    const results = await lintFile(path.join(__dirname, 'Example File.sas'))
 
-    expect(results.length).toEqual(5)
+    expect(results.length).toEqual(8)
     expect(results).toContainEqual({
       message: 'Line contains trailing spaces',
       lineNumber: 1,
@@ -96,6 +96,13 @@ describe('lintFile', () => {
       severity: Severity.Warning
     })
     expect(results).toContainEqual({
+      message: 'File name contains uppercase characters',
+      lineNumber: 1,
+      startColumnNumber: 1,
+      endColumnNumber: 1,
+      severity: Severity.Warning
+    })
+    expect(results).toContainEqual({
       message: 'File missing Doxygen header',
       lineNumber: 1,
       startColumnNumber: 1,
@@ -105,9 +112,23 @@ describe('lintFile', () => {
     expect(results).toContainEqual({
       message: 'Line contains encoded password',
       lineNumber: 5,
-      startColumnNumber: 11,
-      endColumnNumber: 19,
+      startColumnNumber: 10,
+      endColumnNumber: 18,
       severity: Severity.Error
+    })
+    expect(results).toContainEqual({
+      message: 'Line is indented with a tab',
+      lineNumber: 7,
+      startColumnNumber: 1,
+      endColumnNumber: 1,
+      severity: Severity.Warning
+    })
+    expect(results).toContainEqual({
+      message: 'Line has incorrect indentation - 3 spaces',
+      lineNumber: 6,
+      startColumnNumber: 1,
+      endColumnNumber: 1,
+      severity: Severity.Warning
     })
   })
 })

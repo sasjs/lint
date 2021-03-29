@@ -1,4 +1,5 @@
 import { hasDoxygenHeader } from '../rules/hasDoxygenHeader'
+import { indentationMultiple } from '../rules/indentationMultiple'
 import { lowerCaseFileNames } from '../rules/lowerCaseFileNames'
 import { maxLineLength } from '../rules/maxLineLength'
 import { noEncodedPasswords } from '../rules/noEncodedPasswords'
@@ -19,6 +20,7 @@ export class LintConfig {
   readonly fileLintRules: FileLintRule[] = []
   readonly pathLintRules: PathLintRule[] = []
   readonly maxLineLength = 80
+  readonly indentationMultiple = 2
 
   constructor(json?: any) {
     if (json?.noTrailingSpaces) {
@@ -36,6 +38,11 @@ export class LintConfig {
     if (json?.maxLineLength) {
       this.maxLineLength = json.maxLineLength
       this.lineLintRules.push(maxLineLength)
+    }
+
+    if (json?.indentationMultiple) {
+      this.indentationMultiple = json.indentationMultiple
+      this.lineLintRules.push(indentationMultiple)
     }
 
     if (json?.hasDoxygenHeader) {
