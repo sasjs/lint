@@ -14,6 +14,12 @@ describe('indentationMultiple', () => {
     expect(indentationMultiple.test(line, 1, config)).toEqual([])
   })
 
+  it('should ignore indentation when the multiple is set to 0', () => {
+    const line = " %put 'hello';"
+    const config = new LintConfig({ indentationMultiple: 0 })
+    expect(indentationMultiple.test(line, 1, config)).toEqual([])
+  })
+
   it('should return an empty array when the line is not indented', () => {
     const line = "%put 'hello';"
     const config = new LintConfig({ indentationMultiple: 2 })

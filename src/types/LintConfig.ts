@@ -19,8 +19,8 @@ export class LintConfig {
   readonly lineLintRules: LineLintRule[] = []
   readonly fileLintRules: FileLintRule[] = []
   readonly pathLintRules: PathLintRule[] = []
-  readonly maxLineLength = 80
-  readonly indentationMultiple = 2
+  readonly maxLineLength: number = 80
+  readonly indentationMultiple: number = 2
 
   constructor(json?: any) {
     if (json?.noTrailingSpaces) {
@@ -40,8 +40,8 @@ export class LintConfig {
       this.lineLintRules.push(maxLineLength)
     }
 
-    if (json?.indentationMultiple) {
-      this.indentationMultiple = json.indentationMultiple
+    if (!isNaN(json?.indentationMultiple)) {
+      this.indentationMultiple = json.indentationMultiple as number
       this.lineLintRules.push(indentationMultiple)
     }
 

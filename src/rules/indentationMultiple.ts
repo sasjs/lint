@@ -9,9 +9,13 @@ const message = 'Line has incorrect indentation'
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
   if (!value.startsWith(' ')) return []
 
-  const indentationMultiple = config?.indentationMultiple || 2
+  const indentationMultiple = isNaN(config?.indentationMultiple as number)
+    ? 2
+    : config?.indentationMultiple
+
+  if (indentationMultiple === 0) return []
   const numberOfSpaces = value.search(/\S|$/)
-  if (numberOfSpaces % indentationMultiple === 0) return []
+  if (numberOfSpaces % indentationMultiple! === 0) return []
   return [
     {
       message: `${message} - ${numberOfSpaces} ${

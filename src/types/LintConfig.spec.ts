@@ -40,6 +40,20 @@ describe('LintConfig', () => {
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
   })
 
+  it('should create an instance with the indentation multiple set', () => {
+    const config = new LintConfig({ indentationMultiple: 5 })
+
+    expect(config).toBeTruthy()
+    expect(config.indentationMultiple).toEqual(5)
+  })
+
+  it('should create an instance with the indentation multiple turned off', () => {
+    const config = new LintConfig({ indentationMultiple: 0 })
+
+    expect(config).toBeTruthy()
+    expect(config.indentationMultiple).toEqual(0)
+  })
+
   it('should create an instance with all flags set', () => {
     const config = new LintConfig({
       noTrailingSpaces: true,
