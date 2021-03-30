@@ -34,6 +34,27 @@ describe('hasDoxygenHeader', () => {
     ])
   })
 
+  it('should return an array with a single diagnostic when the file has comment blocks but no header', () => {
+    const content = `
+ %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
+   %local x libref;
+   %let x={SAS002};
+  /** Comment Line 1
+   * Comment Line 2
+   */
+   %do x=0 %to &maxtries;`
+
+    expect(hasDoxygenHeader.test(content)).toEqual([
+      {
+        message: 'File missing Doxygen header',
+        lineNumber: 1,
+        startColumnNumber: 1,
+        endColumnNumber: 1,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
   it('should return an array with a single diagnostic when the file is undefined', () => {
     const content = undefined
 
