@@ -27,6 +27,7 @@ export async function getLintConfig(): Promise<LintConfig> {
   const configuration = await readFile(
     path.join(projectRoot, '.sasjslint')
   ).catch((_) => {
+    console.warn('Unable to load .sasjslint file. Using default configuration.')
     return JSON.stringify(DefaultLintConfiguration)
   })
   return new LintConfig(JSON.parse(configuration))

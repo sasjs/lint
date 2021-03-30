@@ -1,7 +1,20 @@
-import { readFile } from '@sasjs/utils/file'
+import { readFile, listSubFoldersInFolder } from '@sasjs/utils/file'
 import { Diagnostic } from './types/Diagnostic'
 import { LintConfig } from './types/LintConfig'
+import { asyncForEach } from './utils/asyncForEach'
 import { getLintConfig } from './utils/getLintConfig'
+import { listSasFiles } from './utils/listSasFiles'
+import path from 'path'
+import { getProjectRoot } from './utils'
+
+const excludeFolders = [
+  '.git',
+  '.github',
+  '.vscode',
+  'node_modules',
+  'sasjsbuild',
+  'sasjsresults'
+]
 
 /**
  * Analyses and produces a set of diagnostics for the given text content.
@@ -16,16 +29,61 @@ export const lintText = async (text: string) => {
 /**
  * Analyses and produces a set of diagnostics for the file at the given path.
  * @param {string} filePath - the path to the file to be linted.
+ * @param {LintConfig} configuration - an optional configuration. When not passed in, this is read from the .sasjslint file.
  * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
  */
-export const lintFile = async (filePath: string) => {
-  const config = await getLintConfig()
+export const lintFile = async (
+  filePath: string,
+  configuration?: LintConfig
+) => {
+  const config = configuration || (await getLintConfig())
   const text = await readFile(filePath)
 
   const fileDiagnostics = processFile(filePath, config)
   const textDiagnostics = processText(text, config)
 
   return [...fileDiagnostics, ...textDiagnostics]
+}
+
+/**
+ * Analyses and produces a set of diagnostics for the folder at the given path.
+ * @param {string} folderPath - the path to the folder to be linted.
+ * @param {LintConfig} configuration - an optional configuration. When not passed in, this is read from the .sasjslint file.
+ * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
+ */
+export const lintFolder = async (
+  folderPath: string,
+  configuration?: LintConfig
+) => {
+  const config = configuration || (await getLintConfig())
+  const diagnostics: Diagnostic[] = []
+  const fileNames = await listSasFiles(folderPath)
+  await asyncForEach(fileNames, async (fileName) => {
+    diagnostics.push(
+      ...(await lintFile(path.join(folderPath, fileName), config))
+    )
+  })
+
+  const subFolders = (await listSubFoldersInFolder(folderPath)).filter(
+    (f: string) => !excludeFolders.includes(f)
+  )
+
+  await asyncForEach(subFolders, async (subFolder) => {
+    diagnostics.push(
+      ...(await lintFolder(path.join(folderPath, subFolder), config))
+    )
+  })
+
+  return diagnostics
+}
+
+/**
+ * Analyses and produces a set of diagnostics for the current project.
+ * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
+ */
+export const lintProject = async () => {
+  const projectRoot = await getProjectRoot()
+  return await lintFolder(projectRoot)
 }
 
 /**
