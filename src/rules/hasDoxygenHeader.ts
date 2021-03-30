@@ -8,7 +8,7 @@ const description =
 const message = 'File missing Doxygen header'
 const test = (value: string) => {
   try {
-    const hasFileHeader = value.split('/**')[0] !== value
+    const hasFileHeader = value.trimStart().startsWith('/*')
     if (hasFileHeader) return []
     return [
       {
