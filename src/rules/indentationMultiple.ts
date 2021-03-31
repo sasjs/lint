@@ -11,7 +11,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
 
   const indentationMultiple = isNaN(config?.indentationMultiple as number)
     ? 2
-    : config?.indentationMultiple
+    : config!.indentationMultiple
 
   if (indentationMultiple === 0) return []
   const numberOfSpaces = value.search(/\S|$/)
