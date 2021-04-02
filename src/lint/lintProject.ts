@@ -3,7 +3,7 @@ import { lintFolder } from './lintFolder'
 
 /**
  * Analyses and produces a set of diagnostics for the current project.
- * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
+ * @returns {Promise<Map<string, Diagnostic[]>>} Resolves with a map with array of diagnostic objects, each containing a warning, line number and column number, and grouped by file path.
  */
 export const lintProject = async () => {
   const projectRoot =
