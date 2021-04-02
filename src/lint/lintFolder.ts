@@ -20,19 +20,18 @@ const excludeFolders = [
  * Analyses and produces a set of diagnostics for the folder at the given path.
  * @param {string} folderPath - the path to the folder to be linted.
  * @param {LintConfig} configuration - an optional configuration. When not passed in, this is read from the .sasjslint file.
- * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
+ * @returns {Promise<Map<string, Diagnostic[]>>} Resolves with a map with array of diagnostic objects, each containing a warning, line number and column number, and grouped by file path.
  */
 export const lintFolder = async (
   folderPath: string,
   configuration?: LintConfig
 ) => {
   const config = configuration || (await getLintConfig())
-  const diagnostics: Diagnostic[] = []
+  let diagnostics: Map<string, Diagnostic[]> = new Map<string, Diagnostic[]>()
   const fileNames = await listSasFiles(folderPath)
   await asyncForEach(fileNames, async (fileName) => {
-    diagnostics.push(
-      ...(await lintFile(path.join(folderPath, fileName), config))
-    )
+    const filePath = path.join(folderPath, fileName)
+    diagnostics.set(filePath, await lintFile(filePath, config))
   })
 
   const subFolders = (await listSubFoldersInFolder(folderPath)).filter(
@@ -40,9 +39,11 @@ export const lintFolder = async (
   )
 
   await asyncForEach(subFolders, async (subFolder) => {
-    diagnostics.push(
-      ...(await lintFolder(path.join(folderPath, subFolder), config))
+    const subFolderDiagnostics = await lintFolder(
+      path.join(folderPath, subFolder),
+      config
     )
+    diagnostics = new Map([...diagnostics, ...subFolderDiagnostics])
   })
 
   return diagnostics
