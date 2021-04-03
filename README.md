@@ -6,7 +6,7 @@ Our goal is to help SAS developers everywhere spend less time on code reviews, b
 @sasjs/lint is used by the following products:
 
   * [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the market place, and select view/problems in the menu bar.
-  * @sasjs/cli - just run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
+  * [@sasjs/cli](https://cli.sasjs.io) - just run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
 
 Configuration is via a `.sasjslint` file with the following structure (these are also the defaults if no .sasjslint file is found):
 
