@@ -5,8 +5,8 @@ Our goal is to help SAS developers everywhere spend less time on code reviews, b
 ## Linting
 @sasjs/lint is used by the following products:
 
-  * [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the market place, and select view/problems in the menu bar.
-  * [@sasjs/cli](https://cli.sasjs.io) - just run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
+  * [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the VSCode marketplace, and select view/problems in the menu bar.
+  * [@sasjs/cli](https://cli.sasjs.io) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
 
 Configuration is via a `.sasjslint` file with the following structure (these are also the defaults if no .sasjslint file is found):
 
@@ -48,7 +48,7 @@ Severity: WARNING
 
 #### maxLineLength
 Whilst some developers are quite happy with their 4k UHD widescreen monitors, others are not so fortunate!  In addition, code becomes far more readable when line lengths are short.  The most compelling reason for short line lengths is to avoid the need to scroll when performing a side-by-side 'compare' between two files (eg as part of a GIT feature branch review).  
-In batch mode, long code lines can also be unceremoniously truncated, causing hard-to-detect errors.
+In batch mode, long code lines may be truncated, causing very hard-to-detect errors.
 
 For this reason we strongly recommend a line length limit, and we set the bar at 80.
 
@@ -57,7 +57,7 @@ Severity: WARNING
 #### noSpacesInFileNames
 The 'beef' we have with spaces in filenames is twofold:
 
-* Loss of the in-built ability to 'click' a filepath and have the file open
+* Loss of the in-built ability to 'click' a filepath and have the file open automatically
 * The need to quote such filepaths in order to use them in CLI commands
 
 In addition, when such files are used in URLs, they are often padded with a messy "%20" type quotation.  And of course, for macros (where the macro should match the filename) then spaces are simply not valid.
@@ -70,7 +70,7 @@ Whilst there are some arguments for using tabs to indent (such as the ability to
 Severity: WARNING
 
 #### noTrailingSpaces
-This will highlight lines with trailing spaces.  Trailing spaces serve no useful purpose in a SAS program, and can make lines unnecessarily long.
+This will highlight lines with trailing spaces.  Trailing spaces serve no useful purpose in a SAS program.
 
 severity: WARNING
 
@@ -105,7 +105,7 @@ Contact [Allan Bowe](https://www.linkedin.com/in/allanbowe/) for further details
 
 The SASjs Linter (and formatter) is a great way to de-risk and accelerate the delivery of SAS code into production environments.  However, code is just one part of a SAS estate.  If you are running SAS 9, you may be interested to know what 'gremlins' are lurking in your system.  Maybe you are preparing for a migration.  Maybe you are preparing to hand over the control of your environment.  Either way, an assessment of your existing system would put minds at rest and pro-actively identify trouble spots.
 
-The SAS 9 Health Check is a 'plug & play' product, that uses the [SAS 9 REST API](https://sas9api.io) to run hundreds of metadata and system checks to identify common problems.  The checks are non-invasive, and becuase it is a client app,, there is NOTHING TO INSTALL on your SAS server.  We offer this assessment for a low fixed fee, and if you engage our (competitively priced) services to address the issues we highlight, then the assessment is free.
+The SAS 9 Health Check is a 'plug & play' product, that uses the [SAS 9 REST API](https://sas9api.io) to run hundreds of metadata and system checks to identify common problems.  The checks are non-invasive, and becuase it is a client app, there is NOTHING TO INSTALL on your SAS server.  We offer this assessment for a low fixed fee, and if you engage our (competitively priced) services to address the issues we highlight, then the assessment is free.
 
 Contact [Allan Bowe](https://www.linkedin.com/in/allanbowe/) for further details.
 
