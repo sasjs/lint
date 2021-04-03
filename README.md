@@ -6,7 +6,7 @@ Our goal is to help SAS developers everywhere spend less time on code reviews, b
 @sasjs/lint is used by the following products:
 
   * [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the VSCode marketplace, and select view/problems in the menu bar.
-  * [@sasjs/cli](https://cli.sasjs.io) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
+  * [@sasjs/cli](https://cli.sasjs.io/lint) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
 
 Configuration is via a `.sasjslint` file with the following structure (these are also the defaults if no .sasjslint file is found):
 
@@ -27,7 +27,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 
 #### noEncodedPasswords
 
-This will highlight any rows that contain a {sas00X} type password, or {sasenc}.  These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
+This will highlight any rows that contain a `{sas00X}` type password, or `{sasenc}`.  These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
 
 Severity: ERROR
 
@@ -77,7 +77,7 @@ severity: WARNING
 ### Upcoming Linting Rules:
 
 * `noTabs` -> does what it says on the tin 
-* `noGremlins` -> Identifies all invisible characters, other than spaces / tabs / line endings.  If you really need that bell character, use a hex literal!
+* `noGremlins` -> identifies all invisible characters, other than spaces / tabs / line endings.  If you really need that bell character, use a hex literal!
 * `hasMendName` -> show the macro name in the %mend statement
 * `noNestedMacros` -> highlight where macros are defined inside other macros 
 * `lineEndings` -> set a standard line ending, such as LF or CRLF
@@ -97,7 +97,7 @@ Later we will investigate some harder stuff, such as automatic indentation and c
 
 ## Sponsorship & Contributions
 
-SASjs is an open source framework!  Contributions are welcomed.  If you would like to see a feature, because it would be useful in your project, but you don't have the requisite (typescript) experience - then how about you engage us on a short project and we build it for you?
+SASjs is an open source framework!  Contributions are welcomed.  If you would like to see a feature, because it would be useful in your project, but you don't have the requisite (Typescript) experience - then how about you engage us on a short project and we build it for you?
 
 Contact [Allan Bowe](https://www.linkedin.com/in/allanbowe/) for further details.
 
