@@ -149,12 +149,17 @@ describe('hasMacroNameInMend', () => {
     })
   })
 
-  describe('with extra spaces ', () => {
+  describe('with extra spaces and comments', () => {
     it('should return an empty array when %mend has correct macro name', () => {
       const content = `
+      /* 1st comment */
      %macro  somemacro ;
+
       %put &sysmacroname;
-    %mend  somemacro ;`
+
+     /* 2nd 
+     comment */
+      /* 3rd comment */ %mend  somemacro ;`
 
       expect(hasMacroNameInMend.test(content)).toEqual([])
     })
@@ -162,9 +167,9 @@ describe('hasMacroNameInMend', () => {
     it('should return an array with a single diagnostic when %mend has incorrect macro name', () => {
       const content = `
     %macro  somemacro;
-
+/* some comments */
       %put  &sysmacroname;
-
+/* some comments */
     %mend    someanothermacro   ;`
 
       expect(hasMacroNameInMend.test(content)).toEqual([
@@ -181,7 +186,7 @@ describe('hasMacroNameInMend', () => {
     it('should return an array with a single diagnostic when %mend has no macro name', () => {
       const content = `
      %macro   somemacro ;
-      %put &sysmacroname;
+      /* some comments */%put &sysmacroname;
     %mend         ;`
 
       expect(hasMacroNameInMend.test(content)).toEqual([

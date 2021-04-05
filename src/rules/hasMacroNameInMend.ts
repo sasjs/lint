@@ -13,7 +13,7 @@ const test = (value: string) => {
 
   const stack: string[] = []
   statements.forEach((statement, index) => {
-    const trimmedStatement = statement.trim()
+    const trimmedStatement = trimComments(statement).trim()
     if (trimmedStatement.startsWith('%macro ')) {
       const macroName = trimmedStatement
         .split(' ')
@@ -58,6 +58,15 @@ const test = (value: string) => {
   return diagnostics
 }
 
+const trimComments = (statement: string): string => {
+  let trimmed = statement.trim()
+
+  if (trimmed.startsWith('/*'))
+    trimmed = (trimmed.split('*/').pop() as string).trim()
+
+  return trimmed
+}
+
 const getLineNumber = (statements: string[], index: number): number => {
   const combinedCode = statements.slice(0, index).join(';')
   const lines = (combinedCode.match(/\n/g) || []).length + 1
@@ -65,7 +74,7 @@ const getLineNumber = (statements: string[], index: number): number => {
 }
 
 const getColNumber = (statement: string, text: string): number => {
-  return statement.replace(/[\r\n]+/, '').indexOf(text) + 1
+  return (statement.split('\n').pop() as string).indexOf(text) + 1
 }
 
 /**
