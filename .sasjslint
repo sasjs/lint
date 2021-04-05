@@ -6,5 +6,6 @@
     "maxLineLength": 80,
     "lowerCaseFileNames": true,
     "noTabIndentation": true,
-    "indentationMultiple": 2
+    "indentationMultiple": 2,
+    "hasMacroNameInMend": false
 }
