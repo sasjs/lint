@@ -8,7 +8,7 @@ describe('lintFile', () => {
       path.join(__dirname, '..', 'Example File.sas')
     )
 
-    expect(results.length).toEqual(9)
+    expect(results.length).toEqual(8)
     expect(results).toContainEqual({
       message: 'Line contains trailing spaces',
       lineNumber: 1,

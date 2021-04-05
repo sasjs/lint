@@ -58,7 +58,7 @@ export class LintConfig {
       this.pathLintRules.push(lowerCaseFileNames)
     }
 
-    if (json?.hasMacroNameInMend !== undefined) {
+    if (json?.hasMacroNameInMend) {
       this.fileLintRules.push(hasMacroNameInMend)
     }
   }

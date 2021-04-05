@@ -15,7 +15,7 @@ describe('lintProject', () => {
     const diagnostics = results.get(
       path.join(__dirname, '..', 'Example File.sas')
     )!
-    expect(diagnostics.length).toEqual(9)
+    expect(diagnostics.length).toEqual(8)
     expect(diagnostics).toContainEqual({
       message: 'Line contains trailing spaces',
       lineNumber: 1,
