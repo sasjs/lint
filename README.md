@@ -51,7 +51,7 @@ Code becomes far more readable when line lengths are short.  The most compelling
 
 In batch mode, long SAS code lines may also be truncated, causing hard-to-detect errors.  
 
-For this reason we strongly recommend a line length limit, and we set the bar at 80.
+For this reason we strongly recommend a line length limit, and we set the bar at 80.  To turn this feature off, set the value to 0.
 
 Severity: WARNING
 
