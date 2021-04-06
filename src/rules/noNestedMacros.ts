@@ -6,9 +6,9 @@ import { trimComments } from '../utils/trimComments'
 import { getLineNumber } from '../utils/getLineNumber'
 import { getColNumber } from '../utils/getColNumber'
 
-const name = 'hasMacroNameInMend'
-const description = 'The %mend statement should contain the macro name'
-const message = '$mend statement missing or incorrect'
+const name = 'noNestedMacros'
+const description = 'Defining nested macro is not good practice'
+const message = 'Macro definition present inside another macro'
 const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
 
@@ -28,49 +28,29 @@ const test = (value: string) => {
         .split(' ')
         .filter((s: string) => !!s)[1]
         .split('(')[0]
-      stack.push(macroName)
-    } else if (trimmedStatement.startsWith('%mend')) {
-      const macroStarted = stack.pop()
-      const macroName = trimmedStatement
-        .split(' ')
-        .filter((s: string) => !!s)[1]
-
-      if (!macroName) {
+      if (stack.length) {
+        const parentMacro = stack.slice(-1).pop()
         diagnostics.push({
-          message: '%mend missing macro name',
+          message: `${message} '${parentMacro}'`,
           lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColNumber(statement, '%mend'),
-          endColumnNumber: getColNumber(statement, '%mend') + 6,
-          severity: Severity.Warning
-        })
-      } else if (macroName !== macroStarted) {
-        diagnostics.push({
-          message: 'mismatch macro name in %mend statement',
-          lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColNumber(statement, macroName),
+          startColumnNumber: getColNumber(statement, '%macro'),
           endColumnNumber:
-            getColNumber(statement, macroName) + macroName.length - 1,
+            getColNumber(statement, '%macro') + trimmedStatement.length,
           severity: Severity.Warning
         })
       }
+      stack.push(macroName)
+    } else if (trimmedStatement.startsWith('%mend')) {
+      stack.pop()
     }
   })
-  if (stack.length) {
-    diagnostics.push({
-      message: 'missing %mend statement for macro(s)',
-      lineNumber: statements.length + 1,
-      startColumnNumber: 1,
-      endColumnNumber: 1,
-      severity: Severity.Warning
-    })
-  }
   return diagnostics
 }
 
 /**
  * Lint rule that checks for the presence of macro name in %mend statement.
  */
-export const hasMacroNameInMend: FileLintRule = {
+export const noNestedMacros: FileLintRule = {
   type: LintRuleType.File,
   name,
   description,
