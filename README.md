@@ -14,9 +14,12 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 {
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
+    "hasMacroNameInMend": false,
+    "hasMacroParentheses": true
     "indentationMultiple": 2,
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
+    "noNestedMacros": true,
     "noSpacesInFileNames": true,
     "noTabIndentation": true,
     "noTrailingSpaces": true
@@ -36,6 +39,16 @@ The SASjs framework recommends the use of Doxygen headers for describing all typ
 
 Severity: WARNING
 
+#### hasMacroNameInMend
+The addition of the macro name in the `%mend` statement is optional, but can approve readability in large programs.  A discussion on this topic can be found [here](https://www.linkedin.com/posts/allanbowe_sas-sasapps-sasjs-activity-6783413360781266945-1-7m).  The default setting will be the result of a popular vote by around 300 people.  Default:  false (for now)
+
+Severity: WARNING
+
+#### hasMacroParentheses
+As per the example [here](https://github.com/sasjs/lint/issues/20), macros defined without parentheses cause problems if that macro is ever extended (it's not possible to reliably extend that macro without potentially breaking some code that has used the macro).  It's better to always define parentheses, even if they are not used.  Default:  true
+
+Severity: WARNING
+
 #### indentationMultiple
 This will check each line to ensure that the count of leading spaces can be divided cleanly by this multiple.
 
@@ -52,6 +65,11 @@ Code becomes far more readable when line lengths are short.  The most compelling
 In batch mode, long SAS code lines may also be truncated, causing hard-to-detect errors.  
 
 For this reason we strongly recommend a line length limit, and we set the bar at 80.  To turn this feature off, set the value to 0.
+
+Severity: WARNING
+
+#### noNestedMacros
+Where macros are defined inside other macros, they are recompiled every time the outer maro is invoked.  Hence, it is widely considered inefficient, and bad practice, to nest macro definitions.  Default:  true
 
 Severity: WARNING
 
