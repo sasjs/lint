@@ -22,14 +22,23 @@ const test = (value: string) => {
       commentStarted
     ))
 
-    if (trimmedStatement.startsWith('%macro ')) {
+    if (trimmedStatement.startsWith('%macro')) {
       const macroNameDefinition = trimmedStatement
         .slice(7, trimmedStatement.length)
         .trim()
 
       const macroNameDefinitionParts = macroNameDefinition.split('(')
       const macroName = macroNameDefinitionParts[0]
-      if (macroNameDefinitionParts.length === 1)
+
+      if (!macroName)
+        diagnostics.push({
+          message: 'Macro definition missing name',
+          lineNumber: getLineNumber(statements, index + 1),
+          startColumnNumber: getColNumber(statement, '%macro'),
+          endColumnNumber: statement.length,
+          severity: Severity.Warning
+        })
+      else if (macroNameDefinitionParts.length === 1)
         diagnostics.push({
           message,
           lineNumber: getLineNumber(statements, index + 1),

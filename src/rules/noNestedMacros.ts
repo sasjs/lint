@@ -25,8 +25,8 @@ const test = (value: string) => {
 
     if (trimmedStatement.startsWith('%macro ')) {
       const macroName = trimmedStatement
-        .split(' ')
-        .filter((s: string) => !!s)[1]
+        .slice(7, trimmedStatement.length)
+        .trim()
         .split('(')[0]
       if (stack.length) {
         const parentMacro = stack.slice(-1).pop()
