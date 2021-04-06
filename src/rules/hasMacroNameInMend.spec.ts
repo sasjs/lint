@@ -164,6 +164,48 @@ describe('hasMacroNameInMend', () => {
       expect(hasMacroNameInMend.test(content)).toEqual([])
     })
 
+    it('should return an array with a single diagnostic when %mend has correct macro name having code in comments', () => {
+      const content = `/**
+      @file examplemacro.sas
+      @brief an example of a macro to be used in a service
+      @details  This macro is great. Yadda yadda yadda.  Usage:
+
+        * code formatting applies when indented by 4 spaces; code formatting applies when indented by 4 spaces; code formatting applies when indented by 4 spaces; code formatting applies when indented by 4 spaces; code formatting applies when indented by 4 spaces;
+
+        some code
+        %macro examplemacro123();      
+        
+        %examplemacro()
+
+      <h4> SAS Macros </h4>
+      @li doesnothing.sas
+
+      @author Allan Bowe
+    **/
+
+    %macro examplemacro();
+
+    proc sql;
+    create table areas
+      as select area
+      
+    from sashelp.springs;
+
+    %doesnothing();
+
+    %mend;`
+
+      expect(hasMacroNameInMend.test(content)).toEqual([
+        {
+          message: '%mend missing macro name',
+          lineNumber: 29,
+          startColumnNumber: 5,
+          endColumnNumber: 11,
+          severity: Severity.Warning
+        }
+      ])
+    })
+
     it('should return an array with a single diagnostic when %mend has incorrect macro name', () => {
       const content = `
     %macro  somemacro;

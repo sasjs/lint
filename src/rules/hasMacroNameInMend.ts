@@ -12,8 +12,14 @@ const test = (value: string) => {
   const statements: string[] = value ? value.split(';') : []
 
   const stack: string[] = []
+  let trimmedStatement = '',
+    commentStarted = false
   statements.forEach((statement, index) => {
-    const trimmedStatement = trimComments(statement).trim()
+    ;({ statement: trimmedStatement, commentStarted } = trimComments(
+      statement,
+      commentStarted
+    ))
+
     if (trimmedStatement.startsWith('%macro ')) {
       const macroName = trimmedStatement
         .split(' ')
@@ -58,13 +64,24 @@ const test = (value: string) => {
   return diagnostics
 }
 
-const trimComments = (statement: string): string => {
+const trimComments = (
+  statement: string,
+  commentStarted: boolean = false
+): { statement: string; commentStarted: boolean } => {
   let trimmed = statement.trim()
 
-  if (trimmed.startsWith('/*'))
-    trimmed = (trimmed.split('*/').pop() as string).trim()
-
-  return trimmed
+  if (commentStarted || trimmed.startsWith('/*')) {
+    const parts = trimmed.split('*/')
+    if (parts.length > 1) {
+      return {
+        statement: (parts.pop() as string).trim(),
+        commentStarted: false
+      }
+    } else {
+      return { statement: '', commentStarted: true }
+    }
+  }
+  return { statement: trimmed, commentStarted: false }
 }
 
 const getLineNumber = (statements: string[], index: number): number => {
