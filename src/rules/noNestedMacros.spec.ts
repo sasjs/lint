@@ -29,7 +29,7 @@ describe('noNestedMacros', () => {
         message: "Macro definition present inside another macro 'outer'",
         lineNumber: 4,
         startColumnNumber: 7,
-        endColumnNumber: 21,
+        endColumnNumber: 20,
         severity: Severity.Warning
       }
     ])
@@ -57,14 +57,14 @@ describe('noNestedMacros', () => {
         message: "Macro definition present inside another macro 'outer'",
         lineNumber: 4,
         startColumnNumber: 7,
-        endColumnNumber: 21,
+        endColumnNumber: 20,
         severity: Severity.Warning
       },
       {
         message: "Macro definition present inside another macro 'inner'",
         lineNumber: 7,
         startColumnNumber: 17,
-        endColumnNumber: 32,
+        endColumnNumber: 31,
         severity: Severity.Warning
       }
     ])

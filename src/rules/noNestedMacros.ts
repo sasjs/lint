@@ -35,7 +35,7 @@ const test = (value: string) => {
           lineNumber: getLineNumber(statements, index + 1),
           startColumnNumber: getColNumber(statement, '%macro'),
           endColumnNumber:
-            getColNumber(statement, '%macro') + trimmedStatement.length,
+            getColNumber(statement, '%macro') + trimmedStatement.length - 1,
           severity: Severity.Warning
         })
       }
