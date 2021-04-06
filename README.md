@@ -47,10 +47,11 @@ On *nix systems, it is imperative that autocall macros are in lowercase.  When s
 Severity: WARNING
 
 #### maxLineLength
-Whilst some developers are quite happy with their 4k UHD widescreen monitors, others are not so fortunate!  In addition, code becomes far more readable when line lengths are short.  The most compelling reason for short line lengths is to avoid the need to scroll when performing a side-by-side 'compare' between two files (eg as part of a GIT feature branch review).  
-In batch mode, long code lines may be truncated, causing very hard-to-detect errors.
+Code becomes far more readable when line lengths are short.  The most compelling reason for short line lengths is to avoid the need to scroll when performing a side-by-side 'compare' between two files (eg as part of a GIT feature branch review).  A longer discussion on optimal code line length can be found [here](https://stackoverflow.com/questions/578059/studies-on-optimal-code-width)
 
-For this reason we strongly recommend a line length limit, and we set the bar at 80.
+In batch mode, long SAS code lines may also be truncated, causing hard-to-detect errors.  
+
+For this reason we strongly recommend a line length limit, and we set the bar at 80.  To turn this feature off, set the value to 0.
 
 Severity: WARNING
 
