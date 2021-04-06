@@ -15,7 +15,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
     "hasMacroNameInMend": false,
-    "hasMacroParentheses": true
+    "hasMacroParentheses": true,
     "indentationMultiple": 2,
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
