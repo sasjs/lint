@@ -7,6 +7,8 @@ import { noSpacesInFileNames } from '../rules/noSpacesInFileNames'
 import { noTabIndentation } from '../rules/noTabIndentation'
 import { noTrailingSpaces } from '../rules/noTrailingSpaces'
 import { hasMacroNameInMend } from '../rules/hasMacroNameInMend'
+import { noNestedMacros } from '../rules/noNestedMacros'
+import { hasMacroParentheses } from '../rules/hasMacroParentheses'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 
 /**
@@ -60,6 +62,14 @@ export class LintConfig {
 
     if (json?.hasMacroNameInMend) {
       this.fileLintRules.push(hasMacroNameInMend)
+    }
+
+    if (json?.noNestedMacros) {
+      this.fileLintRules.push(noNestedMacros)
+    }
+
+    if (json?.hasMacroParentheses) {
+      this.fileLintRules.push(hasMacroParentheses)
     }
   }
 }

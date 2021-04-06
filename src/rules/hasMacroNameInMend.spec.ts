@@ -48,7 +48,7 @@ describe('hasMacroNameInMend', () => {
         message: 'mismatch macro name in %mend statement',
         lineNumber: 4,
         startColumnNumber: 9,
-        endColumnNumber: 25,
+        endColumnNumber: 24,
         severity: Severity.Warning
       }
     ])
@@ -219,7 +219,7 @@ describe('hasMacroNameInMend', () => {
           message: 'mismatch macro name in %mend statement',
           lineNumber: 6,
           startColumnNumber: 14,
-          endColumnNumber: 30,
+          endColumnNumber: 29,
           severity: Severity.Warning
         }
       ])

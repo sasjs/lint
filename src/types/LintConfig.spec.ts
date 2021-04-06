@@ -58,6 +58,42 @@ describe('LintConfig', () => {
     expect(config.fileLintRules.length).toEqual(0)
   })
 
+  it('should create an instance with the noNestedMacros flag set', () => {
+    const config = new LintConfig({ noNestedMacros: true })
+
+    expect(config).toBeTruthy()
+    expect(config.lineLintRules.length).toEqual(0)
+    expect(config.fileLintRules.length).toEqual(1)
+    expect(config.fileLintRules[0].name).toEqual('noNestedMacros')
+    expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
+  })
+
+  it('should create an instance with the noNestedMacros flag off', () => {
+    const config = new LintConfig({ noNestedMacros: false })
+
+    expect(config).toBeTruthy()
+    expect(config.lineLintRules.length).toEqual(0)
+    expect(config.fileLintRules.length).toEqual(0)
+  })
+
+  it('should create an instance with the hasMacroParentheses flag set', () => {
+    const config = new LintConfig({ hasMacroParentheses: true })
+
+    expect(config).toBeTruthy()
+    expect(config.lineLintRules.length).toEqual(0)
+    expect(config.fileLintRules.length).toEqual(1)
+    expect(config.fileLintRules[0].name).toEqual('hasMacroParentheses')
+    expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
+  })
+
+  it('should create an instance with the hasMacroParentheses flag off', () => {
+    const config = new LintConfig({ hasMacroParentheses: false })
+
+    expect(config).toBeTruthy()
+    expect(config.lineLintRules.length).toEqual(0)
+    expect(config.fileLintRules.length).toEqual(0)
+  })
+
   it('should create an instance with the indentation multiple set', () => {
     const config = new LintConfig({ indentationMultiple: 5 })
 
@@ -82,7 +118,9 @@ describe('LintConfig', () => {
       maxLineLength: 80,
       noTabIndentation: true,
       indentationMultiple: 2,
-      hasMacroNameInMend: true
+      hasMacroNameInMend: true,
+      noNestedMacros: true,
+      hasMacroParentheses: true
     })
 
     expect(config).toBeTruthy()
@@ -98,11 +136,15 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[4].name).toEqual('indentationMultiple')
     expect(config.lineLintRules[4].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(2)
+    expect(config.fileLintRules.length).toEqual(4)
     expect(config.fileLintRules[0].name).toEqual('hasDoxygenHeader')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[1].name).toEqual('hasMacroNameInMend')
     expect(config.fileLintRules[1].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[2].name).toEqual('noNestedMacros')
+    expect(config.fileLintRules[2].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[3].name).toEqual('hasMacroParentheses')
+    expect(config.fileLintRules[3].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')
