@@ -6,6 +6,7 @@ import { noEncodedPasswords } from '../rules/noEncodedPasswords'
 import { noSpacesInFileNames } from '../rules/noSpacesInFileNames'
 import { noTabIndentation } from '../rules/noTabIndentation'
 import { noTrailingSpaces } from '../rules/noTrailingSpaces'
+import { hasMacroNameInMend } from '../rules/hasMacroNameInMend'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 
 /**
@@ -55,6 +56,10 @@ export class LintConfig {
 
     if (json?.lowerCaseFileNames) {
       this.pathLintRules.push(lowerCaseFileNames)
+    }
+
+    if (json?.hasMacroNameInMend) {
+      this.fileLintRules.push(hasMacroNameInMend)
     }
   }
 }
