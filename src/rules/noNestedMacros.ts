@@ -3,7 +3,6 @@ import { FileLintRule } from '../types/LintRule'
 import { LintRuleType } from '../types/LintRuleType'
 import { Severity } from '../types/Severity'
 import { trimComments } from '../utils/trimComments'
-import { getLineNumber } from '../utils/getLineNumber'
 import { getColumnNumber } from '../utils/getColumnNumber'
 
 const name = 'noNestedMacros'
@@ -15,7 +14,7 @@ const test = (value: string) => {
 
   const lines: string[] = value ? value.split('\n') : []
   let isCommentStarted = false
-  lines.forEach((line, index) => {
+  lines.forEach((line, lineIndex) => {
     const { statement: trimmedLine, commentStarted } = trimComments(
       line,
       isCommentStarted
@@ -41,7 +40,7 @@ const test = (value: string) => {
             message: message
               .replace('{macro}', macroName)
               .replace('{parent}', parentMacro!),
-            lineNumber: getLineNumber(lines, index + 1),
+            lineNumber: lineIndex + 1,
             startColumnNumber: getColumnNumber(line, '%macro'),
             endColumnNumber:
               getColumnNumber(line, '%macro') + trimmedStatement.length - 1,

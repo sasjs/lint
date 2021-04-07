@@ -1,9 +1,7 @@
-export const getColumnNumber = (statement: string, text: string): number => {
-  const index = (statement.split('\n').pop() as string).indexOf(text)
+export const getColumnNumber = (line: string, text: string): number => {
+  const index = (line.split('\n').pop() as string).indexOf(text)
   if (index < 0) {
-    throw new Error(
-      `String '${text}' was not found in statement '${statement}'`
-    )
+    throw new Error(`String '${text}' was not found in line '${line}'`)
   }
-  return (statement.split('\n').pop() as string).indexOf(text) + 1
+  return (line.split('\n').pop() as string).indexOf(text) + 1
 }

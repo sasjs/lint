@@ -3,7 +3,6 @@ import { FileLintRule } from '../types/LintRule'
 import { LintRuleType } from '../types/LintRuleType'
 import { Severity } from '../types/Severity'
 import { trimComments } from '../utils/trimComments'
-import { getLineNumber } from '../utils/getLineNumber'
 import { getColumnNumber } from '../utils/getColumnNumber'
 
 const name = 'hasMacroParentheses'
@@ -14,7 +13,7 @@ const test = (value: string) => {
 
   const lines: string[] = value ? value.split('\n') : []
   let isCommentStarted = false
-  lines.forEach((line, index) => {
+  lines.forEach((line, lineIndex) => {
     const { statement: trimmedLine, commentStarted } = trimComments(
       line,
       isCommentStarted
@@ -40,7 +39,7 @@ const test = (value: string) => {
         if (!macroName)
           diagnostics.push({
             message: 'Macro definition contains space(s)',
-            lineNumber: getLineNumber(lines, index + 1),
+            lineNumber: lineIndex + 1,
             startColumnNumber: getColumnNumber(line, '%macro'),
             endColumnNumber:
               getColumnNumber(line, '%macro') + trimmedStatement.length,
@@ -49,7 +48,7 @@ const test = (value: string) => {
         else if (macroNameDefinitionParts.length === 1)
           diagnostics.push({
             message,
-            lineNumber: getLineNumber(lines, index + 1),
+            lineNumber: lineIndex + 1,
             startColumnNumber: getColumnNumber(line, macroNameDefinition),
             endColumnNumber:
               getColumnNumber(line, macroNameDefinition) +
@@ -60,7 +59,7 @@ const test = (value: string) => {
         else if (macroName !== macroName.trim())
           diagnostics.push({
             message: 'Macro definition contains space(s)',
-            lineNumber: getLineNumber(lines, index + 1),
+            lineNumber: lineIndex + 1,
             startColumnNumber: getColumnNumber(line, macroNameDefinition),
             endColumnNumber:
               getColumnNumber(line, macroNameDefinition) +

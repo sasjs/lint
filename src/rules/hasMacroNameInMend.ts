@@ -3,7 +3,6 @@ import { FileLintRule } from '../types/LintRule'
 import { LintRuleType } from '../types/LintRuleType'
 import { Severity } from '../types/Severity'
 import { trimComments } from '../utils/trimComments'
-import { getLineNumber } from '../utils/getLineNumber'
 import { getColumnNumber } from '../utils/getColumnNumber'
 
 const name = 'hasMacroNameInMend'
@@ -17,7 +16,7 @@ const test = (value: string) => {
 
   const declaredMacros: { name: string; lineNumber: number }[] = []
   let isCommentStarted = false
-  lines.forEach((line, index) => {
+  lines.forEach((line, lineIndex) => {
     const { statement: trimmedLine, commentStarted } = trimComments(
       line,
       isCommentStarted
@@ -39,7 +38,7 @@ const test = (value: string) => {
           .split('(')[0]
         declaredMacros.push({
           name: macroName,
-          lineNumber: getLineNumber(lines, index + 1)
+          lineNumber: lineIndex + 1
         })
       } else if (trimmedStatement.startsWith('%mend')) {
         const declaredMacro = declaredMacros.pop()
@@ -52,7 +51,7 @@ const test = (value: string) => {
             message: `%mend statement is missing macro name - ${
               declaredMacro!.name
             }`,
-            lineNumber: getLineNumber(lines, index + 1),
+            lineNumber: lineIndex + 1,
             startColumnNumber: getColumnNumber(line, '%mend'),
             endColumnNumber: getColumnNumber(line, '%mend') + 6,
             severity: Severity.Warning
@@ -62,7 +61,7 @@ const test = (value: string) => {
             message: `%mend statement has mismatched macro name, it should be '${
               declaredMacro!.name
             }'`,
-            lineNumber: getLineNumber(lines, index + 1),
+            lineNumber: lineIndex + 1,
             startColumnNumber: getColumnNumber(line, macroName),
             endColumnNumber:
               getColumnNumber(line, macroName) + macroName.length - 1,
