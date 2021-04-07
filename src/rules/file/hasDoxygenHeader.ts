@@ -1,6 +1,6 @@
-import { FileLintRule } from '../types/LintRule'
-import { LintRuleType } from '../types/LintRuleType'
-import { Severity } from '../types/Severity'
+import { FileLintRule } from '../../types/LintRule'
+import { LintRuleType } from '../../types/LintRuleType'
+import { Severity } from '../../types/Severity'
 
 const name = 'hasDoxygenHeader'
 const description =

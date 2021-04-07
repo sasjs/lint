@@ -1,4 +1,4 @@
-import { Severity } from '../types/Severity'
+import { Severity } from '../../types/Severity'
 import { noTabIndentation } from './noTabIndentation'
 
 describe('noTabs', () => {

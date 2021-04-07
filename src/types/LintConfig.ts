@@ -1,14 +1,17 @@
-import { hasDoxygenHeader } from '../rules/hasDoxygenHeader'
-import { indentationMultiple } from '../rules/indentationMultiple'
-import { lowerCaseFileNames } from '../rules/lowerCaseFileNames'
-import { maxLineLength } from '../rules/maxLineLength'
-import { noEncodedPasswords } from '../rules/noEncodedPasswords'
-import { noSpacesInFileNames } from '../rules/noSpacesInFileNames'
-import { noTabIndentation } from '../rules/noTabIndentation'
-import { noTrailingSpaces } from '../rules/noTrailingSpaces'
-import { hasMacroNameInMend } from '../rules/hasMacroNameInMend'
-import { noNestedMacros } from '../rules/noNestedMacros'
-import { hasMacroParentheses } from '../rules/hasMacroParentheses'
+import {
+  hasDoxygenHeader,
+  hasMacroNameInMend,
+  noNestedMacros,
+  hasMacroParentheses
+} from '../rules/file'
+import {
+  indentationMultiple,
+  maxLineLength,
+  noEncodedPasswords,
+  noTabIndentation,
+  noTrailingSpaces
+} from '../rules/line'
+import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 
 /**

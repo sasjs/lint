@@ -1,9 +1,9 @@
-import { Diagnostic } from '../types/Diagnostic'
-import { FileLintRule } from '../types/LintRule'
-import { LintRuleType } from '../types/LintRuleType'
-import { Severity } from '../types/Severity'
-import { trimComments } from '../utils/trimComments'
-import { getColumnNumber } from '../utils/getColumnNumber'
+import { Diagnostic } from '../../types/Diagnostic'
+import { FileLintRule } from '../../types/LintRule'
+import { LintRuleType } from '../../types/LintRuleType'
+import { Severity } from '../../types/Severity'
+import { trimComments } from '../../utils/trimComments'
+import { getColumnNumber } from '../../utils/getColumnNumber'
 
 const name = 'hasMacroNameInMend'
 const description =

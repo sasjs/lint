@@ -1,4 +1,4 @@
-import { LintConfig, Severity } from '../types'
+import { LintConfig, Severity } from '../../types'
 import { maxLineLength } from './maxLineLength'
 
 describe('maxLineLength', () => {

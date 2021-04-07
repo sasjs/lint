@@ -1,4 +1,4 @@
-import { Severity } from '../types/Severity'
+import { Severity } from '../../types/Severity'
 import { noTrailingSpaces } from './noTrailingSpaces'
 
 describe('noTrailingSpaces', () => {

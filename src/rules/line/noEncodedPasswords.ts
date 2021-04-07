@@ -1,6 +1,6 @@
-import { LineLintRule } from '../types/LintRule'
-import { LintRuleType } from '../types/LintRuleType'
-import { Severity } from '../types/Severity'
+import { LineLintRule } from '../../types/LintRule'
+import { LintRuleType } from '../../types/LintRuleType'
+import { Severity } from '../../types/Severity'
 
 const name = 'noEncodedPasswords'
 const description = 'Disallow encoded passwords in SAS code.'
