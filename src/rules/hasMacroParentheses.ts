@@ -12,55 +12,64 @@ const message = 'Macro definition missing parentheses'
 const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
 
-  const statements: string[] = value ? value.split(';') : []
-
+  const lines: string[] = value ? value.split('\n') : []
   let isCommentStarted = false
-  statements.forEach((statement, index) => {
-    const { statement: trimmedStatement, commentStarted } = trimComments(
-      statement,
+  lines.forEach((line, index) => {
+    const { statement: trimmedLine, commentStarted } = trimComments(
+      line,
       isCommentStarted
     )
     isCommentStarted = commentStarted
+    const statements: string[] = trimmedLine ? trimmedLine.split(';') : []
 
-    if (trimmedStatement.startsWith('%macro')) {
-      const macroNameDefinition = trimmedStatement
-        .slice(7, trimmedStatement.length)
-        .trim()
+    statements.forEach((statement) => {
+      const { statement: trimmedStatement, commentStarted } = trimComments(
+        statement,
+        isCommentStarted
+      )
+      isCommentStarted = commentStarted
 
-      const macroNameDefinitionParts = macroNameDefinition.split('(')
-      const macroName = macroNameDefinitionParts[0]
+      if (trimmedStatement.startsWith('%macro')) {
+        const macroNameDefinition = trimmedStatement
+          .slice(7, trimmedStatement.length)
+          .trim()
 
-      if (!macroName)
-        diagnostics.push({
-          message: 'Macro definition missing name',
-          lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColumnNumber(statement, '%macro'),
-          endColumnNumber: statement.length,
-          severity: Severity.Warning
-        })
-      else if (macroNameDefinitionParts.length === 1)
-        diagnostics.push({
-          message,
-          lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColumnNumber(statement, macroNameDefinition),
-          endColumnNumber:
-            getColumnNumber(statement, macroNameDefinition) +
-            macroNameDefinition.length -
-            1,
-          severity: Severity.Warning
-        })
-      else if (macroName !== macroName.trim())
-        diagnostics.push({
-          message: 'Macro definition contains space(s)',
-          lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColumnNumber(statement, macroNameDefinition),
-          endColumnNumber:
-            getColumnNumber(statement, macroNameDefinition) +
-            macroNameDefinition.length -
-            1,
-          severity: Severity.Warning
-        })
-    }
+        const macroNameDefinitionParts = macroNameDefinition.split('(')
+        const macroName = macroNameDefinitionParts[0]
+
+        if (!macroName)
+          diagnostics.push({
+            message: 'Macro definition contains space(s)',
+            lineNumber: getLineNumber(lines, index + 1),
+            startColumnNumber: getColumnNumber(line, '%macro'),
+            endColumnNumber:
+              getColumnNumber(line, '%macro') + trimmedStatement.length,
+            severity: Severity.Warning
+          })
+        else if (macroNameDefinitionParts.length === 1)
+          diagnostics.push({
+            message,
+            lineNumber: getLineNumber(lines, index + 1),
+            startColumnNumber: getColumnNumber(line, macroNameDefinition),
+            endColumnNumber:
+              getColumnNumber(line, macroNameDefinition) +
+              macroNameDefinition.length -
+              1,
+            severity: Severity.Warning
+          })
+        else if (macroName !== macroName.trim())
+          diagnostics.push({
+            message: 'Macro definition contains space(s)',
+            lineNumber: getLineNumber(lines, index + 1),
+            startColumnNumber: getColumnNumber(line, macroNameDefinition),
+            endColumnNumber:
+              getColumnNumber(line, macroNameDefinition) +
+              macroNameDefinition.length -
+              1,
+            severity: Severity.Warning
+          })
+      }
+    })
   })
   return diagnostics
 }

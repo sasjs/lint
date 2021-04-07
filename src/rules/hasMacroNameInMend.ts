@@ -13,51 +13,64 @@ const message = '%mend statement has missing or incorrect macro name'
 const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
 
-  const statements: string[] = value ? value.split(';') : []
+  const lines: string[] = value ? value.split('\n') : []
 
   const declaredMacros: { name: string; lineNumber: number }[] = []
   let isCommentStarted = false
-  statements.forEach((statement, index) => {
-    const { statement: trimmedStatement, commentStarted } = trimComments(
-      statement,
+  lines.forEach((line, index) => {
+    const { statement: trimmedLine, commentStarted } = trimComments(
+      line,
       isCommentStarted
     )
     isCommentStarted = commentStarted
+    const statements: string[] = trimmedLine ? trimmedLine.split(';') : []
 
-    if (trimmedStatement.startsWith('%macro ')) {
-      const macroName = trimmedStatement
-        .slice(7, trimmedStatement.length)
-        .trim()
-        .split('(')[0]
-      declaredMacros.push({
-        name: macroName,
-        lineNumber: getLineNumber(statements, index + 1)
-      })
-    } else if (trimmedStatement.startsWith('%mend')) {
-      const declaredMacro = declaredMacros.pop()
-      const macroName = trimmedStatement
-        .split(' ')
-        .filter((s: string) => !!s)[1]
+    statements.forEach((statement) => {
+      const { statement: trimmedStatement, commentStarted } = trimComments(
+        statement,
+        isCommentStarted
+      )
+      isCommentStarted = commentStarted
 
-      if (!macroName) {
-        diagnostics.push({
-          message: '%mend statement is missing macro name',
-          lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColumnNumber(statement, '%mend'),
-          endColumnNumber: getColumnNumber(statement, '%mend') + 6,
-          severity: Severity.Warning
+      if (trimmedStatement.startsWith('%macro ')) {
+        const macroName = trimmedStatement
+          .slice(7, trimmedStatement.length)
+          .trim()
+          .split('(')[0]
+        declaredMacros.push({
+          name: macroName,
+          lineNumber: getLineNumber(lines, index + 1)
         })
-      } else if (macroName !== declaredMacro!.name) {
-        diagnostics.push({
-          message: '%mend statement has mismatched macro name',
-          lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColumnNumber(statement, macroName),
-          endColumnNumber:
-            getColumnNumber(statement, macroName) + macroName.length - 1,
-          severity: Severity.Warning
-        })
+      } else if (trimmedStatement.startsWith('%mend')) {
+        const declaredMacro = declaredMacros.pop()
+        const macroName = trimmedStatement
+          .split(' ')
+          .filter((s: string) => !!s)[1]
+
+        if (!macroName) {
+          diagnostics.push({
+            message: `%mend statement is missing macro name - ${
+              declaredMacro!.name
+            }`,
+            lineNumber: getLineNumber(lines, index + 1),
+            startColumnNumber: getColumnNumber(line, '%mend'),
+            endColumnNumber: getColumnNumber(line, '%mend') + 6,
+            severity: Severity.Warning
+          })
+        } else if (macroName !== declaredMacro!.name) {
+          diagnostics.push({
+            message: `%mend statement has mismatched macro name, it should be '${
+              declaredMacro!.name
+            }'`,
+            lineNumber: getLineNumber(lines, index + 1),
+            startColumnNumber: getColumnNumber(line, macroName),
+            endColumnNumber:
+              getColumnNumber(line, macroName) + macroName.length - 1,
+            severity: Severity.Warning
+          })
+        }
       }
-    }
+    })
   })
 
   declaredMacros.forEach((declaredMacro) => {

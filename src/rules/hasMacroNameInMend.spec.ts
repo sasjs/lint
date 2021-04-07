@@ -28,7 +28,7 @@ describe('hasMacroNameInMend', () => {
 
     expect(hasMacroNameInMend.test(content)).toEqual([
       {
-        message: '%mend statement is missing macro name',
+        message: '%mend statement is missing macro name - somemacro',
         lineNumber: 4,
         startColumnNumber: 3,
         endColumnNumber: 9,
@@ -83,7 +83,7 @@ describe('hasMacroNameInMend', () => {
 
     expect(hasMacroNameInMend.test(content)).toEqual([
       {
-        message: '%mend statement has mismatched macro name',
+        message: `%mend statement has mismatched macro name, it should be 'somemacro'`,
         lineNumber: 4,
         startColumnNumber: 9,
         endColumnNumber: 24,
@@ -126,7 +126,7 @@ describe('hasMacroNameInMend', () => {
 
       expect(hasMacroNameInMend.test(content)).toEqual([
         {
-          message: '%mend statement is missing macro name',
+          message: '%mend statement is missing macro name - inner',
           lineNumber: 6,
           startColumnNumber: 5,
           endColumnNumber: 11,
@@ -148,7 +148,7 @@ describe('hasMacroNameInMend', () => {
 
       expect(hasMacroNameInMend.test(content)).toEqual([
         {
-          message: '%mend statement is missing macro name',
+          message: '%mend statement is missing macro name - outer',
           lineNumber: 9,
           startColumnNumber: 3,
           endColumnNumber: 9,
@@ -170,14 +170,14 @@ describe('hasMacroNameInMend', () => {
 
       expect(hasMacroNameInMend.test(content)).toEqual([
         {
-          message: '%mend statement is missing macro name',
+          message: '%mend statement is missing macro name - inner',
           lineNumber: 6,
           startColumnNumber: 5,
           endColumnNumber: 11,
           severity: Severity.Warning
         },
         {
-          message: '%mend statement is missing macro name',
+          message: '%mend statement is missing macro name - outer',
           lineNumber: 9,
           startColumnNumber: 3,
           endColumnNumber: 9,
@@ -235,7 +235,7 @@ describe('hasMacroNameInMend', () => {
 
       expect(hasMacroNameInMend.test(content)).toEqual([
         {
-          message: '%mend statement is missing macro name',
+          message: '%mend statement is missing macro name - examplemacro',
           lineNumber: 29,
           startColumnNumber: 5,
           endColumnNumber: 11,
@@ -254,7 +254,7 @@ describe('hasMacroNameInMend', () => {
 
       expect(hasMacroNameInMend.test(content)).toEqual([
         {
-          message: '%mend statement has mismatched macro name',
+          message: `%mend statement has mismatched macro name, it should be 'somemacro'`,
           lineNumber: 6,
           startColumnNumber: 14,
           endColumnNumber: 29,
@@ -271,7 +271,7 @@ describe('hasMacroNameInMend', () => {
 
       expect(hasMacroNameInMend.test(content)).toEqual([
         {
-          message: '%mend statement is missing macro name',
+          message: '%mend statement is missing macro name - somemacro',
           lineNumber: 4,
           startColumnNumber: 5,
           endColumnNumber: 11,

@@ -11,40 +11,48 @@ const description = 'Enfoces the absence of nested macro definitions.'
 const message = `Macro definition for '{macro}' present in macro '{parent}'`
 const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
-
-  const statements: string[] = value ? value.split(';') : []
-
   const declaredMacros: string[] = []
+
+  const lines: string[] = value ? value.split('\n') : []
   let isCommentStarted = false
-  statements.forEach((statement, index) => {
-    const { statement: trimmedStatement, commentStarted } = trimComments(
-      statement,
+  lines.forEach((line, index) => {
+    const { statement: trimmedLine, commentStarted } = trimComments(
+      line,
       isCommentStarted
     )
     isCommentStarted = commentStarted
+    const statements: string[] = trimmedLine ? trimmedLine.split(';') : []
 
-    if (trimmedStatement.startsWith('%macro ')) {
-      const macroName = trimmedStatement
-        .slice(7, trimmedStatement.length)
-        .trim()
-        .split('(')[0]
-      if (declaredMacros.length) {
-        const parentMacro = declaredMacros.slice(-1).pop()
-        diagnostics.push({
-          message: message
-            .replace('{macro}', macroName)
-            .replace('{parent}', parentMacro!),
-          lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColumnNumber(statement, '%macro'),
-          endColumnNumber:
-            getColumnNumber(statement, '%macro') + trimmedStatement.length - 1,
-          severity: Severity.Warning
-        })
+    statements.forEach((statement) => {
+      const { statement: trimmedStatement, commentStarted } = trimComments(
+        statement,
+        isCommentStarted
+      )
+      isCommentStarted = commentStarted
+
+      if (trimmedStatement.startsWith('%macro ')) {
+        const macroName = trimmedStatement
+          .slice(7, trimmedStatement.length)
+          .trim()
+          .split('(')[0]
+        if (declaredMacros.length) {
+          const parentMacro = declaredMacros.slice(-1).pop()
+          diagnostics.push({
+            message: message
+              .replace('{macro}', macroName)
+              .replace('{parent}', parentMacro!),
+            lineNumber: getLineNumber(lines, index + 1),
+            startColumnNumber: getColumnNumber(line, '%macro'),
+            endColumnNumber:
+              getColumnNumber(line, '%macro') + trimmedStatement.length - 1,
+            severity: Severity.Warning
+          })
+        }
+        declaredMacros.push(macroName)
+      } else if (trimmedStatement.startsWith('%mend')) {
+        declaredMacros.pop()
       }
-      declaredMacros.push(macroName)
-    } else if (trimmedStatement.startsWith('%mend')) {
-      declaredMacros.pop()
-    }
+    })
   })
   return diagnostics
 }
