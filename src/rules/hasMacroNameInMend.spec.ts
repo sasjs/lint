@@ -92,6 +92,24 @@ describe('hasMacroNameInMend', () => {
     ])
   })
 
+  it('should return an array with a single diagnostic when extra %mend statement is present', () => {
+    const content = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+  %mend something;`
+
+    expect(hasMacroNameInMend.test(content)).toEqual([
+      {
+        message: '%mend statement is redundant',
+        lineNumber: 5,
+        startColumnNumber: 3,
+        endColumnNumber: 18,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
   it('should return an empty array when the file is undefined', () => {
     const content = undefined
 

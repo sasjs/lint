@@ -36,17 +36,27 @@ const test = (value: string) => {
           .slice(7, trimmedStatement.length)
           .trim()
           .split('(')[0]
-        declaredMacros.push({
-          name: macroName,
-          lineNumber: lineIndex + 1
-        })
+        if (macroName)
+          declaredMacros.push({
+            name: macroName,
+            lineNumber: lineIndex + 1
+          })
       } else if (trimmedStatement.startsWith('%mend')) {
         const declaredMacro = declaredMacros.pop()
         const macroName = trimmedStatement
           .split(' ')
           .filter((s: string) => !!s)[1]
 
-        if (!macroName) {
+        if (!declaredMacro) {
+          diagnostics.push({
+            message: `%mend statement is redundant`,
+            lineNumber: lineIndex + 1,
+            startColumnNumber: getColumnNumber(line, '%mend'),
+            endColumnNumber:
+              getColumnNumber(line, '%mend') + trimmedStatement.length,
+            severity: Severity.Warning
+          })
+        } else if (!macroName) {
           diagnostics.push({
             message: `%mend statement is missing macro name - ${
               declaredMacro!.name
