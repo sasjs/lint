@@ -125,4 +125,18 @@ describe('hasMacroParentheses', () => {
       ])
     })
   })
+
+  it('should return an array with a single diagnostic when a macro definition contains a space', () => {
+    const content = `%macro test ()`
+
+    expect(hasMacroParentheses.test(content)).toEqual([
+      {
+        message: 'Macro definition contains space(s)',
+        lineNumber: 1,
+        startColumnNumber: 8,
+        endColumnNumber: 14,
+        severity: Severity.Warning
+      }
+    ])
+  })
 })

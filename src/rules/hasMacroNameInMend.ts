@@ -4,66 +4,72 @@ import { LintRuleType } from '../types/LintRuleType'
 import { Severity } from '../types/Severity'
 import { trimComments } from '../utils/trimComments'
 import { getLineNumber } from '../utils/getLineNumber'
-import { getColNumber } from '../utils/getColNumber'
+import { getColumnNumber } from '../utils/getColumnNumber'
 
 const name = 'hasMacroNameInMend'
-const description = 'The %mend statement should contain the macro name'
-const message = '$mend statement missing or incorrect'
+const description =
+  'Enforces the presence of the macro name in each %mend statement.'
+const message = '%mend statement has missing or incorrect macro name'
 const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
 
   const statements: string[] = value ? value.split(';') : []
 
-  const stack: string[] = []
-  let trimmedStatement = '',
-    commentStarted = false
+  const declaredMacros: { name: string; lineNumber: number }[] = []
+  let isCommentStarted = false
   statements.forEach((statement, index) => {
-    ;({ statement: trimmedStatement, commentStarted } = trimComments(
+    const { statement: trimmedStatement, commentStarted } = trimComments(
       statement,
-      commentStarted
-    ))
+      isCommentStarted
+    )
+    isCommentStarted = commentStarted
 
     if (trimmedStatement.startsWith('%macro ')) {
       const macroName = trimmedStatement
         .slice(7, trimmedStatement.length)
         .trim()
         .split('(')[0]
-      stack.push(macroName)
+      declaredMacros.push({
+        name: macroName,
+        lineNumber: getLineNumber(statements, index + 1)
+      })
     } else if (trimmedStatement.startsWith('%mend')) {
-      const macroStarted = stack.pop()
+      const declaredMacro = declaredMacros.pop()
       const macroName = trimmedStatement
         .split(' ')
         .filter((s: string) => !!s)[1]
 
       if (!macroName) {
         diagnostics.push({
-          message: '%mend missing macro name',
+          message: '%mend statement is missing macro name',
           lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColNumber(statement, '%mend'),
-          endColumnNumber: getColNumber(statement, '%mend') + 6,
+          startColumnNumber: getColumnNumber(statement, '%mend'),
+          endColumnNumber: getColumnNumber(statement, '%mend') + 6,
           severity: Severity.Warning
         })
-      } else if (macroName !== macroStarted) {
+      } else if (macroName !== declaredMacro!.name) {
         diagnostics.push({
-          message: 'mismatch macro name in %mend statement',
+          message: '%mend statement has mismatched macro name',
           lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColNumber(statement, macroName),
+          startColumnNumber: getColumnNumber(statement, macroName),
           endColumnNumber:
-            getColNumber(statement, macroName) + macroName.length - 1,
+            getColumnNumber(statement, macroName) + macroName.length - 1,
           severity: Severity.Warning
         })
       }
     }
   })
-  if (stack.length) {
+
+  declaredMacros.forEach((declaredMacro) => {
     diagnostics.push({
-      message: 'missing %mend statement for macro(s)',
-      lineNumber: statements.length + 1,
+      message: `Missing %mend statement for macro - ${declaredMacro.name}`,
+      lineNumber: declaredMacro.lineNumber,
       startColumnNumber: 1,
       endColumnNumber: 1,
       severity: Severity.Warning
     })
-  }
+  })
+
   return diagnostics
 }
 

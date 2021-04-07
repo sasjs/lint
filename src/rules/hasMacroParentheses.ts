@@ -4,23 +4,23 @@ import { LintRuleType } from '../types/LintRuleType'
 import { Severity } from '../types/Severity'
 import { trimComments } from '../utils/trimComments'
 import { getLineNumber } from '../utils/getLineNumber'
-import { getColNumber } from '../utils/getColNumber'
+import { getColumnNumber } from '../utils/getColumnNumber'
 
 const name = 'hasMacroParentheses'
-const description = 'Macros are always defined with parentheses'
+const description = 'Enforces the presence of parantheses in macro definitions.'
 const message = 'Macro definition missing parentheses'
 const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
 
   const statements: string[] = value ? value.split(';') : []
 
-  let trimmedStatement = '',
-    commentStarted = false
+  let isCommentStarted = false
   statements.forEach((statement, index) => {
-    ;({ statement: trimmedStatement, commentStarted } = trimComments(
+    const { statement: trimmedStatement, commentStarted } = trimComments(
       statement,
-      commentStarted
-    ))
+      isCommentStarted
+    )
+    isCommentStarted = commentStarted
 
     if (trimmedStatement.startsWith('%macro')) {
       const macroNameDefinition = trimmedStatement
@@ -34,7 +34,7 @@ const test = (value: string) => {
         diagnostics.push({
           message: 'Macro definition missing name',
           lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColNumber(statement, '%macro'),
+          startColumnNumber: getColumnNumber(statement, '%macro'),
           endColumnNumber: statement.length,
           severity: Severity.Warning
         })
@@ -42,20 +42,20 @@ const test = (value: string) => {
         diagnostics.push({
           message,
           lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColNumber(statement, macroNameDefinition),
+          startColumnNumber: getColumnNumber(statement, macroNameDefinition),
           endColumnNumber:
-            getColNumber(statement, macroNameDefinition) +
+            getColumnNumber(statement, macroNameDefinition) +
             macroNameDefinition.length -
             1,
           severity: Severity.Warning
         })
       else if (macroName !== macroName.trim())
         diagnostics.push({
-          message: 'Macro definition cannot have space',
+          message: 'Macro definition contains space(s)',
           lineNumber: getLineNumber(statements, index + 1),
-          startColumnNumber: getColNumber(statement, macroNameDefinition),
+          startColumnNumber: getColumnNumber(statement, macroNameDefinition),
           endColumnNumber:
-            getColNumber(statement, macroNameDefinition) +
+            getColumnNumber(statement, macroNameDefinition) +
             macroNameDefinition.length -
             1,
           severity: Severity.Warning
@@ -66,7 +66,7 @@ const test = (value: string) => {
 }
 
 /**
- * Lint rule that checks for the presence of macro name in %mend statement.
+ * Lint rule that enforces the presence of parantheses in macro definitions..
  */
 export const hasMacroParentheses: FileLintRule = {
   type: LintRuleType.File,
