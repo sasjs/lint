@@ -5,14 +5,17 @@
   "title": "SASjs Lint Config File",
   "description": "The SASjs Lint Config file provides the settings for customising SAS code style in your project.",
   "default": {
-    "noTrailingSpaces": true,
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
-    "noSpacesInFileNames": true,
+    "hasMacroNameInMend": false,
+    "hasMacroParentheses": true,
+    "indentationMultiple": 2,
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
+    "noNestedMacros": true,
+    "noSpacesInFileNames": true,
     "noTabIndentation": true,
-    "indentationMultiple": 2
+    "noTrailingSpaces": true
   },
   "examples": [
     {
@@ -23,18 +26,13 @@
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
       "noTabIndentation": true,
-      "indentationMultiple": 4
+      "indentationMultiple": 4,
+      "hasMacroNameInMend": true,
+      "noNestedMacros": true,
+      "hasMacroParentheses": true
     }
   ],
   "properties": {
-    "noTrailingSpaces": {
-      "$id": "#/properties/noTrailingSpaces",
-      "type": "boolean",
-      "title": "noTrailingSpaces",
-      "description": "Enforces no trailing spaces in lines of SAS code. Shows a warning when they are present.",
-      "default": true,
-      "examples": [true, false]
-    },
     "noEncodedPasswords": {
       "$id": "#/properties/noEncodedPasswords",
       "type": "boolean",
@@ -51,13 +49,29 @@
       "default": true,
       "examples": [true, false]
     },
-    "noSpacesInFileNames": {
-      "$id": "#/properties/noSpacesInFileNames",
+    "hasMacroNameInMend": {
+      "$id": "#/properties/hasMacroNameInMend",
       "type": "boolean",
-      "title": "noSpacesInFileNames",
-      "description": "Enforces no spaces in file names. Shows a warning when they are present.",
+      "title": "hasMacroNameInMend",
+      "description": "Enforces the presence of macro names in %mend statements. Shows a warning for %mend statements with missing or mismatched macro names.",
+      "default": false,
+      "examples": [true, false]
+    },
+    "hasMacroParentheses": {
+      "$id": "#/properties/hasMacroParentheses",
+      "type": "boolean",
+      "title": "hasMacroParentheses",
+      "description": "Enforces the presence of parentheses in macro definitions. Shows a warning for each macro defined without parentheses, or with spaces between the macro name and the opening parenthesis.",
       "default": true,
       "examples": [true, false]
+    },
+    "indentationMultiple": {
+      "$id": "#/properties/indentationMultiple",
+      "type": "number",
+      "title": "indentationMultiple",
+      "description": "Enforces a configurable multiple for the number of spaces for indentation. Shows a warning for lines that are not indented by a multiple of this number.",
+      "default": 2,
+      "examples": [2, 3, 4]
     },
     "lowerCaseFileNames": {
       "$id": "#/properties/lowerCaseFileNames",
@@ -75,6 +89,22 @@
       "default": 80,
       "examples": [60, 80, 120]
     },
+    "noNestedMacros": {
+      "$id": "#/properties/noNestedMacros",
+      "type": "boolean",
+      "title": "noNestedMacros",
+      "description": "Enforces the absence of nested macro definitions. Shows a warning for each nested macro definition.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "noSpacesInFileNames": {
+      "$id": "#/properties/noSpacesInFileNames",
+      "type": "boolean",
+      "title": "noSpacesInFileNames",
+      "description": "Enforces no spaces in file names. Shows a warning when they are present.",
+      "default": true,
+      "examples": [true, false]
+    },
     "noTabIndentation": {
       "$id": "#/properties/noTabIndentation",
       "type": "boolean",
@@ -83,13 +113,13 @@
       "default": true,
       "examples": [true, false]
     },
-    "indentationMultiple": {
-      "$id": "#/properties/indentationMultiple",
-      "type": "number",
-      "title": "indentationMultiple",
-      "description": "Enforces a configurable multiple for the number of spaces for indentation. Shows a warning for lines that are not indented by a multiple of this number.",
-      "default": 2,
-      "examples": [2, 3, 4]
+    "noTrailingSpaces": {
+      "$id": "#/properties/noTrailingSpaces",
+      "type": "boolean",
+      "title": "noTrailingSpaces",
+      "description": "Enforces no trailing spaces in lines of SAS code. Shows a warning when they are present.",
+      "default": true,
+      "examples": [true, false]
     }
   }
 }

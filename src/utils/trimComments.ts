@@ -2,7 +2,7 @@ export const trimComments = (
   statement: string,
   commentStarted: boolean = false
 ): { statement: string; commentStarted: boolean } => {
-  let trimmed = statement.trim()
+  let trimmed = (statement || '').trim()
 
   if (commentStarted || trimmed.startsWith('/*')) {
     const parts = trimmed.split('*/')

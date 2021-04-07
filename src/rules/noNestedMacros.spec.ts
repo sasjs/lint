@@ -11,7 +11,7 @@ describe('noNestedMacros', () => {
     expect(noNestedMacros.test(content)).toEqual([])
   })
 
-  it('should return an array with a single diagnostics when nested macro defined', () => {
+  it('should return an array with a single diagnostic when a macro contains a nested macro definition', () => {
     const content = `
     %macro outer();
       /* any amount of arbitrary code */
@@ -26,7 +26,7 @@ describe('noNestedMacros', () => {
 
     expect(noNestedMacros.test(content)).toEqual([
       {
-        message: "Macro definition present inside another macro 'outer'",
+        message: "Macro definition for 'inner' present in macro 'outer'",
         lineNumber: 4,
         startColumnNumber: 7,
         endColumnNumber: 20,
@@ -35,7 +35,7 @@ describe('noNestedMacros', () => {
     ])
   })
 
-  it('should return an array with a single diagnostics when nested macro defined 2 levels', () => {
+  it('should return an array with a single diagnostic when nested macros are defined at 2 levels', () => {
     const content = `
     %macro outer();
       /* any amount of arbitrary code */
@@ -54,14 +54,14 @@ describe('noNestedMacros', () => {
 
     expect(noNestedMacros.test(content)).toEqual([
       {
-        message: "Macro definition present inside another macro 'outer'",
+        message: "Macro definition for 'inner' present in macro 'outer'",
         lineNumber: 4,
         startColumnNumber: 7,
         endColumnNumber: 20,
         severity: Severity.Warning
       },
       {
-        message: "Macro definition present inside another macro 'inner'",
+        message: "Macro definition for 'inner2' present in macro 'inner'",
         lineNumber: 7,
         startColumnNumber: 17,
         endColumnNumber: 31,
