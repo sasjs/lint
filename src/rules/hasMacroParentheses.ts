@@ -6,7 +6,7 @@ import { trimComments } from '../utils/trimComments'
 import { getColumnNumber } from '../utils/getColumnNumber'
 
 const name = 'hasMacroParentheses'
-const description = 'Enforces the presence of parantheses in macro definitions.'
+const description = 'Enforces the presence of parentheses in macro definitions.'
 const message = 'Macro definition missing parentheses'
 const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
@@ -74,7 +74,7 @@ const test = (value: string) => {
 }
 
 /**
- * Lint rule that enforces the presence of parantheses in macro definitions..
+ * Lint rule that enforces the presence of parentheses in macro definitions..
  */
 export const hasMacroParentheses: FileLintRule = {
   type: LintRuleType.File,
