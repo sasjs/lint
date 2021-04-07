@@ -38,7 +38,7 @@ const test = (value: string) => {
 
         if (!macroName)
           diagnostics.push({
-            message: 'Macro definition contains space(s)',
+            message: 'Macro definition missing name',
             lineNumber: lineIndex + 1,
             startColumnNumber: getColumnNumber(line, '%macro'),
             endColumnNumber:

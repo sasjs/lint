@@ -36,7 +36,7 @@ describe('hasMacroParentheses', () => {
 
     expect(hasMacroParentheses.test(content)).toEqual([
       {
-        message: 'Macro definition contains space(s)',
+        message: 'Macro definition missing name',
         lineNumber: 2,
         startColumnNumber: 3,
         endColumnNumber: 12,
@@ -53,7 +53,7 @@ describe('hasMacroParentheses', () => {
 
     expect(hasMacroParentheses.test(content)).toEqual([
       {
-        message: 'Macro definition contains space(s)',
+        message: 'Macro definition missing name',
         lineNumber: 2,
         startColumnNumber: 3,
         endColumnNumber: 9,
