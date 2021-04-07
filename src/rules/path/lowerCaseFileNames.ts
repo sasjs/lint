@@ -1,6 +1,6 @@
-import { PathLintRule } from '../types/LintRule'
-import { LintRuleType } from '../types/LintRuleType'
-import { Severity } from '../types/Severity'
+import { PathLintRule } from '../../types/LintRule'
+import { LintRuleType } from '../../types/LintRuleType'
+import { Severity } from '../../types/Severity'
 import path from 'path'
 
 const name = 'lowerCaseFileNames'

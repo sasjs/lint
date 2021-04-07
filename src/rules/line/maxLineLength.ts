@@ -1,7 +1,7 @@
-import { LintConfig } from '../types'
-import { LineLintRule } from '../types/LintRule'
-import { LintRuleType } from '../types/LintRuleType'
-import { Severity } from '../types/Severity'
+import { LintConfig } from '../../types'
+import { LineLintRule } from '../../types/LintRule'
+import { LintRuleType } from '../../types/LintRuleType'
+import { Severity } from '../../types/Severity'
 
 const name = 'maxLineLength'
 const description = 'Restrict lines to the specified length.'

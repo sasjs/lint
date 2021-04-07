@@ -1,4 +1,4 @@
-import { Severity } from '../types/Severity'
+import { Severity } from '../../types/Severity'
 import { hasMacroNameInMend } from './hasMacroNameInMend'
 
 describe('hasMacroNameInMend', () => {
