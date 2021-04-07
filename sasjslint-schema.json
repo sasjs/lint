@@ -12,7 +12,10 @@
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
     "noTabIndentation": true,
-    "indentationMultiple": 2
+    "indentationMultiple": 2,
+    "hasMacroNameInMend": false,
+    "noNestedMacros": true,
+    "hasMacroParentheses": true
   },
   "examples": [
     {
@@ -23,7 +26,10 @@
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
       "noTabIndentation": true,
-      "indentationMultiple": 4
+      "indentationMultiple": 4,
+      "hasMacroNameInMend": true,
+      "noNestedMacros": true,
+      "hasMacroParentheses": true
     }
   ],
   "properties": {
@@ -90,6 +96,30 @@
       "description": "Enforces a configurable multiple for the number of spaces for indentation. Shows a warning for lines that are not indented by a multiple of this number.",
       "default": 2,
       "examples": [2, 3, 4]
+    },
+    "hasMacroNameInMend": {
+      "$id": "#/properties/hasMacroNameInMend",
+      "type": "boolean",
+      "title": "hasMacroNameInMend",
+      "description": "Enforces the presence of macro names in %mend statements. Shows a warning for %mend statements with missing or mismatched macro names.",
+      "default": false,
+      "examples": [true, false]
+    },
+    "noNestedMacros": {
+      "$id": "#/properties/noNestedMacros",
+      "type": "boolean",
+      "title": "noNestedMacros",
+      "description": "Enforces the absence of nested macro definitions. Shows a warning for each nested macro definition.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "hasMacroParentheses": {
+      "$id": "#/properties/hasMacroParentheses",
+      "type": "boolean",
+      "title": "hasMacroParentheses",
+      "description": "Enforces the presence of parantheses in macro definitions. Shows a warning for each macro defined without parantheses.",
+      "default": true,
+      "examples": [true, false]
     }
   }
 }
