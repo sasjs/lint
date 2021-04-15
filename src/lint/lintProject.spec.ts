@@ -4,6 +4,9 @@ import * as utils from '../utils'
 import path from 'path'
 jest.mock('../utils')
 
+const expectedFilesCount = 1
+const expectedDiagnosticsCount = 9
+
 describe('lintProject', () => {
   it('should identify lint issues in a given project', async () => {
     jest
@@ -11,11 +14,11 @@ describe('lintProject', () => {
       .mockImplementationOnce(() => Promise.resolve(path.join(__dirname, '..')))
     const results = await lintProject()
 
-    expect(results.size).toEqual(1)
+    expect(results.size).toEqual(expectedFilesCount)
     const diagnostics = results.get(
       path.join(__dirname, '..', 'Example File.sas')
     )!
-    expect(diagnostics.length).toEqual(9)
+    expect(diagnostics.length).toEqual(expectedDiagnosticsCount)
     expect(diagnostics).toContainEqual({
       message: 'Line contains trailing spaces',
       lineNumber: 1,

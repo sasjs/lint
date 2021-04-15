@@ -2,6 +2,10 @@ import * as fileModule from '@sasjs/utils/file'
 import { LintConfig } from '../types/LintConfig'
 import { getLintConfig } from './getLintConfig'
 
+const expectedFileLintRulesCount = 4
+const expectedLineLintRulesCount = 5
+const expectedPathLintRulesCount = 2
+
 describe('getLintConfig', () => {
   it('should get the lint config', async () => {
     const config = await getLintConfig()
@@ -17,8 +21,8 @@ describe('getLintConfig', () => {
     const config = await getLintConfig()
 
     expect(config).toBeInstanceOf(LintConfig)
-    expect(config.fileLintRules.length).toEqual(4)
-    expect(config.lineLintRules.length).toEqual(5)
-    expect(config.pathLintRules.length).toEqual(2)
+    expect(config.fileLintRules.length).toEqual(expectedFileLintRulesCount)
+    expect(config.lineLintRules.length).toEqual(expectedLineLintRulesCount)
+    expect(config.pathLintRules.length).toEqual(expectedPathLintRulesCount)
   })
 })

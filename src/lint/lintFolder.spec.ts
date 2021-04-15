@@ -2,15 +2,18 @@ import { lintFolder } from './lintFolder'
 import { Severity } from '../types/Severity'
 import path from 'path'
 
+const expectedFilesCount = 1
+const expectedDiagnosticsCount = 9
+
 describe('lintFolder', () => {
   it('should identify lint issues in a given folder', async () => {
     const results = await lintFolder(path.join(__dirname, '..'))
 
-    expect(results.size).toEqual(1)
+    expect(results.size).toEqual(expectedFilesCount)
     const diagnostics = results.get(
       path.join(__dirname, '..', 'Example File.sas')
     )!
-    expect(diagnostics.length).toEqual(9)
+    expect(diagnostics.length).toEqual(expectedDiagnosticsCount)
     expect(diagnostics).toContainEqual({
       message: 'Line contains trailing spaces',
       lineNumber: 1,
