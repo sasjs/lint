@@ -8,7 +8,7 @@ describe('lintFile', () => {
       path.join(__dirname, '..', 'Example File.sas')
     )
 
-    expect(results.length).toEqual(8)
+    expect(results.length).toEqual(9)
     expect(results).toContainEqual({
       message: 'Line contains trailing spaces',
       lineNumber: 1,
@@ -64,6 +64,13 @@ describe('lintFile', () => {
       startColumnNumber: 1,
       endColumnNumber: 1,
       severity: Severity.Warning
+    })
+    expect(results).toContainEqual({
+      message: '%mend statement is missing macro name - mf_getuniquelibref',
+      lineNumber: 17,
+      startColumnNumber: 3,
+      endColumnNumber: 9,
+      severity: 1
     })
   })
 })
