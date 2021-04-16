@@ -15,7 +15,7 @@ export const DefaultLintConfiguration = {
   maxLineLength: 80,
   noTabIndentation: true,
   indentationMultiple: 2,
-  hasMacroNameInMend: false,
+  hasMacroNameInMend: true,
   noNestedMacros: true,
   hasMacroParentheses: true
 }
