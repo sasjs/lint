@@ -67,7 +67,7 @@ const expectedDiagnostics = [
     lineNumber: 17,
     startColumnNumber: 3,
     endColumnNumber: 9,
-    severity: 1
+    severity: Severity.Warning
   }
 ]
 
