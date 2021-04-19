@@ -18,6 +18,7 @@ describe('formatText', () => {
     const expectedOutput = `/**
   @file
   @brief <Your brief here>
+  <h4> SAS Macros </h4>
 **/\n%macro test
   %put 'hello';\n%mend test;\n`
 
@@ -39,7 +40,7 @@ describe('formatText', () => {
       )
     const text = `%macro test\n  %put 'hello';\r\n%mend; `
 
-    const expectedOutput = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n**/\r\n%macro test\r\n  %put 'hello';\r\n%mend test;\r\n`
+    const expectedOutput = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/\r\n%macro test\r\n  %put 'hello';\r\n%mend test;\r\n`
 
     const output = await formatText(text)
 

@@ -4,7 +4,7 @@ import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 
-const DoxygenHeader = `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}**/`
+const DoxygenHeader = `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/`
 
 const name = 'hasDoxygenHeader'
 const description =
