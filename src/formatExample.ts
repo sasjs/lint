@@ -1,3 +1,5 @@
+import { formatFile } from './format/formatFile'
+import path from 'path'
 import { formatText } from './format/formatText'
 import { lintText } from './lint'
 
@@ -7,15 +9,17 @@ const content = `%put 'Hello';
   %put 'test';
 %mend;\r\n`
 
-console.log(content)
-lintText(content).then((diagnostics) => {
-  console.log('Before Formatting:')
-  console.table(diagnostics)
-  formatText(content).then((formattedText) => {
-    lintText(formattedText).then((newDiagnostics) => {
-      console.log('After Formatting:')
-      console.log(formattedText)
-      console.table(newDiagnostics)
-    })
-  })
-})
+// console.log(content)
+// lintText(content).then((diagnostics) => {
+//   console.log('Before Formatting:')
+//   console.table(diagnostics)
+//   formatText(content).then((formattedText) => {
+//     lintText(formattedText).then((newDiagnostics) => {
+//       console.log('After Formatting:')
+//       console.log(formattedText)
+//       console.table(newDiagnostics)
+//     })
+//   })
+// })
+
+formatFile(path.join(__dirname, 'Example File.sas'))
