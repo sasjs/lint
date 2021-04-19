@@ -1,3 +1,4 @@
+import { LintConfig } from '../../types'
 import { Severity } from '../../types/Severity'
 import { noNestedMacros } from './noNestedMacros'
 
@@ -72,5 +73,24 @@ describe('noNestedMacros', () => {
     const content = undefined
 
     expect(noNestedMacros.test((content as unknown) as string)).toEqual([])
+  })
+
+  it('should use the configured line ending while testing content', () => {
+    const content = `%macro outer();\r\n%macro inner;\r\n%mend inner;\r\n%mend outer;`
+
+    const diagnostics = noNestedMacros.test(
+      content,
+      new LintConfig({ lineEndings: 'crlf' })
+    )
+
+    expect(diagnostics).toEqual([
+      {
+        message: "Macro definition for 'inner' present in macro 'outer'",
+        lineNumber: 2,
+        startColumnNumber: 1,
+        endColumnNumber: 13,
+        severity: Severity.Warning
+      }
+    ])
   })
 })
