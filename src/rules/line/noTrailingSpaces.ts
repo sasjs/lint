@@ -17,7 +17,6 @@ const test = (value: string, lineNumber: number) =>
           severity: Severity.Warning
         }
       ]
-const fix = (value: string) => value.trimEnd()
 
 /**
  * Lint rule that checks for the presence of trailing space(s) in a given line of text.
@@ -27,6 +26,5 @@ export const noTrailingSpaces: LineLintRule = {
   name,
   description,
   message,
-  test,
-  fix
+  test
 }

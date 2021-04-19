@@ -1,4 +1,3 @@
-import { LintConfig } from '../../types'
 import { Severity } from '../../types/Severity'
 import { hasDoxygenHeader } from './hasDoxygenHeader'
 
@@ -68,44 +67,5 @@ describe('hasDoxygenHeader', () => {
         severity: Severity.Warning
       }
     ])
-  })
-
-  it('should not alter the text if a doxygen header is already present', () => {
-    const content = `/**
-   @file
-   @brief Returns an unused libref
- **/
-
- %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
-   %local x libref;
-   %let x={SAS002};
-   %do x=0 %to &maxtries;`
-
-    expect(hasDoxygenHeader.fix!(content)).toEqual(content)
-  })
-
-  it('should should add a doxygen header if not present', () => {
-    const content = `%macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
-%local x libref;
-%let x={SAS002};
-%do x=0 %to &maxtries;`
-
-    expect(hasDoxygenHeader.fix!(content)).toEqual(
-      `/**
-  @file
-  @brief <Your brief here>
-**/` +
-        '\n' +
-        content
-    )
-  })
-
-  it('should use CRLF line endings when configured', () => {
-    const content = `%macro mf_getuniquelibref(prefix=mclib,maxtries=1000);\n%local x libref;\n%let x={SAS002};\n%do x=0 %to &maxtries;`
-    const config = new LintConfig({ lineEndings: 'crlf' })
-
-    expect(hasDoxygenHeader.fix!(content, config)).toEqual(
-      `/**\r\n  @file\r\n  @brief <Your brief here>\r\n**/` + '\r\n' + content
-    )
   })
 })

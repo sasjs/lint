@@ -2,8 +2,7 @@ import {
   hasDoxygenHeader,
   hasMacroNameInMend,
   noNestedMacros,
-  hasMacroParentheses,
-  lineEndings
+  hasMacroParentheses
 } from '../rules/file'
 import {
   indentationMultiple,
@@ -13,7 +12,6 @@ import {
   noTrailingSpaces
 } from '../rules/line'
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
-import { LineEndings } from './LineEndings'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 
 /**
@@ -29,7 +27,6 @@ export class LintConfig {
   readonly pathLintRules: PathLintRule[] = []
   readonly maxLineLength: number = 80
   readonly indentationMultiple: number = 2
-  readonly lineEndings: LineEndings = LineEndings.LF
 
   constructor(json?: any) {
     if (json?.noTrailingSpaces) {
@@ -47,19 +44,6 @@ export class LintConfig {
     if (json?.maxLineLength) {
       this.maxLineLength = json.maxLineLength
       this.lineLintRules.push(maxLineLength)
-    }
-
-    if (json?.lineEndings) {
-      if (
-        json.lineEndings !== LineEndings.LF &&
-        json.lineEndings !== LineEndings.CRLF
-      ) {
-        throw new Error(
-          `Invalid value for lineEndings: can be ${LineEndings.LF} or ${LineEndings.CRLF}`
-        )
-      }
-      this.lineEndings = json.lineEndings
-      this.fileLintRules.push(lineEndings)
     }
 
     if (!isNaN(json?.indentationMultiple)) {

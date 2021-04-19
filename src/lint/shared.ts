@@ -1,8 +1,17 @@
 import { LintConfig, Diagnostic } from '../types'
-import { splitText } from '../utils'
+
+/**
+ * Splits the given content into a list of lines, regardless of CRLF or LF line endings.
+ * @param {string} text - the text content to be split into lines.
+ * @returns {string[]} an array of lines from the given text
+ */
+export const splitText = (text: string): string[] => {
+  if (!text) return []
+  return text.replace(/\r\n/g, '\n').split('\n')
+}
 
 export const processText = (text: string, config: LintConfig) => {
-  const lines = splitText(text, config)
+  const lines = splitText(text)
   const diagnostics: Diagnostic[] = []
   diagnostics.push(...processContent(config, text))
   lines.forEach((line, index) => {

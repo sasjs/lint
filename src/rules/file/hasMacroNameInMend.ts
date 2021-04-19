@@ -2,95 +2,97 @@ import { Diagnostic } from '../../types/Diagnostic'
 import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
+import { trimComments } from '../../utils/trimComments'
 import { getColumnNumber } from '../../utils/getColumnNumber'
-import { LintConfig } from '../../types'
-import { LineEndings } from '../../types/LineEndings'
-import { parseMacros } from '../../utils/parseMacros'
 
 const name = 'hasMacroNameInMend'
 const description =
   'Enforces the presence of the macro name in each %mend statement.'
 const message = '%mend statement has missing or incorrect macro name'
-const test = (value: string, config?: LintConfig) => {
-  const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
-  const lines: string[] = value ? value.split(lineEnding) : []
-  const macros = parseMacros(value, config)
+const test = (value: string) => {
   const diagnostics: Diagnostic[] = []
-  macros.forEach((macro) => {
-    if (macro.startLineNumber === null && macro.endLineNumber !== null) {
-      diagnostics.push({
-        message: `%mend statement is redundant`,
-        lineNumber: macro.endLineNumber,
-        startColumnNumber: getColumnNumber(
-          lines[macro.endLineNumber - 1],
-          '%mend'
-        ),
-        endColumnNumber:
-          getColumnNumber(lines[macro.endLineNumber - 1], '%mend') +
-          lines[macro.endLineNumber - 1].trim().length -
-          1,
-        severity: Severity.Warning
-      })
-    } else if (macro.endLineNumber === null && macro.startLineNumber !== null) {
-      diagnostics.push({
-        message: `Missing %mend statement for macro - ${macro.name}`,
-        lineNumber: macro.startLineNumber,
-        startColumnNumber: 1,
-        endColumnNumber: 1,
-        severity: Severity.Warning
-      })
-    } else if (macro.mismatchedMendMacroName) {
-      diagnostics.push({
-        message: `%mend statement has mismatched macro name, it should be '${
-          macro!.name
-        }'`,
-        lineNumber: macro.endLineNumber as number,
-        startColumnNumber: getColumnNumber(
-          lines[(macro.endLineNumber as number) - 1],
-          macro.mismatchedMendMacroName
-        ),
-        endColumnNumber:
-          getColumnNumber(
-            lines[(macro.endLineNumber as number) - 1],
-            macro.mismatchedMendMacroName
-          ) +
-          macro.mismatchedMendMacroName.length -
-          1,
-        severity: Severity.Warning
-      })
-    } else if (!macro.hasMacroNameInMend) {
-      diagnostics.push({
-        message: `%mend statement is missing macro name - ${macro.name}`,
-        lineNumber: macro.endLineNumber as number,
-        startColumnNumber: getColumnNumber(
-          lines[(macro.endLineNumber as number) - 1],
-          '%mend'
-        ),
-        endColumnNumber:
-          getColumnNumber(lines[(macro.endLineNumber as number) - 1], '%mend') +
-          6,
-        severity: Severity.Warning
-      })
-    }
+
+  const lines: string[] = value ? value.split('\n') : []
+
+  const declaredMacros: { name: string; lineNumber: number }[] = []
+  let isCommentStarted = false
+  lines.forEach((line, lineIndex) => {
+    const { statement: trimmedLine, commentStarted } = trimComments(
+      line,
+      isCommentStarted
+    )
+    isCommentStarted = commentStarted
+    const statements: string[] = trimmedLine ? trimmedLine.split(';') : []
+
+    statements.forEach((statement) => {
+      const { statement: trimmedStatement, commentStarted } = trimComments(
+        statement,
+        isCommentStarted
+      )
+      isCommentStarted = commentStarted
+
+      if (trimmedStatement.startsWith('%macro ')) {
+        const macroName = trimmedStatement
+          .slice(7, trimmedStatement.length)
+          .trim()
+          .split('(')[0]
+        if (macroName)
+          declaredMacros.push({
+            name: macroName,
+            lineNumber: lineIndex + 1
+          })
+      } else if (trimmedStatement.startsWith('%mend')) {
+        const declaredMacro = declaredMacros.pop()
+        const macroName = trimmedStatement
+          .split(' ')
+          .filter((s: string) => !!s)[1]
+
+        if (!declaredMacro) {
+          diagnostics.push({
+            message: `%mend statement is redundant`,
+            lineNumber: lineIndex + 1,
+            startColumnNumber: getColumnNumber(line, '%mend'),
+            endColumnNumber:
+              getColumnNumber(line, '%mend') + trimmedStatement.length,
+            severity: Severity.Warning
+          })
+        } else if (!macroName) {
+          diagnostics.push({
+            message: `%mend statement is missing macro name - ${
+              declaredMacro!.name
+            }`,
+            lineNumber: lineIndex + 1,
+            startColumnNumber: getColumnNumber(line, '%mend'),
+            endColumnNumber: getColumnNumber(line, '%mend') + 6,
+            severity: Severity.Warning
+          })
+        } else if (macroName !== declaredMacro!.name) {
+          diagnostics.push({
+            message: `%mend statement has mismatched macro name, it should be '${
+              declaredMacro!.name
+            }'`,
+            lineNumber: lineIndex + 1,
+            startColumnNumber: getColumnNumber(line, macroName),
+            endColumnNumber:
+              getColumnNumber(line, macroName) + macroName.length - 1,
+            severity: Severity.Warning
+          })
+        }
+      }
+    })
+  })
+
+  declaredMacros.forEach((declaredMacro) => {
+    diagnostics.push({
+      message: `Missing %mend statement for macro - ${declaredMacro.name}`,
+      lineNumber: declaredMacro.lineNumber,
+      startColumnNumber: 1,
+      endColumnNumber: 1,
+      severity: Severity.Warning
+    })
   })
 
   return diagnostics
-}
-
-const fix = (value: string, config?: LintConfig): string => {
-  const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
-  let formattedText = value
-  const macros = parseMacros(value, config)
-  macros
-    .filter((macro) => !macro.hasMacroNameInMend)
-    .forEach((macro) => {
-      formattedText = formattedText.replace(
-        macro.termination,
-        `%mend ${macro.name};${lineEnding}`
-      )
-    })
-
-  return formattedText
 }
 
 /**
@@ -101,6 +103,5 @@ export const hasMacroNameInMend: FileLintRule = {
   name,
   description,
   message,
-  test,
-  fix
+  test
 }
