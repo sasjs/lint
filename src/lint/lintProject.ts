@@ -1,4 +1,4 @@
-import { getProjectRoot } from '../utils'
+import { getProjectRoot } from '../utils/getProjectRoot'
 import { lintFolder } from './lintFolder'
 
 /**
@@ -8,7 +8,6 @@ import { lintFolder } from './lintFolder'
 export const lintProject = async () => {
   const projectRoot =
     (await getProjectRoot()) || process.projectDir || process.currentDir
-
   if (!projectRoot) {
     throw new Error('SASjs Project Root was not found.')
   }

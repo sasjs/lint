@@ -29,13 +29,13 @@ describe('noNestedMacros', () => {
         message: "Macro definition for 'inner' present in macro 'outer'",
         lineNumber: 4,
         startColumnNumber: 7,
-        endColumnNumber: 20,
+        endColumnNumber: 21,
         severity: Severity.Warning
       }
     ])
   })
 
-  it('should return an array with a single diagnostic when nested macros are defined at 2 levels', () => {
+  it('should return an array with two diagnostics when nested macros are defined at 2 levels', () => {
     const content = `
     %macro outer();
       /* any amount of arbitrary code */
@@ -52,22 +52,20 @@ describe('noNestedMacros', () => {
 
     %outer()`
 
-    expect(noNestedMacros.test(content)).toEqual([
-      {
-        message: "Macro definition for 'inner' present in macro 'outer'",
-        lineNumber: 4,
-        startColumnNumber: 7,
-        endColumnNumber: 20,
-        severity: Severity.Warning
-      },
-      {
-        message: "Macro definition for 'inner2' present in macro 'inner'",
-        lineNumber: 7,
-        startColumnNumber: 17,
-        endColumnNumber: 31,
-        severity: Severity.Warning
-      }
-    ])
+    expect(noNestedMacros.test(content)).toContainEqual({
+      message: "Macro definition for 'inner' present in macro 'outer'",
+      lineNumber: 4,
+      startColumnNumber: 7,
+      endColumnNumber: 21,
+      severity: Severity.Warning
+    })
+    expect(noNestedMacros.test(content)).toContainEqual({
+      message: "Macro definition for 'inner2' present in macro 'inner'",
+      lineNumber: 7,
+      startColumnNumber: 17,
+      endColumnNumber: 32,
+      severity: Severity.Warning
+    })
   })
 
   it('should return an empty array when the file is undefined', () => {

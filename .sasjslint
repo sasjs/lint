@@ -7,7 +7,8 @@
     "lowerCaseFileNames": true,
     "noTabIndentation": true,
     "indentationMultiple": 2,
-    "hasMacroNameInMend": false,
+    "hasMacroNameInMend": true,
     "noNestedMacros": true,
-    "hasMacroParentheses": true
+    "hasMacroParentheses": true,
+    "lineEndings": "lf"
 }

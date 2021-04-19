@@ -16,7 +16,6 @@ describe('hasMacroParentheses', () => {
   %macro somemacro;
     %put &sysmacroname;
   %mend somemacro;`
-
     expect(hasMacroParentheses.test(content)).toEqual([
       {
         message: 'Macro definition missing parentheses',
@@ -28,7 +27,7 @@ describe('hasMacroParentheses', () => {
     ])
   })
 
-  it('should return an array with a single diagnostics when macro defined without name', () => {
+  it('should return an array with a single diagnostic when macro defined without name', () => {
     const content = `
   %macro ();
     %put &sysmacroname;
@@ -45,7 +44,7 @@ describe('hasMacroParentheses', () => {
     ])
   })
 
-  it('should return an array with a single diagnostics when macro defined without name and parentheses', () => {
+  it('should return an array with a single diagnostic when macro defined without name and parentheses', () => {
     const content = `
   %macro ;
     %put &sysmacroname;
@@ -56,7 +55,7 @@ describe('hasMacroParentheses', () => {
         message: 'Macro definition missing name',
         lineNumber: 2,
         startColumnNumber: 3,
-        endColumnNumber: 9,
+        endColumnNumber: 10,
         severity: Severity.Warning
       }
     ])

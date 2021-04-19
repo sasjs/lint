@@ -9,5 +9,5 @@ module.exports = {
       statements: -10
     }
   },
-  collectCoverageFrom: ['src/**/{!(index|example),}.ts']
+  collectCoverageFrom: ['src/**/{!(index|formatExample|lintExample),}.ts']
 }
