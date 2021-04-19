@@ -1,3 +1,4 @@
+import { LintConfig } from '../../types'
 import { Severity } from '../../types/Severity'
 import { hasMacroNameInMend } from './hasMacroNameInMend'
 
@@ -318,5 +319,45 @@ describe('hasMacroNameInMend', () => {
         expect(hasMacroNameInMend.test(content)).toEqual([])
       })
     })
+  })
+
+  it('should use the configured line ending while testing content', () => {
+    const content = `%macro somemacro();\r\n%put &sysmacroname;\r\n%mend;`
+
+    const diagnostics = hasMacroNameInMend.test(
+      content,
+      new LintConfig({ lineEndings: 'crlf' })
+    )
+
+    expect(diagnostics).toEqual([
+      {
+        message: '%mend statement is missing macro name - somemacro',
+        lineNumber: 3,
+        startColumnNumber: 1,
+        endColumnNumber: 7,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
+  it('should add macro name to the mend statement if not present', () => {
+    const content = `%macro somemacro();\n%put &sysmacroname;\n%mend;`
+    const expectedContent = `%macro somemacro();\n%put &sysmacroname;\n%mend somemacro;\n`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should use the configured line ending while applying the fix', () => {
+    const content = `%macro somemacro();\r\n%put &sysmacroname;\r\n%mend;`
+    const expectedContent = `%macro somemacro();\r\n%put &sysmacroname;\r\n%mend somemacro;\r\n`
+
+    const formattedContent = hasMacroNameInMend.fix!(
+      content,
+      new LintConfig({ lineEndings: 'crlf' })
+    )
+
+    expect(formattedContent).toEqual(expectedContent)
   })
 })

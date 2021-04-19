@@ -1,3 +1,4 @@
+import { LineEndings } from './LineEndings'
 import { LintConfig } from './LintConfig'
 import { LintRuleType } from './LintRuleType'
 
@@ -106,6 +107,33 @@ describe('LintConfig', () => {
 
     expect(config).toBeTruthy()
     expect(config.indentationMultiple).toEqual(0)
+  })
+
+  it('should create an instance with the line endings set to LF', () => {
+    const config = new LintConfig({ lineEndings: 'lf' })
+
+    expect(config).toBeTruthy()
+    expect(config.lineEndings).toEqual(LineEndings.LF)
+  })
+
+  it('should create an instance with the line endings set to CRLF', () => {
+    const config = new LintConfig({ lineEndings: 'crlf' })
+
+    expect(config).toBeTruthy()
+    expect(config.lineEndings).toEqual(LineEndings.CRLF)
+  })
+
+  it('should create an instance with the line endings set to LF by default', () => {
+    const config = new LintConfig({})
+
+    expect(config).toBeTruthy()
+    expect(config.lineEndings).toEqual(LineEndings.LF)
+  })
+
+  it('should throw an error with an invalid value for line endings', () => {
+    expect(() => new LintConfig({ lineEndings: 'test' })).toThrowError(
+      `Invalid value for lineEndings: can be ${LineEndings.LF} or ${LineEndings.CRLF}`
+    )
   })
 
   it('should create an instance with all flags set', () => {
