@@ -19,6 +19,7 @@ export interface LintRule {
 export interface LineLintRule extends LintRule {
   type: LintRuleType.Line
   test: (value: string, lineNumber: number, config?: LintConfig) => Diagnostic[]
+  fix?: (value: string, config?: LintConfig) => string
 }
 
 /**
@@ -26,7 +27,8 @@ export interface LineLintRule extends LintRule {
  */
 export interface FileLintRule extends LintRule {
   type: LintRuleType.File
-  test: (value: string) => Diagnostic[]
+  test: (value: string, config?: LintConfig) => Diagnostic[]
+  fix?: (value: string, config?: LintConfig) => string
 }
 
 /**

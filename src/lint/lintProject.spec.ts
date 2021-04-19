@@ -1,14 +1,14 @@
 import { lintProject } from './lintProject'
 import { Severity } from '../types/Severity'
-import * as utils from '../utils'
+import * as getProjectRootModule from '../utils/getProjectRoot'
 import path from 'path'
-jest.mock('../utils')
+jest.mock('../utils/getProjectRoot')
 
 describe('lintProject', () => {
   it('should identify lint issues in a given project', async () => {
     jest
-      .spyOn(utils, 'getProjectRoot')
-      .mockImplementationOnce(() => Promise.resolve(path.join(__dirname, '..')))
+      .spyOn(getProjectRootModule, 'getProjectRoot')
+      .mockImplementation(() => Promise.resolve(path.join(__dirname, '..')))
     const results = await lintProject()
 
     expect(results.size).toEqual(1)
@@ -76,7 +76,7 @@ describe('lintProject', () => {
 
   it('should throw an error when a project root is not found', async () => {
     jest
-      .spyOn(utils, 'getProjectRoot')
+      .spyOn(getProjectRootModule, 'getProjectRoot')
       .mockImplementationOnce(() => Promise.resolve(''))
 
     await expect(lintProject()).rejects.toThrowError(
