@@ -339,10 +339,32 @@ describe('hasMacroNameInMend', () => {
       }
     ])
   })
-
   it('should add macro name to the mend statement if not present', () => {
-    const content = `%macro somemacro();\n%put &sysmacroname;\n%mend;`
-    const expectedContent = `%macro somemacro();\n%put &sysmacroname;\n%mend somemacro;\n`
+    const content = `  %macro somemacro;\n    %put &sysmacroname;\n  %mend;`
+    const expectedContent = `  %macro somemacro;\n    %put &sysmacroname;\n  %mend somemacro;`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should add macro name to the mend statement if not present ( with multiple macros )', () => {
+    const content = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+
+  %macro somemacro2;
+    %put &sysmacroname2;
+  %mend;`
+    const expectedContent = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+
+  %macro somemacro2;
+    %put &sysmacroname2;
+  %mend somemacro2;`
 
     const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
 
