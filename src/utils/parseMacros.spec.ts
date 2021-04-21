@@ -12,10 +12,10 @@ describe('parseMacros', () => {
     expect(macros.length).toEqual(1)
     expect(macros).toContainEqual({
       name: 'test',
-      declaration: '%macro test;',
+      declarationLine: '%macro test;',
+      terminationLine: '%mend',
+      declaration: '%macro test',
       termination: '%mend',
-      declarationTrimmedStatement: '%macro test',
-      terminationTrimmedStatement: '%mend',
       startLineNumber: 1,
       endLineNumber: 3,
       parentMacro: '',
@@ -38,10 +38,10 @@ describe('parseMacros', () => {
     expect(macros.length).toEqual(2)
     expect(macros).toContainEqual({
       name: 'foo',
-      declaration: '%macro foo;',
-      termination: '%mend;',
-      declarationTrimmedStatement: '%macro foo',
-      terminationTrimmedStatement: '%mend',
+      declarationLine: '%macro foo;',
+      terminationLine: '%mend;',
+      declaration: '%macro foo',
+      termination: '%mend',
       startLineNumber: 1,
       endLineNumber: 3,
       parentMacro: '',
@@ -51,10 +51,10 @@ describe('parseMacros', () => {
     })
     expect(macros).toContainEqual({
       name: 'bar',
-      declaration: '%macro bar();',
-      termination: '%mend bar;',
-      declarationTrimmedStatement: '%macro bar()',
-      terminationTrimmedStatement: '%mend bar',
+      declarationLine: '%macro bar();',
+      terminationLine: '%mend bar;',
+      declaration: '%macro bar()',
+      termination: '%mend bar',
       startLineNumber: 4,
       endLineNumber: 6,
       parentMacro: '',
@@ -77,10 +77,10 @@ describe('parseMacros', () => {
     expect(macros.length).toEqual(2)
     expect(macros).toContainEqual({
       name: 'test',
+      declarationLine: '%macro test()',
+      terminationLine: '%mend test',
       declaration: '%macro test()',
       termination: '%mend test',
-      declarationTrimmedStatement: '%macro test()',
-      terminationTrimmedStatement: '%mend test',
       startLineNumber: 1,
       endLineNumber: 6,
       parentMacro: '',
@@ -90,10 +90,10 @@ describe('parseMacros', () => {
     })
     expect(macros).toContainEqual({
       name: 'test2',
-      declaration: '  %macro test2',
-      termination: '  %mend',
-      declarationTrimmedStatement: '%macro test2',
-      terminationTrimmedStatement: '%mend',
+      declarationLine: '  %macro test2',
+      terminationLine: '  %mend',
+      declaration: '%macro test2',
+      termination: '%mend',
       startLineNumber: 3,
       endLineNumber: 5,
       parentMacro: 'test',

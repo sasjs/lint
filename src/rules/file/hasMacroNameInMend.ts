@@ -24,8 +24,7 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: macro.endLineNumber,
         startColumnNumber: getColumnNumber(endLine, '%mend'),
         endColumnNumber:
-          getColumnNumber(endLine, '%mend') +
-          macro.terminationTrimmedStatement.length,
+          getColumnNumber(endLine, '%mend') + macro.termination.length,
         severity: Severity.Warning
       })
     } else if (macro.endLineNumber === null && macro.startLineNumber !== null) {
@@ -79,8 +78,7 @@ const fix = (value: string, config?: LintConfig): string => {
       const endLine = lines[macro.endLineNumber - 1]
       const startColumnNumber = getColumnNumber(endLine, '%mend')
       const endColumnNumber =
-        getColumnNumber(endLine, '%mend') +
-        macro.terminationTrimmedStatement.length
+        getColumnNumber(endLine, '%mend') + macro.termination.length
 
       const beforeStatement = endLine.slice(0, startColumnNumber - 1)
       const afterStatement = endLine.slice(endColumnNumber)

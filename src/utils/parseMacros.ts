@@ -6,10 +6,10 @@ interface Macro {
   name: string
   startLineNumber: number | null
   endLineNumber: number | null
+  declarationLine: string
+  terminationLine: string
   declaration: string
   termination: string
-  declarationTrimmedStatement: string
-  terminationTrimmedStatement: string
   parentMacro: string
   hasMacroNameInMend: boolean
   hasParentheses: boolean
@@ -54,10 +54,10 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
           hasParentheses: trimmedStatement.endsWith('()'),
           hasMacroNameInMend: false,
           mismatchedMendMacroName: '',
-          declaration: line,
-          termination: '',
-          declarationTrimmedStatement: trimmedStatement,
-          terminationTrimmedStatement: ''
+          declarationLine: line,
+          terminationLine: '',
+          declaration: trimmedStatement,
+          termination: ''
         })
       } else if (trimmedStatement.startsWith('%mend')) {
         if (macroStack.length) {
@@ -69,8 +69,8 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
           macro.mismatchedMendMacroName = macro.hasMacroNameInMend
             ? ''
             : mendMacroName
-          macro.termination = line
-          macro.terminationTrimmedStatement = trimmedStatement
+          macro.terminationLine = line
+          macro.termination = trimmedStatement
           macros.push(macro)
         } else {
           macros.push({
@@ -81,10 +81,10 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
             hasParentheses: false,
             hasMacroNameInMend: false,
             mismatchedMendMacroName: '',
+            declarationLine: '',
+            terminationLine: line,
             declaration: '',
-            termination: line,
-            declarationTrimmedStatement: '',
-            terminationTrimmedStatement: trimmedStatement
+            termination: trimmedStatement
           })
         }
       }

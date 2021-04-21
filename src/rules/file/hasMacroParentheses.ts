@@ -17,19 +17,19 @@ const test = (value: string, config?: LintConfig) => {
       diagnostics.push({
         message: 'Macro definition missing name',
         lineNumber: macro.startLineNumber!,
-        startColumnNumber: getColumnNumber(macro.declaration, '%macro'),
+        startColumnNumber: getColumnNumber(macro.declarationLine, '%macro'),
         endColumnNumber:
-          getColumnNumber(macro.declaration, '%macro') +
-          macro.declarationTrimmedStatement.length,
+          getColumnNumber(macro.declarationLine, '%macro') +
+          macro.declaration.length,
         severity: Severity.Warning
       })
-    } else if (!macro.declaration.includes('(')) {
+    } else if (!macro.declarationLine.includes('(')) {
       diagnostics.push({
         message,
         lineNumber: macro.startLineNumber!,
-        startColumnNumber: getColumnNumber(macro.declaration, macro.name),
+        startColumnNumber: getColumnNumber(macro.declarationLine, macro.name),
         endColumnNumber:
-          getColumnNumber(macro.declaration, macro.name) +
+          getColumnNumber(macro.declarationLine, macro.name) +
           macro.name.length -
           1,
         severity: Severity.Warning
@@ -38,9 +38,9 @@ const test = (value: string, config?: LintConfig) => {
       diagnostics.push({
         message: 'Macro definition contains space(s)',
         lineNumber: macro.startLineNumber!,
-        startColumnNumber: getColumnNumber(macro.declaration, macro.name),
+        startColumnNumber: getColumnNumber(macro.declarationLine, macro.name),
         endColumnNumber:
-          getColumnNumber(macro.declaration, macro.name) +
+          getColumnNumber(macro.declarationLine, macro.name) +
           macro.name.length -
           1 +
           `()`.length,
