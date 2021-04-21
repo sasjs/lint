@@ -18,7 +18,9 @@ const test = (value: string, config?: LintConfig) => {
         message: 'Macro definition missing name',
         lineNumber: macro.startLineNumber!,
         startColumnNumber: getColumnNumber(macro.declaration, '%macro'),
-        endColumnNumber: macro.declaration.length,
+        endColumnNumber:
+          getColumnNumber(macro.declaration, '%macro') +
+          macro.declarationTrimmedStatement.length,
         severity: Severity.Warning
       })
     } else if (!macro.declaration.includes('(')) {
