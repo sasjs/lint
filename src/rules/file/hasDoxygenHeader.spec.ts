@@ -2,7 +2,7 @@ import { LintConfig } from '../../types'
 import { Severity } from '../../types/Severity'
 import { hasDoxygenHeader } from './hasDoxygenHeader'
 
-describe('hasDoxygenHeader', () => {
+describe('hasDoxygenHeader - test', () => {
   it('should return an empty array when the file starts with a doxygen header', () => {
     const content = `/**
    @file
@@ -69,7 +69,9 @@ describe('hasDoxygenHeader', () => {
       }
     ])
   })
+})
 
+describe('hasDoxygenHeader - fix', () => {
   it('should not alter the text if a doxygen header is already present', () => {
     const content = `/**
    @file

@@ -2,7 +2,7 @@ import { LintConfig, Severity } from '../../types'
 import { LineEndings } from '../../types/LineEndings'
 import { lineEndings } from './lineEndings'
 
-describe('lineEndings', () => {
+describe('lineEndings - test', () => {
   it('should return an empty array when the text contains the configured line endings', () => {
     const text = "%put 'hello';\n%put 'world';\n"
     const config = new LintConfig({ lineEndings: LineEndings.LF })
@@ -101,7 +101,9 @@ describe('lineEndings', () => {
       severity: Severity.Warning
     })
   })
+})
 
+describe('lineEndings - fix', () => {
   it('should transform line endings to LF', () => {
     const text =
       "%put 'hello';\r\n%put 'test';\r\n%put 'world';\n%put 'test2';\n%put 'world2';\r\n"

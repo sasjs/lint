@@ -2,7 +2,7 @@ import { LintConfig } from '../../types'
 import { Severity } from '../../types/Severity'
 import { hasMacroNameInMend } from './hasMacroNameInMend'
 
-describe('hasMacroNameInMend', () => {
+describe('hasMacroNameInMend - test', () => {
   it('should return an empty array when %mend has correct macro name', () => {
     const content = `
   %macro somemacro();
@@ -339,7 +339,9 @@ describe('hasMacroNameInMend', () => {
       }
     ])
   })
+})
 
+describe('hasMacroNameInMend - fix', () => {
   it('should add macro name to the mend statement if not present', () => {
     const content = `  %macro somemacro;\n    %put &sysmacroname;\n  %mend;`
     const expectedContent = `  %macro somemacro;\n    %put &sysmacroname;\n  %mend somemacro;`
