@@ -65,7 +65,7 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
           const mendMacroName =
             trimmedStatement.split(' ').filter((s: string) => !!s)[1] || ''
           macro.endLineNumber = index + 1
-          macro.hasMacroNameInMend = trimmedStatement.includes(macro.name)
+          macro.hasMacroNameInMend = mendMacroName === macro.name
           macro.mismatchedMendMacroName = macro.hasMacroNameInMend
             ? ''
             : mendMacroName
