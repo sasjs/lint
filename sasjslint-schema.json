@@ -15,7 +15,8 @@
     "noNestedMacros": true,
     "noSpacesInFileNames": true,
     "noTabIndentation": true,
-    "noTrailingSpaces": true
+    "noTrailingSpaces": true,
+    "lineEndings": "lf"
   },
   "examples": [
     {
@@ -29,7 +30,8 @@
       "indentationMultiple": 4,
       "hasMacroNameInMend": true,
       "noNestedMacros": true,
-      "hasMacroParentheses": true
+      "hasMacroParentheses": true,
+      "lineEndings": "crlf"
     }
   ],
   "properties": {
@@ -120,6 +122,14 @@
       "description": "Enforces no trailing spaces in lines of SAS code. Shows a warning when they are present.",
       "default": true,
       "examples": [true, false]
+    },
+    "lineEndings": {
+      "$id": "#/properties/lineEndings",
+      "type": "string",
+      "title": "lineEndings",
+      "description": "Enforces the configured terminating character for each line. Shows a warning when incorrect line endings are present.",
+      "default": "lf",
+      "examples": ["lf", "crlf"]
     }
   }
 }

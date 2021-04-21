@@ -1,8 +1,10 @@
 import { lintProject } from './lintProject'
 import { Severity } from '../types/Severity'
-import * as utils from '../utils'
+import * as getProjectRootModule from '../utils/getProjectRoot'
 import path from 'path'
-jest.mock('../utils')
+import { createFolder, createFile, readFile, deleteFolder } from '@sasjs/utils'
+import { DefaultLintConfiguration } from '../utils'
+jest.mock('../utils/getProjectRoot')
 
 const expectedFilesCount = 1
 const expectedDiagnostics = [
@@ -73,14 +75,29 @@ const expectedDiagnostics = [
 
 describe('lintProject', () => {
   it('should identify lint issues in a given project', async () => {
+    await createFolder(path.join(__dirname, 'lint-project-test'))
+    const content = await readFile(
+      path.join(__dirname, '..', 'Example File.sas')
+    )
+    await createFile(
+      path.join(__dirname, 'lint-project-test', 'Example File.sas'),
+      content
+    )
+    await createFile(
+      path.join(__dirname, 'lint-project-test', '.sasjslint'),
+      JSON.stringify(DefaultLintConfiguration)
+    )
+
     jest
-      .spyOn(utils, 'getProjectRoot')
-      .mockImplementationOnce(() => Promise.resolve(path.join(__dirname, '..')))
+      .spyOn(getProjectRootModule, 'getProjectRoot')
+      .mockImplementation(() =>
+        Promise.resolve(path.join(__dirname, 'lint-project-test'))
+      )
     const results = await lintProject()
 
     expect(results.size).toEqual(expectedFilesCount)
     const diagnostics = results.get(
-      path.join(__dirname, '..', 'Example File.sas')
+      path.join(__dirname, 'lint-project-test', 'Example File.sas')
     )!
     expect(diagnostics.length).toEqual(expectedDiagnostics.length)
     expect(diagnostics).toContainEqual(expectedDiagnostics[0])
@@ -92,11 +109,13 @@ describe('lintProject', () => {
     expect(diagnostics).toContainEqual(expectedDiagnostics[6])
     expect(diagnostics).toContainEqual(expectedDiagnostics[7])
     expect(diagnostics).toContainEqual(expectedDiagnostics[8])
+
+    await deleteFolder(path.join(__dirname, 'lint-project-test'))
   })
 
   it('should throw an error when a project root is not found', async () => {
     jest
-      .spyOn(utils, 'getProjectRoot')
+      .spyOn(getProjectRootModule, 'getProjectRoot')
       .mockImplementationOnce(() => Promise.resolve(''))
 
     await expect(lintProject()).rejects.toThrowError(

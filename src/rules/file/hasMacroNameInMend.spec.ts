@@ -1,7 +1,8 @@
+import { LintConfig } from '../../types'
 import { Severity } from '../../types/Severity'
 import { hasMacroNameInMend } from './hasMacroNameInMend'
 
-describe('hasMacroNameInMend', () => {
+describe('hasMacroNameInMend - test', () => {
   it('should return an empty array when %mend has correct macro name', () => {
     const content = `
   %macro somemacro();
@@ -318,5 +319,147 @@ describe('hasMacroNameInMend', () => {
         expect(hasMacroNameInMend.test(content)).toEqual([])
       })
     })
+  })
+
+  it('should use the configured line ending while testing content', () => {
+    const content = `%macro somemacro();\r\n%put &sysmacroname;\r\n%mend;`
+
+    const diagnostics = hasMacroNameInMend.test(
+      content,
+      new LintConfig({ lineEndings: 'crlf' })
+    )
+
+    expect(diagnostics).toEqual([
+      {
+        message: '%mend statement is missing macro name - somemacro',
+        lineNumber: 3,
+        startColumnNumber: 1,
+        endColumnNumber: 7,
+        severity: Severity.Warning
+      }
+    ])
+  })
+})
+
+describe('hasMacroNameInMend - fix', () => {
+  it('should add macro name to the mend statement if not present', () => {
+    const content = `  %macro somemacro;\n    %put &sysmacroname;\n  %mend;`
+    const expectedContent = `  %macro somemacro;\n    %put &sysmacroname;\n  %mend somemacro;`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should add macro name to the mend statement if not present ( code in single line )', () => {
+    const content = `%macro somemacro; %put &sysmacroname; %mend; some code;`
+    const expectedContent = `%macro somemacro; %put &sysmacroname; %mend somemacro; some code;`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should add macro name to the mend statement if not present ( with multiple macros )', () => {
+    const content = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+
+  %macro somemacro2;
+    %put &sysmacroname2;
+  %mend;`
+    const expectedContent = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+
+  %macro somemacro2;
+    %put &sysmacroname2;
+  %mend somemacro2;`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should remove redundant %mend statement', () => {
+    const content = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+  %mend something;`
+    const expectedContent = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+  `
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should remove redundant %mend statement with comments', () => {
+    const content = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+  /* some comment */
+  /* some comment */ %mend something; some code;
+  /* some comment */`
+    const expectedContent = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;
+  /* some comment */
+  /* some comment */  some code;
+  /* some comment */`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should correct mismatched macro name', () => {
+    const content = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend someanothermacro;`
+    const expectedContent = `
+  %macro somemacro;
+    %put &sysmacroname;
+  %mend somemacro;`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should correct mismatched macro name with comments', () => {
+    const content = `
+  %macro  somemacro;
+/* some comments */
+    %put  &sysmacroname;
+/* some comments */
+  %mend    someanothermacro   ;`
+    const expectedContent = `
+  %macro  somemacro;
+/* some comments */
+    %put  &sysmacroname;
+/* some comments */
+  %mend    somemacro   ;`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+    expect(formattedContent).toEqual(expectedContent)
+  })
+
+  it('should use the configured line ending while applying the fix', () => {
+    const content = `%macro somemacro();\r\n%put &sysmacroname;\r\n%mend  ;`
+    const expectedContent = `%macro somemacro();\r\n%put &sysmacroname;\r\n%mend somemacro  ;`
+
+    const formattedContent = hasMacroNameInMend.fix!(
+      content,
+      new LintConfig({ lineEndings: 'crlf' })
+    )
+
+    expect(formattedContent).toEqual(expectedContent)
   })
 })
