@@ -10,7 +10,7 @@ import {
 describe('formatFolder', () => {
   it('should fix linting issues in a given folder', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;\n`
+    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
     await createFolder(path.join(__dirname, 'format-folder-test'))
     await createFile(
       path.join(__dirname, 'format-folder-test', 'format-folder-test.sas'),
@@ -29,7 +29,7 @@ describe('formatFolder', () => {
 
   it('should fix linting issues in subfolders of a given folder', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;\n`
+    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
     await createFolder(path.join(__dirname, 'format-folder-test'))
     await createFolder(path.join(__dirname, 'subfolder'))
     await createFile(
