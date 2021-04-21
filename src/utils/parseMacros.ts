@@ -8,6 +8,8 @@ interface Macro {
   endLineNumber: number | null
   declaration: string
   termination: string
+  declarationTrimmedStatement: string
+  terminationTrimmedStatement: string
   parentMacro: string
   hasMacroNameInMend: boolean
   hasParentheses: boolean
@@ -53,7 +55,9 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
           hasMacroNameInMend: false,
           mismatchedMendMacroName: '',
           declaration: line,
-          termination: ''
+          termination: '',
+          declarationTrimmedStatement: trimmedStatement,
+          terminationTrimmedStatement: ''
         })
       } else if (trimmedStatement.startsWith('%mend')) {
         if (macroStack.length) {
@@ -66,6 +70,7 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
             ? ''
             : mendMacroName
           macro.termination = line
+          macro.terminationTrimmedStatement = trimmedStatement
           macros.push(macro)
         } else {
           macros.push({
@@ -77,7 +82,9 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
             hasMacroNameInMend: false,
             mismatchedMendMacroName: '',
             declaration: '',
-            termination: line
+            termination: line,
+            declarationTrimmedStatement: '',
+            terminationTrimmedStatement: trimmedStatement
           })
         }
       }
