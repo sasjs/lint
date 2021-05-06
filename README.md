@@ -46,7 +46,7 @@ The SASjs framework recommends the use of Doxygen headers for describing all typ
 #### hasMacroNameInMend
 The addition of the macro name in the `%mend` statement is optional, but can approve readability in large programs.  A discussion on this topic can be found [here](https://www.linkedin.com/posts/allanbowe_sas-sasapps-sasjs-activity-6783413360781266945-1-7m).  The default setting will be the result of a popular vote by around 300 people.
 
-* Default:  false (for now)
+* Default:  true
 * Severity: WARNING
 
 #### hasMacroParentheses
