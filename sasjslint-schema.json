@@ -16,7 +16,8 @@
     "noSpacesInFileNames": true,
     "noTabIndentation": true,
     "noTrailingSpaces": true,
-    "lineEndings": "lf"
+    "lineEndings": "lf",
+    "strictMacroDefinition": true
   },
   "examples": [
     {
@@ -31,7 +32,8 @@
       "hasMacroNameInMend": true,
       "noNestedMacros": true,
       "hasMacroParentheses": true,
-      "lineEndings": "crlf"
+      "lineEndings": "crlf",
+      "strictMacroDefinition": true
     }
   ],
   "properties": {
@@ -130,6 +132,14 @@
       "description": "Enforces the configured terminating character for each line. Shows a warning when incorrect line endings are present.",
       "default": "lf",
       "examples": ["lf", "crlf"]
+    },
+    "strictMacroDefinition": {
+      "$id": "#/properties/strictMacroDefinition",
+      "type": "boolean",
+      "title": "strictMacroDefinition",
+      "description": "Enforces Macro Definition syntax. Shows a warning when incorrect syntax is used.",
+      "default": true,
+      "examples": [true, false]
     }
   }
 }
