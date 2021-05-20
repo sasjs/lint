@@ -7,6 +7,15 @@ describe('trimComments', () => {
       /* some comment */ some code;
       `)
     ).toEqual({ statement: 'some code;', commentStarted: false })
+
+    expect(
+      trimComments(`/* some comment */
+      /* some comment */ CODE_Keyword1 /* some comment */ CODE_Keyword2/* some comment */;/* some comment */
+      /* some comment */`)
+    ).toEqual({
+      statement: 'CODE_Keyword1 CODE_Keyword2;',
+      commentStarted: false
+    })
   })
 
   it('should return statment, having multi-line comment', () => {

@@ -17,6 +17,18 @@ export const trimComments = (
     } else {
       return { statement: '', commentStarted: true }
     }
+  } else if (trimmed.includes('/*')) {
+    const statementBeforeCommentStarts = trimmed.slice(0, trimmed.indexOf('/*'))
+    const remainingStatement = trimmed.slice(
+      trimmed.indexOf('/*'),
+      trimmed.length
+    )
+
+    const result = trimComments(remainingStatement, false)
+    return {
+      statement: statementBeforeCommentStarts + result.statement,
+      commentStarted: result.commentStarted
+    }
   }
   return { statement: trimmed, commentStarted: false }
 }
