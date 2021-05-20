@@ -10,7 +10,8 @@ import {
   maxLineLength,
   noEncodedPasswords,
   noTabIndentation,
-  noTrailingSpaces
+  noTrailingSpaces,
+  strictMacroDefinition
 } from '../rules/line'
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
@@ -89,6 +90,10 @@ export class LintConfig {
 
     if (json?.hasMacroParentheses) {
       this.fileLintRules.push(hasMacroParentheses)
+    }
+
+    if (json?.strictMacroDefinition) {
+      this.lineLintRules.push(strictMacroDefinition)
     }
   }
 }

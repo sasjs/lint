@@ -17,7 +17,8 @@ export const DefaultLintConfiguration = {
   indentationMultiple: 2,
   hasMacroNameInMend: true,
   noNestedMacros: true,
-  hasMacroParentheses: true
+  hasMacroParentheses: true,
+  strictMacroDefinition: true
 }
 
 /**
