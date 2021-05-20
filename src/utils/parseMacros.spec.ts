@@ -20,7 +20,6 @@ describe('parseMacros', () => {
       endLineNumber: 3,
       parentMacro: '',
       hasMacroNameInMend: false,
-      hasParentheses: false,
       mismatchedMendMacroName: ''
     })
   })
@@ -43,7 +42,6 @@ describe('parseMacros', () => {
       endLineNumber: 3,
       parentMacro: '',
       hasMacroNameInMend: false,
-      hasParentheses: false,
       mismatchedMendMacroName: ''
     })
   })
@@ -66,7 +64,6 @@ describe('parseMacros', () => {
       endLineNumber: 3,
       parentMacro: '',
       hasMacroNameInMend: false,
-      hasParentheses: false,
       mismatchedMendMacroName: ''
     })
   })
@@ -90,7 +87,6 @@ describe('parseMacros', () => {
       endLineNumber: 4,
       parentMacro: '',
       hasMacroNameInMend: false,
-      hasParentheses: false,
       mismatchedMendMacroName: ''
     })
   })
@@ -116,7 +112,6 @@ describe('parseMacros', () => {
       endLineNumber: 3,
       parentMacro: '',
       hasMacroNameInMend: false,
-      hasParentheses: false,
       mismatchedMendMacroName: ''
     })
     expect(macros).toContainEqual({
@@ -129,7 +124,6 @@ describe('parseMacros', () => {
       endLineNumber: 6,
       parentMacro: '',
       hasMacroNameInMend: true,
-      hasParentheses: true,
       mismatchedMendMacroName: ''
     })
   })
@@ -155,7 +149,6 @@ describe('parseMacros', () => {
       endLineNumber: 6,
       parentMacro: '',
       hasMacroNameInMend: true,
-      hasParentheses: true,
       mismatchedMendMacroName: ''
     })
     expect(macros).toContainEqual({
@@ -168,7 +161,6 @@ describe('parseMacros', () => {
       endLineNumber: 5,
       parentMacro: 'test',
       hasMacroNameInMend: false,
-      hasParentheses: false,
       mismatchedMendMacroName: ''
     })
   })

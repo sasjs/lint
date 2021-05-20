@@ -12,7 +12,6 @@ interface Macro {
   termination: string
   parentMacro: string
   hasMacroNameInMend: boolean
-  hasParentheses: boolean
   mismatchedMendMacroName: string
 }
 
@@ -52,7 +51,6 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
           parentMacro: macroStack.length
             ? macroStack[macroStack.length - 1].name
             : '',
-          hasParentheses: trimmedStatement.endsWith('()'),
           hasMacroNameInMend: false,
           mismatchedMendMacroName: '',
           declarationLine: line,
@@ -79,7 +77,6 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
             startLineNumber: null,
             endLineNumber: index + 1,
             parentMacro: '',
-            hasParentheses: false,
             hasMacroNameInMend: false,
             mismatchedMendMacroName: '',
             declarationLine: '',
