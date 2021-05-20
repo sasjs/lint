@@ -59,7 +59,7 @@ describe('hasDoxygenHeader - test', () => {
   it('should return an array with a single diagnostic when the file is undefined', () => {
     const content = undefined
 
-    expect(hasDoxygenHeader.test((content as unknown) as string)).toEqual([
+    expect(hasDoxygenHeader.test(content as unknown as string)).toEqual([
       {
         message: 'File missing Doxygen header',
         lineNumber: 1,

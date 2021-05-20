@@ -79,7 +79,7 @@ describe('hasMacroParentheses', () => {
   it('should return an empty array when the file is undefined', () => {
     const content = undefined
 
-    expect(hasMacroParentheses.test((content as unknown) as string)).toEqual([])
+    expect(hasMacroParentheses.test(content as unknown as string)).toEqual([])
   })
 
   describe('with extra spaces and comments', () => {

@@ -8,7 +8,8 @@
     "postpublish": "git clean -fd",
     "package:lib": "npm run build && cp ./package.json build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
     "lint:fix": "npx prettier --write '{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}'",
-    "lint": "npx prettier --check '{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}'"
+    "lint": "npx prettier --check '{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}'",
+    "postinstall": "[ -d .git ] && git config core.hooksPath ./.git-hooks || true"
   },
   "publishConfig": {
     "access": "public"
