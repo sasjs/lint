@@ -72,7 +72,7 @@ describe('noNestedMacros', () => {
   it('should return an empty array when the file is undefined', () => {
     const content = undefined
 
-    expect(noNestedMacros.test((content as unknown) as string)).toEqual([])
+    expect(noNestedMacros.test(content as unknown as string)).toEqual([])
   })
 
   it('should use the configured line ending while testing content', () => {
