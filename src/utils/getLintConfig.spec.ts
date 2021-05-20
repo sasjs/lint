@@ -3,7 +3,7 @@ import { LintConfig } from '../types/LintConfig'
 import { getLintConfig } from './getLintConfig'
 
 const expectedFileLintRulesCount = 4
-const expectedLineLintRulesCount = 5
+const expectedLineLintRulesCount = 6
 const expectedPathLintRulesCount = 2
 
 describe('getLintConfig', () => {

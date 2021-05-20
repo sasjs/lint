@@ -6,11 +6,14 @@ export const trimComments = (
 
   if (commentStarted || trimmed.startsWith('/*')) {
     const parts = trimmed.split('*/')
-    if (parts.length > 1) {
+    if (parts.length === 2) {
       return {
         statement: (parts.pop() as string).trim(),
         commentStarted: false
       }
+    } else if (parts.length > 2) {
+      parts.shift()
+      return trimComments(parts.join('*/'), false)
     } else {
       return { statement: '', commentStarted: true }
     }
