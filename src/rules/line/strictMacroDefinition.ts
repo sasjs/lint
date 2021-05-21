@@ -42,12 +42,34 @@ const test = (value: string, lineNumber: number) => {
     const params = paramsTrimmed.split(',')
     params.forEach((param) => {
       const trimedParam = param.split('=')[0].trim()
+
+      let paramStartIndex: number = 1,
+        paramEndIndex: number = value.length
+
+      if (value.indexOf(trimedParam) === -1) {
+        const comment = '/\\*(.*?)\\*/'
+        for (let i = 1; i < trimedParam.length; i++) {
+          const paramWithComment =
+            trimedParam.slice(0, i) + comment + trimedParam.slice(i)
+          const regEx = new RegExp(paramWithComment)
+          const result = regEx.exec(value)
+          if (result) {
+            paramStartIndex = value.indexOf(result[0])
+            paramEndIndex = value.indexOf(result[0]) + result[0].length
+            break
+          }
+        }
+      } else {
+        paramStartIndex = value.indexOf(trimedParam)
+        paramEndIndex = value.indexOf(trimedParam) + trimedParam.length
+      }
+
       if (trimedParam.includes(' ')) {
         diagnostics.push({
           message: `Param '${trimedParam}' cannot have space`,
           lineNumber,
-          startColumnNumber: value.indexOf(trimedParam) + 1,
-          endColumnNumber: value.indexOf(trimedParam) + trimedParam.length,
+          startColumnNumber: paramStartIndex + 1,
+          endColumnNumber: paramEndIndex,
           severity: Severity.Warning
         })
       }

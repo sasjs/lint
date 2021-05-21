@@ -24,6 +24,19 @@ describe('strictMacroDefinition', () => {
     const line7 =
       ' /* Some Comment */ %macro somemacro(var1, var2) /minoperator ; /* Some Comment */'
     expect(strictMacroDefinition.test(line7, 1)).toEqual([])
+
+    const line8 =
+      '%macro macroName( arr, arr/* / store source */3 ) /* / store source */;/* / store source */'
+    expect(strictMacroDefinition.test(line8, 1)).toEqual([])
+
+    const line9 = '%macro macroName(var1, var2=with space, var3=);'
+    expect(strictMacroDefinition.test(line9, 1)).toEqual([])
+
+    const line10 = '%macro macroName()/ /* some comment */ store source;'
+    expect(strictMacroDefinition.test(line10, 1)).toEqual([])
+
+    const line11 = '`%macro macroName() /* / store source */;'
+    expect(strictMacroDefinition.test(line11, 1)).toEqual([])
   })
 
   it('should return an array with a single diagnostic when Macro definition has space in param', () => {
@@ -39,7 +52,7 @@ describe('strictMacroDefinition', () => {
     ])
   })
 
-  it('should return an array with a two diagnostics when Macro definition has space in param', () => {
+  it('should return an array with a two diagnostics when Macro definition has space in params', () => {
     const line = '%macro somemacro(var1, var 2, v ar3, var4);'
     expect(strictMacroDefinition.test(line, 1)).toEqual([
       {
@@ -54,6 +67,20 @@ describe('strictMacroDefinition', () => {
         lineNumber: 1,
         startColumnNumber: 31,
         endColumnNumber: 35,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
+  it('should return an array with a two diagnostics when Macro definition has space in params - special case', () => {
+    const line =
+      '%macro macroName( arr, ar r/* / store source */ 3 ) /* / store source */;/* / store source */'
+    expect(strictMacroDefinition.test(line, 1)).toEqual([
+      {
+        message: `Param 'ar r 3' cannot have space`,
+        lineNumber: 1,
+        startColumnNumber: 24,
+        endColumnNumber: 49,
         severity: Severity.Warning
       }
     ])

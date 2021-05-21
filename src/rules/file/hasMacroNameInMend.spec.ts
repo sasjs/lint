@@ -56,7 +56,7 @@ describe('hasMacroNameInMend - test', () => {
   it('should return an array with a diagnostic for each macro missing an %mend statement', () => {
     const content = `%macro somemacro;
     %put &sysmacroname;
-    %macro othermacro`
+    %macro othermacro;`
 
     expect(hasMacroNameInMend.test(content)).toEqual([
       {

@@ -13,7 +13,7 @@ describe('trimComments', () => {
       /* some comment */ CODE_Keyword1 /* some comment */ CODE_Keyword2/* some comment */;/* some comment */
       /* some comment */`)
     ).toEqual({
-      statement: 'CODE_Keyword1 CODE_Keyword2;',
+      statement: 'CODE_Keyword1  CODE_Keyword2;',
       commentStarted: false
     })
   })

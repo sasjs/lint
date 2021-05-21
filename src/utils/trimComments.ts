@@ -1,8 +1,9 @@
 export const trimComments = (
   statement: string,
-  commentStarted: boolean = false
+  commentStarted: boolean = false,
+  trimEnd: boolean = false
 ): { statement: string; commentStarted: boolean } => {
-  let trimmed = (statement || '').trim()
+  let trimmed = trimEnd ? (statement || '').trimEnd() : (statement || '').trim()
 
   if (commentStarted || trimmed.startsWith('/*')) {
     const parts = trimmed.split('*/')
@@ -20,13 +21,16 @@ export const trimComments = (
   } else if (trimmed.includes('/*')) {
     const statementBeforeCommentStarts = trimmed.slice(0, trimmed.indexOf('/*'))
     const remainingStatement = trimmed.slice(
-      trimmed.indexOf('/*'),
+      trimmed.indexOf('*/') + 2,
       trimmed.length
     )
 
-    const result = trimComments(remainingStatement, false)
+    const result = trimComments(remainingStatement, false, true)
+    const completeStatement = statementBeforeCommentStarts + result.statement
     return {
-      statement: statementBeforeCommentStarts + result.statement,
+      statement: trimEnd
+        ? completeStatement.trimEnd()
+        : completeStatement.trim(),
       commentStarted: result.commentStarted
     }
   }

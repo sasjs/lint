@@ -17,7 +17,7 @@ const test = (value: string, config?: LintConfig) => {
   const macros = parseMacros(value, config)
   const diagnostics: Diagnostic[] = []
   macros.forEach((macro) => {
-    if (macro.startLineNumber === null && macro.endLineNumber !== null) {
+    if (macro.startLineNumbers.length === 0 && macro.endLineNumber !== null) {
       const endLine = lines[macro.endLineNumber - 1]
       diagnostics.push({
         message: `%mend statement is redundant`,
@@ -27,10 +27,13 @@ const test = (value: string, config?: LintConfig) => {
           getColumnNumber(endLine, '%mend') + macro.termination.length,
         severity: Severity.Warning
       })
-    } else if (macro.endLineNumber === null && macro.startLineNumber !== null) {
+    } else if (
+      macro.endLineNumber === null &&
+      macro.startLineNumbers.length !== 0
+    ) {
       diagnostics.push({
         message: `Missing %mend statement for macro - ${macro.name}`,
-        lineNumber: macro.startLineNumber,
+        lineNumber: macro.startLineNumbers![0],
         startColumnNumber: 1,
         endColumnNumber: 1,
         severity: Severity.Warning
@@ -73,7 +76,7 @@ const fix = (value: string, config?: LintConfig): string => {
   const macros = parseMacros(value, config)
 
   macros.forEach((macro) => {
-    if (macro.startLineNumber === null && macro.endLineNumber !== null) {
+    if (macro.startLineNumbers.length === 0 && macro.endLineNumber !== null) {
       // %mend statement is redundant
       const endLine = lines[macro.endLineNumber - 1]
       const startColumnNumber = getColumnNumber(endLine, '%mend')
@@ -83,7 +86,10 @@ const fix = (value: string, config?: LintConfig): string => {
       const beforeStatement = endLine.slice(0, startColumnNumber - 1)
       const afterStatement = endLine.slice(endColumnNumber)
       lines[macro.endLineNumber - 1] = beforeStatement + afterStatement
-    } else if (macro.endLineNumber === null && macro.startLineNumber !== null) {
+    } else if (
+      macro.endLineNumber === null &&
+      macro.startLineNumbers.length !== 0
+    ) {
       // missing %mend statement
     } else if (macro.mismatchedMendMacroName) {
       // mismatched macro name
