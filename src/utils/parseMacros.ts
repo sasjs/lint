@@ -1,19 +1,6 @@
-import { LintConfig } from '../types/LintConfig'
+import { LintConfig, Macro } from '../types'
 import { LineEndings } from '../types/LineEndings'
 import { trimComments } from './trimComments'
-
-interface Macro {
-  name: string
-  startLineNumbers: number[]
-  endLineNumber: number | null
-  declarationLines: string[]
-  terminationLine: string
-  declaration: string
-  termination: string
-  parentMacro: string
-  hasMacroNameInMend: boolean
-  mismatchedMendMacroName: string
-}
 
 export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
   const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
@@ -39,6 +26,8 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
     const statements: string[] = trimmedLine.split(';')
 
     if (isReadingMacroDefinition) {
+      // checking if code is split into statements based on `;` is a part of HTML Encoded Character
+      // if it happened, merges two statements into one
       statements.forEach((statement, statementIndex) => {
         if (/&[^\s]{1,5}$/.test(statement)) {
           const next = statements[statementIndex]
