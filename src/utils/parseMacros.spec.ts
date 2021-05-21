@@ -3,9 +3,7 @@ import { parseMacros } from './parseMacros'
 
 describe('parseMacros', () => {
   it('should return an array with a single macro', () => {
-    const text = ` %macro test;
-  %put 'hello';
-%mend`
+    const text = ` %macro test;\n  %put 'hello';\n%mend`
 
     const macros = parseMacros(text, new LintConfig())
 
@@ -25,9 +23,7 @@ describe('parseMacros', () => {
   })
 
   it('should return an array with a single macro having parameters', () => {
-    const text = `%macro test(var,sum);
-  %put 'hello';
-%mend`
+    const text = `%macro test(var,sum);\n  %put 'hello';\n%mend`
 
     const macros = parseMacros(text, new LintConfig())
 
@@ -47,9 +43,7 @@ describe('parseMacros', () => {
   })
 
   it('should return an array with a single macro having PARMBUFF option', () => {
-    const text = `%macro test/parmbuff;
-  %put 'hello';
-%mend`
+    const text = `%macro test/parmbuff;\n  %put 'hello';\n%mend`
 
     const macros = parseMacros(text, new LintConfig())
 
@@ -69,10 +63,7 @@ describe('parseMacros', () => {
   })
 
   it('should return an array with a single macro having paramerter & SOURCE option', () => {
-    const text = `/* commentary */  %macro foobar(arg) /store source
-      des="This macro does not do much";
-  %put 'hello';
-%mend`
+    const text = `/* commentary */  %macro foobar(arg) /store source\n      des="This macro does not do much";\n  %put 'hello';\n%mend`
 
     const macros = parseMacros(text, new LintConfig())
 
@@ -96,12 +87,7 @@ describe('parseMacros', () => {
   })
 
   it('should return an array with multiple macros', () => {
-    const text = `%macro foo;
-  %put 'foo';
-%mend;
-%macro bar();
-  %put 'bar';
-%mend bar;`
+    const text = `%macro foo;\n  %put 'foo';\n%mend;\n%macro bar();\n  %put 'bar';\n%mend bar;`
 
     const macros = parseMacros(text, new LintConfig())
 
@@ -133,12 +119,7 @@ describe('parseMacros', () => {
   })
 
   it('should detect nested macro definitions', () => {
-    const text = `%macro test();
-  %put 'hello';
-  %macro test2;
-    %put 'world;
-  %mend
-%mend test`
+    const text = `%macro test();\n  %put 'hello';\n  %macro test2;\n    %put 'world;\n  %mend\n%mend test`
 
     const macros = parseMacros(text, new LintConfig())
 
@@ -171,10 +152,7 @@ describe('parseMacros', () => {
 
   describe(`multi-line macro declarations`, () => {
     it('should return an array with a single macro', () => {
-      const text = `%macro 
-      test;
-  %put 'hello';
-%mend`
+      const text = `%macro \n      test;\n  %put 'hello';\n%mend`
 
       const macros = parseMacros(text, new LintConfig())
 
@@ -194,11 +172,7 @@ describe('parseMacros', () => {
     })
 
     it('should return an array with a single macro having parameters', () => {
-      const text = `%macro 
-      test(
-        var,
-        sum);%put 'hello';
-%mend`
+      const text = `%macro \n      test(\n        var,\n        sum);%put 'hello';\n%mend`
 
       const macros = parseMacros(text, new LintConfig())
 
@@ -223,10 +197,7 @@ describe('parseMacros', () => {
     })
 
     it('should return an array with a single macro having PARMBUFF option', () => {
-      const text = `%macro test
-      /parmbuff;
-  %put 'hello';
-%mend`
+      const text = `%macro test\n      /parmbuff;\n  %put 'hello';\n%mend`
 
       const macros = parseMacros(text, new LintConfig())
 
@@ -246,13 +217,7 @@ describe('parseMacros', () => {
     })
 
     it('should return an array with a single macro having paramerter & SOURCE option', () => {
-      const text = `/* commentary */  %macro foobar/* commentary */(arg) 
-      /* commentary */
-      /store
-      /* commentary */source
-      des="This macro does not do much";
-  %put 'hello';
-%mend`
+      const text = `/* commentary */  %macro foobar/* commentary */(arg) \n      /* commentary */\n      /store\n      /* commentary */source\n      des="This macro does not do much";\n  %put 'hello';\n%mend`
 
       const macros = parseMacros(text, new LintConfig())
 
