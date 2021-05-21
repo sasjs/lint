@@ -38,6 +38,19 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
 
     const statements: string[] = trimmedLine.split(';')
 
+    if (isReadingMacroDefinition) {
+      statements.forEach((statement, statementIndex) => {
+        if (/&[^\s]{1,5}$/.test(statement)) {
+          const next = statements[statementIndex]
+          const updatedStatement = `${statement};${
+            statements[statementIndex + 1]
+          }`
+          statements.splice(statementIndex, 1, updatedStatement)
+          statements.splice(statementIndex + 1, 1)
+        }
+      })
+    }
+
     statements.forEach((statement, statementIndex) => {
       const { statement: trimmedStatement, commentStarted } = trimComments(
         statement,

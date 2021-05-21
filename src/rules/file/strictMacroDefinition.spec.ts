@@ -121,6 +121,9 @@ describe('strictMacroDefinition', () => {
     it('should return an empty array when the content has correct macro definition syntax', () => {
       const content = `%macro mp_ds2cards(base_ds=, tgt_ds=\n    ,cards_file="%sysfunc(pathname(work))/cardgen.sas"\n    ,maxobs=max\n    ,random_sample=NO\n    ,showlog=YES\n    ,outencoding=\n    ,append=NO\n)/*/STORE SOURCE*/;`
       expect(strictMacroDefinition.test(content)).toEqual([])
+
+      const content2 = `%macro mm_createapplication(\n    tree=/User Folders/sasdemo\n    ,name=myApp\n    ,ClassIdentifier=mcore\n    ,desc=Created by mm_createapplication\n    ,params= param1=1&#x0a;param2=blah\n    ,version=\n    ,frefin=mm_in\n    ,frefout=mm_out\n    ,mDebug=1\n    );`
+      expect(strictMacroDefinition.test(content2)).toEqual([])
     })
 
     it('should return an array with a single diagnostic when Macro definition has space in param', () => {

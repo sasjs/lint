@@ -277,5 +277,38 @@ describe('parseMacros', () => {
         mismatchedMendMacroName: ''
       })
     })
+
+    it('should return an array with a single macro having semi-colon in params', () => {
+      const text = `\n%macro mm_createapplication(\n    tree=/User Folders/sasdemo\n    ,name=myApp\n    ,ClassIdentifier=mcore\n    ,desc=Created by mm_createapplication\n    ,params= param1=1&#x0a;param2=blah\n    ,version=\n    ,frefin=mm_in\n    ,frefout=mm_out\n    ,mDebug=1\n    );`
+
+      const macros = parseMacros(text, new LintConfig())
+
+      expect(macros.length).toEqual(1)
+      expect(macros).toContainEqual({
+        name: 'mm_createapplication',
+        declarationLines: [
+          `%macro mm_createapplication(`,
+          `    tree=/User Folders/sasdemo`,
+          `    ,name=myApp`,
+          `    ,ClassIdentifier=mcore`,
+          `    ,desc=Created by mm_createapplication`,
+          `    ,params= param1=1&#x0a;param2=blah`,
+          `    ,version=`,
+          `    ,frefin=mm_in`,
+          `    ,frefout=mm_out`,
+          `    ,mDebug=1`,
+          `    );`
+        ],
+        terminationLine: '',
+        declaration:
+          '%macro mm_createapplication( tree=/User Folders/sasdemo ,name=myApp ,ClassIdentifier=mcore ,desc=Created by mm_createapplication ,params= param1=1&#x0a;param2=blah ,version= ,frefin=mm_in ,frefout=mm_out ,mDebug=1 )',
+        termination: '',
+        startLineNumbers: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        endLineNumber: null,
+        parentMacro: '',
+        hasMacroNameInMend: false,
+        mismatchedMendMacroName: ''
+      })
+    })
   })
 })
