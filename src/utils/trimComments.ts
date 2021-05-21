@@ -6,7 +6,9 @@ export const trimComments = (
   let trimmed = trimEnd ? (statement || '').trimEnd() : (statement || '').trim()
 
   if (commentStarted || trimmed.startsWith('/*')) {
-    const parts = trimmed.split('*/')
+    const parts = trimmed.startsWith('/*')
+      ? trimmed.slice(2).split('*/')
+      : trimmed.split('*/')
     if (parts.length === 2) {
       return {
         statement: (parts.pop() as string).trim(),
@@ -20,10 +22,8 @@ export const trimComments = (
     }
   } else if (trimmed.includes('/*')) {
     const statementBeforeCommentStarts = trimmed.slice(0, trimmed.indexOf('/*'))
-    const remainingStatement = trimmed.slice(
-      trimmed.indexOf('*/') + 2,
-      trimmed.length
-    )
+    trimmed = trimmed.slice(trimmed.indexOf('/*') + 2)
+    const remainingStatement = trimmed.slice(trimmed.indexOf('*/') + 2)
 
     const result = trimComments(remainingStatement, false, true)
     const completeStatement = statementBeforeCommentStarts + result.statement

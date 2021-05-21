@@ -9,6 +9,18 @@ describe('trimComments', () => {
     ).toEqual({ statement: 'some code;', commentStarted: false })
 
     expect(
+      trimComments(`
+      /*/ some comment */ some code;
+      `)
+    ).toEqual({ statement: 'some code;', commentStarted: false })
+
+    expect(
+      trimComments(`
+      some code;/*/ some comment */ some code;
+      `)
+    ).toEqual({ statement: 'some code; some code;', commentStarted: false })
+
+    expect(
       trimComments(`/* some comment */
       /* some comment */ CODE_Keyword1 /* some comment */ CODE_Keyword2/* some comment */;/* some comment */
       /* some comment */`)
