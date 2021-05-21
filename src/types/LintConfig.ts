@@ -3,15 +3,15 @@ import {
   hasMacroNameInMend,
   noNestedMacros,
   hasMacroParentheses,
-  lineEndings
+  lineEndings,
+  strictMacroDefinition
 } from '../rules/file'
 import {
   indentationMultiple,
   maxLineLength,
   noEncodedPasswords,
   noTabIndentation,
-  noTrailingSpaces,
-  strictMacroDefinition
+  noTrailingSpaces
 } from '../rules/line'
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
@@ -93,7 +93,7 @@ export class LintConfig {
     }
 
     if (json?.strictMacroDefinition) {
-      this.lineLintRules.push(strictMacroDefinition)
+      this.fileLintRules.push(strictMacroDefinition)
     }
   }
 }
