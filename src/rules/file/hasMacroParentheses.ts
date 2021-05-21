@@ -46,18 +46,6 @@ const test = (value: string, config?: LintConfig) => {
           1,
         severity: Severity.Warning
       })
-      // } else if (macro.name !== macro.name.trim()) {
-      //   diagnostics.push({
-      //     message: 'Macro definition contains space(s)',
-      //     lineNumber: macro.startLineNumber!,
-      //     startColumnNumber: getColumnNumber(macro.declarationLine, macro.name),
-      //     endColumnNumber:
-      //       getColumnNumber(macro.declarationLine, macro.name) +
-      //       macro.name.length -
-      //       1 +
-      //       `()`.length,
-      //     severity: Severity.Warning
-      //   })
     }
   })
 
