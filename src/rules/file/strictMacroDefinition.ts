@@ -32,12 +32,12 @@ const test = (value: string, config?: LintConfig) => {
   macros.forEach((macro) => {
     const declaration = macro.declaration
 
-    const regExpParams = new RegExp(/\((.*?)\)/)
+    const regExpParams = new RegExp(/(?<=\().*(?=\))/)
     const regExpParamsResult = regExpParams.exec(declaration)
 
     let _declaration = declaration
     if (regExpParamsResult) {
-      const paramsPresent = regExpParamsResult[1]
+      const paramsPresent = regExpParamsResult[0]
 
       const paramsTrimmed = paramsPresent.trim()
       const params = paramsTrimmed.split(',')

@@ -114,6 +114,11 @@ describe('strictMacroDefinition', () => {
   })
 
   describe('multi-content macro declarations', () => {
+    it('should return an empty array when the content has correct macro definition syntax', () => {
+      const content = `%macro mp_ds2cards(base_ds=, tgt_ds=\n    ,cards_file="%sysfunc(pathname(work))/cardgen.sas"\n    ,maxobs=max\n    ,random_sample=NO\n    ,showlog=YES\n    ,outencoding=\n    ,append=NO\n)/*/STORE SOURCE*/;`
+      expect(strictMacroDefinition.test(content)).toEqual([])
+    })
+
     it('should return an array with a single diagnostic when Macro definition has space in param', () => {
       const content = `%macro 
        somemacro(va r1);`
