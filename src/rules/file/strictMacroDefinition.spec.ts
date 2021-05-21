@@ -37,6 +37,10 @@ describe('strictMacroDefinition', () => {
 
     const content11 = '`%macro macroName() /* / store source */;'
     expect(strictMacroDefinition.test(content11)).toEqual([])
+
+    const content12 =
+      '%macro macroName()/ /* some comment */ store des="some description";'
+    expect(strictMacroDefinition.test(content12)).toEqual([])
   })
 
   it('should return an array with a single diagnostic when Macro definition has space in param', () => {

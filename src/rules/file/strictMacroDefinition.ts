@@ -101,28 +101,43 @@ const test = (value: string, config?: LintConfig) => {
       _declaration = declaration.split(`(${paramsPresent})`)[1]
     }
 
-    const optionsPresent = _declaration.split('/')?.[1]?.trim().split(' ')
+    let optionsPresent = _declaration.split('/')?.[1]?.trim()
 
-    optionsPresent
-      ?.filter((o) => !!o)
-      .forEach((option) => {
-        const trimmedOption = option.trim()
-        if (!validOptions.includes(trimmedOption.toUpperCase())) {
-          const declarationLineIndex = macro.declarationLines.findIndex(
-            (dl) => dl.indexOf(trimmedOption) !== -1
-          )
-          const declarationLine = macro.declarationLines[declarationLineIndex]
+    if (optionsPresent) {
+      const regex = new RegExp(/="(.*?)"/, 'g')
 
-          diagnostics.push({
-            message: `Option '${trimmedOption}' is not valid`,
-            lineNumber: macro.startLineNumbers[declarationLineIndex],
-            startColumnNumber: declarationLine.indexOf(trimmedOption) + 1,
-            endColumnNumber:
-              declarationLine.indexOf(trimmedOption) + trimmedOption.length,
-            severity: Severity.Warning
-          })
-        }
-      })
+      let result = regex.exec(optionsPresent)
+
+      while (result) {
+        optionsPresent =
+          optionsPresent.slice(0, result.index) +
+          optionsPresent.slice(result.index + result[0].length)
+
+        result = regex.exec(optionsPresent)
+      }
+
+      optionsPresent
+        .split(' ')
+        ?.filter((o) => !!o)
+        .forEach((option) => {
+          const trimmedOption = option.trim()
+          if (!validOptions.includes(trimmedOption.toUpperCase())) {
+            const declarationLineIndex = macro.declarationLines.findIndex(
+              (dl) => dl.indexOf(trimmedOption) !== -1
+            )
+            const declarationLine = macro.declarationLines[declarationLineIndex]
+
+            diagnostics.push({
+              message: `Option '${trimmedOption}' is not valid`,
+              lineNumber: macro.startLineNumbers[declarationLineIndex],
+              startColumnNumber: declarationLine.indexOf(trimmedOption) + 1,
+              endColumnNumber:
+                declarationLine.indexOf(trimmedOption) + trimmedOption.length,
+              severity: Severity.Warning
+            })
+          }
+        })
+    }
   })
 
   return diagnostics
