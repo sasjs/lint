@@ -45,6 +45,6 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@sasjs/utils": "^2.12.0"
+    "@sasjs/utils": "^2.17.0"
   }
 }
