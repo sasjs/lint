@@ -43,6 +43,7 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
         const name = trimmedStatement
           .slice(7, trimmedStatement.length)
           .trim()
+          .split('/')[0]
           .split('(')[0]
         macroStack.push({
           name,
