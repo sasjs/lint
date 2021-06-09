@@ -22,17 +22,17 @@ const test = (value: string, config?: LintConfig) => {
         message: message
           .replace('{macro}', macro.name)
           .replace('{parent}', macro.parentMacro),
-        lineNumber: macro.startLineNumber as number,
+        lineNumber: macro.startLineNumbers![0] as number,
         startColumnNumber: getColumnNumber(
-          lines[(macro.startLineNumber as number) - 1],
+          lines[(macro.startLineNumbers![0] as number) - 1],
           '%macro'
         ),
         endColumnNumber:
           getColumnNumber(
-            lines[(macro.startLineNumber as number) - 1],
+            lines[(macro.startLineNumbers![0] as number) - 1],
             '%macro'
           ) +
-          lines[(macro.startLineNumber as number) - 1].trim().length -
+          lines[(macro.startLineNumbers![0] as number) - 1].trim().length -
           1,
         severity: Severity.Warning
       })

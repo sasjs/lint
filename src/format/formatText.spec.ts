@@ -12,14 +12,14 @@ describe('formatText', () => {
           new LintConfig(getLintConfigModule.DefaultLintConfiguration)
         )
       )
-    const text = `%macro test
+    const text = `%macro test;
   %put 'hello';\r\n%mend; `
 
     const expectedOutput = `/**
   @file
   @brief <Your brief here>
   <h4> SAS Macros </h4>
-**/\n%macro test
+**/\n%macro test;
   %put 'hello';\n%mend test;`
 
     const output = await formatText(text)
@@ -38,9 +38,9 @@ describe('formatText', () => {
           })
         )
       )
-    const text = `%macro test\n  %put 'hello';\r\n%mend; `
+    const text = `%macro test;\n  %put 'hello';\r\n%mend; `
 
-    const expectedOutput = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/\r\n%macro test\r\n  %put 'hello';\r\n%mend test;`
+    const expectedOutput = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/\r\n%macro test;\r\n  %put 'hello';\r\n%mend test;`
 
     const output = await formatText(text)
 

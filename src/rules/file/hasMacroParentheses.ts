@@ -16,34 +16,34 @@ const test = (value: string, config?: LintConfig) => {
     if (!macro.name) {
       diagnostics.push({
         message: 'Macro definition missing name',
-        lineNumber: macro.startLineNumber!,
-        startColumnNumber: getColumnNumber(macro.declarationLine, '%macro'),
+        lineNumber: macro.startLineNumbers![0],
+        startColumnNumber: getColumnNumber(
+          macro.declarationLines![0],
+          '%macro'
+        ),
         endColumnNumber:
-          getColumnNumber(macro.declarationLine, '%macro') +
+          getColumnNumber(macro.declarationLines![0], '%macro') +
           macro.declaration.length,
         severity: Severity.Warning
       })
-    } else if (!macro.declarationLine.includes('(')) {
+    } else if (!macro.declarationLines.find((dl) => dl.includes('('))) {
+      const macroNameLineIndex = macro.declarationLines.findIndex((dl) =>
+        dl.includes(macro.name)
+      )
       diagnostics.push({
         message,
-        lineNumber: macro.startLineNumber!,
-        startColumnNumber: getColumnNumber(macro.declarationLine, macro.name),
+        lineNumber: macro.startLineNumbers![macroNameLineIndex],
+        startColumnNumber: getColumnNumber(
+          macro.declarationLines[macroNameLineIndex],
+          macro.name
+        ),
         endColumnNumber:
-          getColumnNumber(macro.declarationLine, macro.name) +
+          getColumnNumber(
+            macro.declarationLines[macroNameLineIndex],
+            macro.name
+          ) +
           macro.name.length -
           1,
-        severity: Severity.Warning
-      })
-    } else if (macro.name !== macro.name.trim()) {
-      diagnostics.push({
-        message: 'Macro definition contains space(s)',
-        lineNumber: macro.startLineNumber!,
-        startColumnNumber: getColumnNumber(macro.declarationLine, macro.name),
-        endColumnNumber:
-          getColumnNumber(macro.declarationLine, macro.name) +
-          macro.name.length -
-          1 +
-          `()`.length,
         severity: Severity.Warning
       })
     }
