@@ -17,6 +17,32 @@ describe('hasDoxygenHeader - test', () => {
     expect(hasDoxygenHeader.test(content)).toEqual([])
   })
 
+  it('should return an empty array when the file starts with a doxygen header', () => {
+    const content = `
+    
+    
+    /*
+   @file
+   @brief Returns an unused libref
+ */
+
+ %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
+   %local x libref;
+   %let x={SAS002};
+   %do x=0 %to &maxtries;`
+
+    expect(hasDoxygenHeader.test(content)).toEqual([
+      {
+        message:
+          'File not following Doxygen header style, use double asterisks',
+        lineNumber: 4,
+        startColumnNumber: 1,
+        endColumnNumber: 1,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
   it('should return an array with a single diagnostic when the file has no header', () => {
     const content = `
  %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
@@ -86,7 +112,33 @@ describe('hasDoxygenHeader - fix', () => {
     expect(hasDoxygenHeader.fix!(content)).toEqual(content)
   })
 
-  it('should should add a doxygen header if not present', () => {
+  it('should update single asterisks to double if a doxygen header is already present', () => {
+    const contentOriginal = `
+    /*
+   @file
+   @brief Returns an unused libref
+ */
+
+ %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
+   %local x libref;
+   %let x={SAS002};
+   %do x=0 %to &maxtries;`
+
+    const contentExpected = `
+    /**
+   @file
+   @brief Returns an unused libref
+ **/
+
+ %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
+   %local x libref;
+   %let x={SAS002};
+   %do x=0 %to &maxtries;`
+
+    expect(hasDoxygenHeader.fix!(contentOriginal)).toEqual(contentExpected)
+  })
+
+  it('should add a doxygen header if not present', () => {
     const content = `%macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
 %local x libref;
 %let x={SAS002};
