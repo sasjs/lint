@@ -128,7 +128,7 @@ describe('hasDoxygenHeader - fix', () => {
     /**
    @file
    @brief Returns an unused libref
- **/
+ */
 
  %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
    %local x libref;

@@ -59,7 +59,7 @@ const fix = (value: string, config?: LintConfig): string => {
   if (result.length === 0) {
     return value
   } else if (result[0].message == messageForSingleAsterisk)
-    return value.replace('/*', '/**').replace('*/', '**/')
+    return value.replace('/*', '/**')
 
   const lineEndingConfig = config?.lineEndings || LineEndings.LF
   const lineEnding = lineEndingConfig === LineEndings.LF ? '\n' : '\r\n'
