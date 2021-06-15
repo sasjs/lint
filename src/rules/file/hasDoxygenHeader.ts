@@ -10,10 +10,28 @@ const name = 'hasDoxygenHeader'
 const description =
   'Enforce the presence of a Doxygen header at the start of each file.'
 const message = 'File missing Doxygen header'
-const test = (value: string) => {
+const messageForSingleAsterisk =
+  'File not following Doxygen header style, use double asterisks'
+const test = (value: string, config?: LintConfig) => {
+  const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
   try {
-    const hasFileHeader = value.trimStart().startsWith('/*')
+    const hasFileHeader = value.trimStart().startsWith('/**')
     if (hasFileHeader) return []
+
+    const hasFileHeaderWithSingleAsterisk = value.trimStart().startsWith('/*')
+    if (hasFileHeaderWithSingleAsterisk)
+      return [
+        {
+          message: messageForSingleAsterisk,
+          lineNumber:
+            (value.split('/*')![0]!.match(new RegExp(lineEnding, 'g')) ?? [])
+              .length + 1,
+          startColumnNumber: 1,
+          endColumnNumber: 1,
+          severity: Severity.Warning
+        }
+      ]
+
     return [
       {
         message,
@@ -37,9 +55,12 @@ const test = (value: string) => {
 }
 
 const fix = (value: string, config?: LintConfig): string => {
-  if (test(value).length === 0) {
+  const result = test(value, config)
+  if (result.length === 0) {
     return value
-  }
+  } else if (result[0].message == messageForSingleAsterisk)
+    return value.replace('/*', '/**')
+
   const lineEndingConfig = config?.lineEndings || LineEndings.LF
   const lineEnding = lineEndingConfig === LineEndings.LF ? '\n' : '\r\n'
 
