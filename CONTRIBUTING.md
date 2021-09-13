@@ -6,8 +6,10 @@ Please fill in the pull request template and make sure that your code changes ar
 ## Architecture
 
 This project implements a number of rules for SAS projects and code. There are three types of rules:
-_ File rules - rules applied at the file level
-_ Line rules - rules applied to each line of a file \* Path rules - rules applied to paths and file names
+
+* File rules - rules applied at the file level
+* Line rules - rules applied to each line of a file 
+* Path rules - rules applied to paths and file names
 
 When implementing a new rule, place it in the appropriate folder for its type.
 Please also make sure to export it from the `index.ts` file in that folder.
