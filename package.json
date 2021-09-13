@@ -4,6 +4,8 @@
   "scripts": {
     "test": "jest --coverage",
     "build": "rimraf build && tsc",
+    "preinstall": "node checkNodeVersion",
+    "prebuild": "node checkNodeVersion",
     "prepublishOnly": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
     "postpublish": "git clean -fd",
     "package:lib": "npm run build && cp ./package.json build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
