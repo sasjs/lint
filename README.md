@@ -1,4 +1,9 @@
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=sasjs/lint)](https://dependabot.com)
+[![License](https://img.shields.io/apm/l/atomic-design-ui.svg)](/LICENSE)
+![GitHub top language](https://img.shields.io/github/languages/top/sasjs/lint)
+[![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/sasjs/lint)](https://github.com/sasjs/lint/issues?q=is%3Aissue+is%3Aclosed)
+[![GitHub issues](https://img.shields.io/github/issues-raw/sasjs/lint)](https://github.com/sasjs/lint/issues)
+![total lines](https://tokei.rs/b1/github/sasjs/lint)
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/sasjs/lint)
 
 # SAS Code linting and formatting
 
