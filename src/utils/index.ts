@@ -1,4 +1,6 @@
+export * from './asyncForEach'
 export * from './getLintConfig'
 export * from './getProjectRoot'
+export * from './isIgnored'
 export * from './listSasFiles'
 export * from './splitText'
