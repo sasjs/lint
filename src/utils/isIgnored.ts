@@ -5,6 +5,7 @@ import { getLintConfig, getProjectRoot } from '.'
 import { LintConfig } from '../types'
 
 /**
+ * A function to check if file/folder path matches any pattern from .gitignore or ignoreList (.sasjsLint)
  *
  * @param fPath absolute path of file or folder
  * @returns {Promise<boolean>} true if path matches the patterns from .gitignore file otherwise false
