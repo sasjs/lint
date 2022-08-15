@@ -150,7 +150,7 @@
       "$id": "#/properties/ignoreList",
       "type": "array",
       "title": "ignoreList",
-      "description": "An array of paths or path patterns to ignore matching resources from linting. Files or folders matching patterns in .gitignore will always be ignored.",
+      "description": "An array of paths or path patterns to ignore when linting. Any files or matching patterns in the .gitignore file will also be ignored.",
       "default": ["sasjsbuild/", "sasjsresults/"],
       "examples": ["sasjs/tests", "tmp/scratch.sas"]
     }
