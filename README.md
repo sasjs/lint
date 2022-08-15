@@ -23,6 +23,10 @@ Configuration is via a `.sasjslint` file with the following structure (these are
     "hasDoxygenHeader": true,
     "hasMacroNameInMend": true,
     "hasMacroParentheses": true,
+    "ignoreList": [
+      "sajsbuild/",
+      "sasjsresults/"
+    ],
     "indentationMultiple": 2,
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
@@ -59,6 +63,9 @@ As per the example [here](https://github.com/sasjs/lint/issues/20), macros defin
 
 * Default:  true
 * Severity: WARNING
+
+#### ignoreList
+There may be specific files (or folders) that are not good candidates for linting.  Simply list them in this array and they will be ignored.  In addition, any files in the project `.gitignore` file will also be ignored.
 
 #### indentationMultiple
 This will check each line to ensure that the count of leading spaces can be divided cleanly by this multiple.

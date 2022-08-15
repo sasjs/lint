@@ -17,7 +17,11 @@
     "noTabIndentation": true,
     "noTrailingSpaces": true,
     "lineEndings": "lf",
-    "strictMacroDefinition": true
+    "strictMacroDefinition": true,
+    "ignoreList": [
+      "sajsbuild",
+      "sasjsresults"
+    ]
   },
   "examples": [
     {
@@ -33,7 +37,8 @@
       "noNestedMacros": true,
       "hasMacroParentheses": true,
       "lineEndings": "crlf",
-      "strictMacroDefinition": true
+      "strictMacroDefinition": true,
+      "ignoreList": ["sajsbuild", "sasjsresults"]
     }
   ],
   "properties": {
@@ -143,11 +148,11 @@
     },
     "ignoreList": {
       "$id": "#/properties/ignoreList",
-      "type": "object",
+      "type": "array",
       "title": "ignoreList",
       "description": "An array of paths or path patterns to ignore matching resources from linting. Files or folders matching patterns in .gitignore will always be ignored.",
       "default": ["sasjsbuild/", "sasjsresults/"],
-      "examples": ["sasjs/services", "appinit.sas"]
+      "examples": ["sasjs/tests", "tmp/scratch.sas"]
     }
   }
 }
