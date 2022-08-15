@@ -1,9 +1,8 @@
+import path from 'path'
 import * as fileModule from '@sasjs/utils/file'
-import * as getProjectRootModule from './getProjectRoot'
 import * as getLintConfigModule from './getLintConfig'
-import { DefaultLintConfiguration } from './getLintConfig'
+import { getProjectRoot, DefaultLintConfiguration, isIgnored } from '.'
 import { LintConfig } from '../types'
-import { isIgnored } from './isIgnored'
 
 describe('isIgnored', () => {
   it('should return true if provided path matches the patterns from .gitignore', async () => {
@@ -20,11 +19,32 @@ describe('isIgnored', () => {
       .spyOn(fileModule, 'readFile')
       .mockImplementationOnce(async () => 'sasjs')
 
-    jest
-      .spyOn(getProjectRootModule, 'getProjectRoot')
-      .mockImplementationOnce(async () => '')
+    const projectRoot = await getProjectRoot()
+    const pathToTest = path.join(projectRoot, 'sasjs')
 
-    const ignored = await isIgnored('sasjs')
+    const ignored = await isIgnored(pathToTest)
+
+    expect(ignored).toBeTruthy()
+  })
+
+  it('should return true if top level path of provided path is in .gitignore', async () => {
+    jest
+      .spyOn(getLintConfigModule, 'getLintConfig')
+      .mockImplementationOnce(
+        async () => new LintConfig(DefaultLintConfiguration)
+      )
+    jest
+      .spyOn(fileModule, 'fileExists')
+      .mockImplementationOnce(async () => true)
+
+    jest
+      .spyOn(fileModule, 'readFile')
+      .mockImplementationOnce(async () => 'sasjs/common')
+
+    const projectRoot = await getProjectRoot()
+    const pathToTest = path.join(projectRoot, 'sasjs/common/init/init.sas')
+
+    const ignored = await isIgnored(pathToTest)
 
     expect(ignored).toBeTruthy()
   })
@@ -34,12 +54,30 @@ describe('isIgnored', () => {
       .spyOn(fileModule, 'fileExists')
       .mockImplementationOnce(async () => false)
 
-    jest
-      .spyOn(getProjectRootModule, 'getProjectRoot')
-      .mockImplementationOnce(async () => '')
+    const projectRoot = await getProjectRoot()
+    const pathToTest = path.join(projectRoot, 'sasjs')
 
     const ignored = await isIgnored(
-      'sasjs',
+      pathToTest,
+      new LintConfig({
+        ...DefaultLintConfiguration,
+        ignoreList: ['sasjs']
+      })
+    )
+
+    expect(ignored).toBeTruthy()
+  })
+
+  it('should return true if top level path of provided path is in ignoreList (.sasjslint)', async () => {
+    jest
+      .spyOn(fileModule, 'fileExists')
+      .mockImplementationOnce(async () => false)
+
+    const projectRoot = await getProjectRoot()
+    const pathToTest = path.join(projectRoot, 'sasjs/common/init/init.sas')
+
+    const ignored = await isIgnored(
+      pathToTest,
       new LintConfig({
         ...DefaultLintConfiguration,
         ignoreList: ['sasjs']
@@ -56,12 +94,11 @@ describe('isIgnored', () => {
 
     jest.spyOn(fileModule, 'readFile').mockImplementationOnce(async () => '')
 
-    jest
-      .spyOn(getProjectRootModule, 'getProjectRoot')
-      .mockImplementationOnce(async () => '')
+    const projectRoot = await getProjectRoot()
+    const pathToTest = path.join(projectRoot, 'sasjs')
 
     const ignored = await isIgnored(
-      'sasjs',
+      pathToTest,
       new LintConfig(DefaultLintConfiguration)
     )
 
@@ -69,12 +106,11 @@ describe('isIgnored', () => {
   })
 
   it('should return false if provided path is equal to projectRoot', async () => {
-    jest
-      .spyOn(getProjectRootModule, 'getProjectRoot')
-      .mockImplementationOnce(async () => '')
+    const projectRoot = await getProjectRoot()
+    const pathToTest = path.join(projectRoot, '')
 
     const ignored = await isIgnored(
-      '',
+      pathToTest,
       new LintConfig(DefaultLintConfiguration)
     )
 
