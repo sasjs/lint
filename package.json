@@ -8,7 +8,7 @@
     "prebuild": "node checkNodeVersion",
     "prepublishOnly": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
     "postpublish": "git clean -fd",
-    "package:lib": "npm run build && cp ./package.json build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
+    "package:lib": "npm run build && cp ./package.json ./checkNodeVersion.js build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
     "lint:fix": "npx prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
     "lint": "npx prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
     "prepare": "git rev-parse --git-dir && git config core.hooksPath ./.git-hooks || true"
@@ -48,6 +48,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "@sasjs/utils": "^2.19.0"
+    "@sasjs/utils": "^2.19.0",
+    "ignore": "^5.2.0"
   }
 }

@@ -1,10 +1,7 @@
 import { listSubFoldersInFolder } from '@sasjs/utils/file'
 import path from 'path'
-import { Diagnostic } from '../types/Diagnostic'
-import { LintConfig } from '../types/LintConfig'
-import { asyncForEach } from '../utils/asyncForEach'
-import { getLintConfig } from '../utils/getLintConfig'
-import { listSasFiles } from '../utils/listSasFiles'
+import { Diagnostic, LintConfig } from '../types'
+import { asyncForEach, getLintConfig, isIgnored, listSasFiles } from '../utils'
 import { lintFile } from './lintFile'
 
 const excludeFolders = [
@@ -28,6 +25,9 @@ export const lintFolder = async (
 ) => {
   const config = configuration || (await getLintConfig())
   let diagnostics: Map<string, Diagnostic[]> = new Map<string, Diagnostic[]>()
+
+  if (await isIgnored(folderPath)) return diagnostics
+
   const fileNames = await listSasFiles(folderPath)
   await asyncForEach(fileNames, async (fileName) => {
     const filePath = path.join(folderPath, fileName)
@@ -39,10 +39,8 @@ export const lintFolder = async (
   )
 
   await asyncForEach(subFolders, async (subFolder) => {
-    const subFolderDiagnostics = await lintFolder(
-      path.join(folderPath, subFolder),
-      config
-    )
+    const subFolderPath = path.join(folderPath, subFolder)
+    const subFolderDiagnostics = await lintFolder(subFolderPath, config)
     diagnostics = new Map([...diagnostics, ...subFolderDiagnostics])
   })
 

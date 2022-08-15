@@ -25,6 +25,7 @@ import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
  * More types of rules, when available, will be added here.
  */
 export class LintConfig {
+  readonly ignoreList: string[] = []
   readonly lineLintRules: LineLintRule[] = []
   readonly fileLintRules: FileLintRule[] = []
   readonly pathLintRules: PathLintRule[] = []
@@ -33,6 +34,20 @@ export class LintConfig {
   readonly lineEndings: LineEndings = LineEndings.LF
 
   constructor(json?: any) {
+    if (json?.ignoreList) {
+      if (Array.isArray(json.ignoreList)) {
+        json.ignoreList.forEach((item: any) => {
+          if (typeof item === 'string') this.ignoreList.push(item)
+          else
+            throw new Error(
+              `Property "ignoreList" has invalid type of values. It can contain only strings.`
+            )
+        })
+      } else {
+        throw new Error(`Property "ignoreList" can only be an array of strings`)
+      }
+    }
+
     if (json?.noTrailingSpaces) {
       this.lineLintRules.push(noTrailingSpaces)
     }

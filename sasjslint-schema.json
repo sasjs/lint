@@ -140,6 +140,14 @@
       "description": "Enforces Macro Definition syntax. Shows a warning when incorrect syntax is used.",
       "default": true,
       "examples": [true, false]
+    },
+    "ignoreList": {
+      "$id": "#/properties/ignoreList",
+      "type": "object",
+      "title": "ignoreList",
+      "description": "An array of paths or path patterns to ignore matching resources from linting. Files or folders matching patterns in .gitignore will always be ignored.",
+      "default": ["sasjsbuild/", "sasjsresults/"],
+      "examples": ["sasjs/services", "appinit.sas"]
     }
   }
 }
