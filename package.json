@@ -48,7 +48,7 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "@sasjs/utils": "^2.19.0",
+    "@sasjs/utils": "^2.48.2",
     "ignore": "^5.2.0"
   }
 }
