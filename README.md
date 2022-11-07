@@ -33,11 +33,32 @@ Configuration is via a `.sasjslint` file with the following structure (these are
     "noNestedMacros": true,
     "noSpacesInFileNames": true,
     "noTabIndentation": true,
-    "noTrailingSpaces": true
+    "noTrailingSpaces": true,
+    "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/"
 }
 ```
 
 ### SAS Lint Settings
+
+#### defaultHeader
+
+This sets the default program header - applies when a SAS program does NOT begin with `/**`.  The default header is as follows:
+
+```sas
+/**
+  @file
+  @brief <Your brief here>
+  <h4> SAS Macros </h4>
+**/
+```
+
+The default header is automatically applied when running `sasjs lint fix` in the SASjs CLI, or by hitting "save" when using the SASjs VS Code extension.  If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
+
+```json
+{
+  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief Our Company Brief{lineEnding}**/"
+}
+```
 
 #### noEncodedPasswords
 
@@ -82,7 +103,7 @@ On *nix systems, it is imperative that autocall macros are in lowercase.  When s
 #### maxLineLength
 Code becomes far more readable when line lengths are short.  The most compelling reason for short line lengths is to avoid the need to scroll when performing a side-by-side 'compare' between two files (eg as part of a GIT feature branch review).  A longer discussion on optimal code line length can be found [here](https://stackoverflow.com/questions/578059/studies-on-optimal-code-width)
 
-In batch mode, long SAS code lines may also be truncated, causing hard-to-detect errors.  
+In batch mode, long SAS code lines may also be truncated, causing hard-to-detect errors.
 
 We strongly recommend a line length limit, and set the bar at 80.  To turn this feature off, set the value to 0.
 
@@ -90,7 +111,7 @@ We strongly recommend a line length limit, and set the bar at 80.  To turn this 
 * Severity: WARNING
 
 #### noNestedMacros
-Where macros are defined inside other macros, they are recompiled every time the outer macro is invoked.  Hence, it is widely considered inefficient, and bad practice, to nest macro definitions.  
+Where macros are defined inside other macros, they are recompiled every time the outer macro is invoked.  Hence, it is widely considered inefficient, and bad practice, to nest macro definitions.
 
 * Default:  true
 * Severity: WARNING
@@ -120,7 +141,7 @@ This will highlight lines with trailing spaces.  Trailing spaces serve no useful
 
 ### Upcoming Linting Rules:
 
-* `noTabs` -> does what it says on the tin 
+* `noTabs` -> does what it says on the tin
 * `noGremlins` -> identifies all invisible characters, other than spaces / tabs / line endings.  If you really need that bell character, use a hex literal!
 * `lineEndings` -> set a standard line ending, such as LF or CRLF
 
@@ -130,13 +151,13 @@ A formatter will automatically apply rules when you hit SAVE, which can save a L
 
 We've already implemented the following rules:
 
-* Add the macro name to the %mend statement 
-* Add a doxygen header template if none exists 
+* Add the macro name to the %mend statement
+* Add a doxygen header template if none exists
 * Remove trailing spaces
 
 We're looking to implement the following rules:
 
-* Change tabs to spaces 
+* Change tabs to spaces
 * zap gremlins
 * fix line endings
 
