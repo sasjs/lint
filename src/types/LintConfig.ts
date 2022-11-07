@@ -16,6 +16,7 @@ import {
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
+import { getDefaultHeader } from '../utils'
 
 /**
  * LintConfig is the logical representation of the .sasjslint file.
@@ -32,6 +33,7 @@ export class LintConfig {
   readonly maxLineLength: number = 80
   readonly indentationMultiple: number = 2
   readonly lineEndings: LineEndings = LineEndings.LF
+  readonly defaultHeader: string = getDefaultHeader()
 
   constructor(json?: any) {
     if (json?.ignoreList) {
@@ -85,6 +87,10 @@ export class LintConfig {
 
     if (json?.hasDoxygenHeader) {
       this.fileLintRules.push(hasDoxygenHeader)
+    }
+
+    if (json?.defaultHeader) {
+      this.defaultHeader = json.defaultHeader
     }
 
     if (json?.noSpacesInFileNames) {

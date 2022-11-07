@@ -19,7 +19,7 @@ const processContent = (config: LintConfig, content: string): string => {
   config.fileLintRules
     .filter((r) => !!r.fix)
     .forEach((rule) => {
-      processedContent = rule.fix!(processedContent)
+      processedContent = rule.fix!(processedContent, config)
     })
 
   return processedContent

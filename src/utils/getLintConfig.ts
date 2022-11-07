@@ -3,6 +3,9 @@ import { LintConfig } from '../types/LintConfig'
 import { readFile } from '@sasjs/utils/file'
 import { getProjectRoot } from './getProjectRoot'
 
+export const getDefaultHeader = () =>
+  `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/`
+
 /**
  * Default configuration that is used when a .sasjslint file is not found
  */
@@ -18,7 +21,8 @@ export const DefaultLintConfiguration = {
   hasMacroNameInMend: true,
   noNestedMacros: true,
   hasMacroParentheses: true,
-  strictMacroDefinition: true
+  strictMacroDefinition: true,
+  defaultHeader: getDefaultHeader()
 }
 
 /**

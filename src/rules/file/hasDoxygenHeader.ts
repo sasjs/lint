@@ -3,8 +3,7 @@ import { LineEndings } from '../../types/LineEndings'
 import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
-
-const DoxygenHeader = `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/`
+import { DefaultLintConfiguration } from '../../utils/getLintConfig'
 
 const name = 'hasDoxygenHeader'
 const description =
@@ -61,10 +60,11 @@ const fix = (value: string, config?: LintConfig): string => {
   } else if (result[0].message == messageForSingleAsterisk)
     return value.replace('/*', '/**')
 
+  config = config || new LintConfig(DefaultLintConfiguration)
   const lineEndingConfig = config?.lineEndings || LineEndings.LF
   const lineEnding = lineEndingConfig === LineEndings.LF ? '\n' : '\r\n'
 
-  return `${DoxygenHeader.replace(
+  return `${config?.defaultHeader.replace(
     /{lineEnding}/g,
     lineEnding
   )}${lineEnding}${value}`
