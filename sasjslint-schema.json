@@ -58,7 +58,7 @@
     },
     "defaultHeader": {
       "$id": "#/properties/defaultHeader",
-      "type": "boolean",
+      "type": "string",
       "title": "defaultHeader",
       "description": "This sets the default program header - applies when a SAS program does NOT begin with `/**`.",
       "default": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/",
