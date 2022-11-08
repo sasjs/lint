@@ -7,6 +7,7 @@
   "default": {
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
+    "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/",
     "hasMacroNameInMend": false,
     "hasMacroParentheses": true,
     "indentationMultiple": 2,
@@ -18,10 +19,7 @@
     "noTrailingSpaces": true,
     "lineEndings": "lf",
     "strictMacroDefinition": true,
-    "ignoreList": [
-      "sajsbuild",
-      "sasjsresults"
-    ]
+    "ignoreList": ["sajsbuild", "sasjsresults"]
   },
   "examples": [
     {
@@ -57,6 +55,14 @@
       "description": "Enforces the presence of a Doxygen header in the form of a comment block at the start of each SAS file. Shows a warning when one is absent.",
       "default": true,
       "examples": [true, false]
+    },
+    "defaultHeader": {
+      "$id": "#/properties/defaultHeader",
+      "type": "boolean",
+      "title": "defaultHeader",
+      "description": "This sets the default program header - applies when a SAS program does NOT begin with `/**`.",
+      "default": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/",
+      "examples": []
     },
     "hasMacroNameInMend": {
       "$id": "#/properties/hasMacroNameInMend",
