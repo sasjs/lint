@@ -7,6 +7,7 @@ import { Severity } from '../../types/Severity'
 const name = 'lineEndings'
 const description = 'Ensures line endings conform to the configured type.'
 const message = 'Incorrect line ending - {actual} instead of {expected}'
+
 const test = (value: string, config?: LintConfig) => {
   const lineEndingConfig = config?.lineEndings || LineEndings.LF
   const expectedLineEnding =
@@ -18,8 +19,10 @@ const test = (value: string, config?: LintConfig) => {
     .replace(/\n/g, '{lf}')
     .split(new RegExp(`(?<=${expectedLineEnding})`))
   const diagnostics: Diagnostic[] = []
+  const severity = config?.severityLevel[name] || Severity.Warning
 
   let indexOffset = 0
+
   lines.forEach((line, index) => {
     if (line.endsWith(incorrectLineEnding)) {
       diagnostics.push({
@@ -29,7 +32,7 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: index + 1 + indexOffset,
         startColumnNumber: line.indexOf(incorrectLineEnding),
         endColumnNumber: line.indexOf(incorrectLineEnding) + 1,
-        severity: Severity.Warning
+        severity
       })
     } else {
       const splitLine = line.split(new RegExp(`(?<=${incorrectLineEnding})`))
@@ -51,7 +54,7 @@ const test = (value: string, config?: LintConfig) => {
             lineNumber: index + i + 1,
             startColumnNumber: l.indexOf(incorrectLineEnding),
             endColumnNumber: l.indexOf(incorrectLineEnding) + 1,
-            severity: Severity.Warning
+            severity
           })
         }
       })

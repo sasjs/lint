@@ -17,6 +17,7 @@ import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 import { getDefaultHeader } from '../utils'
+import { Severity } from './Severity'
 
 /**
  * LintConfig is the logical representation of the .sasjslint file.
@@ -34,6 +35,7 @@ export class LintConfig {
   readonly indentationMultiple: number = 2
   readonly lineEndings: LineEndings = LineEndings.LF
   readonly defaultHeader: string = getDefaultHeader()
+  readonly severityLevel: { [key: string]: Severity } = {}
 
   constructor(json?: any) {
     if (json?.ignoreList) {
@@ -115,6 +117,13 @@ export class LintConfig {
 
     if (json?.strictMacroDefinition) {
       this.fileLintRules.push(strictMacroDefinition)
+    }
+
+    if (json?.severityLevel) {
+      for (const [rule, severity] of Object.entries(json.severityLevel)) {
+        if (severity === 'warn') this.severityLevel[rule] = Severity.Warning
+        if (severity === 'error') this.severityLevel[rule] = Severity.Error
+      }
     }
   }
 }

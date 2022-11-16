@@ -10,11 +10,14 @@ import { LineEndings } from '../../types/LineEndings'
 const name = 'noNestedMacros'
 const description = 'Enfoces the absence of nested macro definitions.'
 const message = `Macro definition for '{macro}' present in macro '{parent}'`
+
 const test = (value: string, config?: LintConfig) => {
   const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
   const lines: string[] = value ? value.split(lineEnding) : []
   const diagnostics: Diagnostic[] = []
   const macros = parseMacros(value, config)
+  const severity = config?.severityLevel[name] || Severity.Warning
+
   macros
     .filter((m) => !!m.parentMacro)
     .forEach((macro) => {
@@ -34,7 +37,7 @@ const test = (value: string, config?: LintConfig) => {
           ) +
           lines[(macro.startLineNumbers![0] as number) - 1].trim().length -
           1,
-        severity: Severity.Warning
+        severity
       })
     })
   return diagnostics

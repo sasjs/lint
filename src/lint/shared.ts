@@ -18,7 +18,7 @@ export const processFile = (
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = []
   config.pathLintRules.forEach((rule) => {
-    diagnostics.push(...rule.test(filePath))
+    diagnostics.push(...rule.test(filePath, config))
   })
 
   return diagnostics
@@ -27,7 +27,7 @@ export const processFile = (
 const processContent = (config: LintConfig, content: string): Diagnostic[] => {
   const diagnostics: Diagnostic[] = []
   config.fileLintRules.forEach((rule) => {
-    diagnostics.push(...rule.test(content))
+    diagnostics.push(...rule.test(content, config))
   })
 
   return diagnostics

@@ -1,3 +1,4 @@
+import { LintConfig } from '../../types'
 import { LineLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
@@ -5,8 +6,11 @@ import { Severity } from '../../types/Severity'
 const name = 'noTrailingSpaces'
 const description = 'Disallow trailing spaces on lines.'
 const message = 'Line contains trailing spaces'
-const test = (value: string, lineNumber: number) =>
-  value.trimEnd() === value
+
+const test = (value: string, lineNumber: number, config?: LintConfig) => {
+  const severity = config?.severityLevel[name] || Severity.Warning
+
+  return value.trimEnd() === value
     ? []
     : [
         {
@@ -14,9 +18,11 @@ const test = (value: string, lineNumber: number) =>
           lineNumber,
           startColumnNumber: value.trimEnd().length + 1,
           endColumnNumber: value.length,
-          severity: Severity.Warning
+          severity
         }
       ]
+}
+
 const fix = (value: string) => value.trimEnd()
 
 /**

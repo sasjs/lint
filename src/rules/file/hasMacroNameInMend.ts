@@ -11,11 +11,14 @@ const name = 'hasMacroNameInMend'
 const description =
   'Enforces the presence of the macro name in each %mend statement.'
 const message = '%mend statement has missing or incorrect macro name'
+
 const test = (value: string, config?: LintConfig) => {
   const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
   const lines: string[] = value ? value.split(lineEnding) : []
   const macros = parseMacros(value, config)
+  const severity = config?.severityLevel[name] || Severity.Warning
   const diagnostics: Diagnostic[] = []
+
   macros.forEach((macro) => {
     if (macro.startLineNumbers.length === 0 && macro.endLineNumber !== null) {
       const endLine = lines[macro.endLineNumber - 1]
@@ -25,7 +28,7 @@ const test = (value: string, config?: LintConfig) => {
         startColumnNumber: getColumnNumber(endLine, '%mend'),
         endColumnNumber:
           getColumnNumber(endLine, '%mend') + macro.termination.length,
-        severity: Severity.Warning
+        severity
       })
     } else if (
       macro.endLineNumber === null &&
@@ -36,7 +39,7 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: macro.startLineNumbers![0],
         startColumnNumber: 1,
         endColumnNumber: 1,
-        severity: Severity.Warning
+        severity
       })
     } else if (macro.mismatchedMendMacroName) {
       const endLine = lines[(macro.endLineNumber as number) - 1]
@@ -53,7 +56,7 @@ const test = (value: string, config?: LintConfig) => {
           getColumnNumber(endLine, macro.mismatchedMendMacroName) +
           macro.mismatchedMendMacroName.length -
           1,
-        severity: Severity.Warning
+        severity
       })
     } else if (!macro.hasMacroNameInMend) {
       const endLine = lines[(macro.endLineNumber as number) - 1]
@@ -62,7 +65,7 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: macro.endLineNumber as number,
         startColumnNumber: getColumnNumber(endLine, '%mend'),
         endColumnNumber: getColumnNumber(endLine, '%mend') + 6,
-        severity: Severity.Warning
+        severity
       })
     }
   })

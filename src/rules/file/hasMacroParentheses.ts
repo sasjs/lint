@@ -9,9 +9,12 @@ import { LintConfig } from '../../types'
 const name = 'hasMacroParentheses'
 const description = 'Enforces the presence of parentheses in macro definitions.'
 const message = 'Macro definition missing parentheses'
+
 const test = (value: string, config?: LintConfig) => {
   const diagnostics: Diagnostic[] = []
   const macros = parseMacros(value, config)
+  const severity = config?.severityLevel[name] || Severity.Warning
+
   macros.forEach((macro) => {
     if (!macro.name) {
       diagnostics.push({
@@ -24,7 +27,7 @@ const test = (value: string, config?: LintConfig) => {
         endColumnNumber:
           getColumnNumber(macro.declarationLines![0], '%macro') +
           macro.declaration.length,
-        severity: Severity.Warning
+        severity
       })
     } else if (!macro.declarationLines.find((dl) => dl.includes('('))) {
       const macroNameLineIndex = macro.declarationLines.findIndex((dl) =>
@@ -44,7 +47,7 @@ const test = (value: string, config?: LintConfig) => {
           ) +
           macro.name.length -
           1,
-        severity: Severity.Warning
+        severity
       })
     }
   })

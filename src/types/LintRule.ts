@@ -36,5 +36,5 @@ export interface FileLintRule extends LintRule {
  */
 export interface PathLintRule extends LintRule {
   type: LintRuleType.Path
-  test: (value: string) => Diagnostic[]
+  test: (value: string, config?: LintConfig) => Diagnostic[]
 }

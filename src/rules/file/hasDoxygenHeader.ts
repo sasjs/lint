@@ -11,8 +11,11 @@ const description =
 const message = 'File missing Doxygen header'
 const messageForSingleAsterisk =
   'File not following Doxygen header style, use double asterisks'
+
 const test = (value: string, config?: LintConfig) => {
   const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
+  const severity = config?.severityLevel[name] || Severity.Warning
+
   try {
     const hasFileHeader = value.trimStart().startsWith('/**')
     if (hasFileHeader) return []
@@ -27,7 +30,7 @@ const test = (value: string, config?: LintConfig) => {
               .length + 1,
           startColumnNumber: 1,
           endColumnNumber: 1,
-          severity: Severity.Warning
+          severity
         }
       ]
 
@@ -37,7 +40,7 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: 1,
         startColumnNumber: 1,
         endColumnNumber: 1,
-        severity: Severity.Warning
+        severity
       }
     ]
   } catch (e) {
@@ -47,7 +50,7 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: 1,
         startColumnNumber: 1,
         endColumnNumber: 1,
-        severity: Severity.Warning
+        severity
       }
     ]
   }

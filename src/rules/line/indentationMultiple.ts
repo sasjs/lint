@@ -6,9 +6,11 @@ import { Severity } from '../../types/Severity'
 const name = 'indentationMultiple'
 const description = 'Ensure indentation by a multiple of the configured number.'
 const message = 'Line has incorrect indentation'
+
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
   if (!value.startsWith(' ')) return []
 
+  const severity = config?.severityLevel[name] || Severity.Warning
   const indentationMultiple = isNaN(config?.indentationMultiple as number)
     ? 2
     : config!.indentationMultiple
@@ -24,7 +26,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
       lineNumber,
       startColumnNumber: 1,
       endColumnNumber: 1,
-      severity: Severity.Warning
+      severity
     }
   ]
 }
