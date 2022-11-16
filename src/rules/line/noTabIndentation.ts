@@ -16,7 +16,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
       lineNumber,
       startColumnNumber: 1,
       endColumnNumber: 1,
-      severity: Severity.Warning
+      severity
     }
   ]
 }
