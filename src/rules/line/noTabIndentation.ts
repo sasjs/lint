@@ -1,3 +1,4 @@
+import { LintConfig } from '../../types'
 import { LineLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
@@ -5,7 +6,9 @@ import { Severity } from '../../types/Severity'
 const name = 'noTabs'
 const description = 'Disallow indenting with tabs.'
 const message = 'Line is indented with a tab'
-const test = (value: string, lineNumber: number) => {
+
+const test = (value: string, lineNumber: number, config?: LintConfig) => {
+  const severity = config?.severityLevel[name] || Severity.Warning
   if (!value.startsWith('\t')) return []
   return [
     {
@@ -13,7 +16,7 @@ const test = (value: string, lineNumber: number) => {
       lineNumber,
       startColumnNumber: 1,
       endColumnNumber: 1,
-      severity: Severity.Warning
+      severity
     }
   ]
 }

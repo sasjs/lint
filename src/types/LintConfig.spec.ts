@@ -1,6 +1,7 @@
 import { LineEndings } from './LineEndings'
 import { LintConfig } from './LintConfig'
 import { LintRuleType } from './LintRuleType'
+import { Severity } from './Severity'
 
 describe('LintConfig', () => {
   it('should create an empty instance', () => {
@@ -121,6 +122,23 @@ describe('LintConfig', () => {
 
     expect(config).toBeTruthy()
     expect(config.lineEndings).toEqual(LineEndings.CRLF)
+  })
+
+  it('should create an instance with the severityLevel config', () => {
+    const config = new LintConfig({
+      severityLevel: {
+        hasDoxygenHeader: 'warn',
+        maxLineLength: 'error',
+        noTrailingSpaces: 'error'
+      }
+    })
+
+    expect(config).toBeTruthy()
+    expect(config.severityLevel).toEqual({
+      hasDoxygenHeader: Severity.Warning,
+      maxLineLength: Severity.Error,
+      noTrailingSpaces: Severity.Error
+    })
   })
 
   it('should create an instance with the line endings set to LF by default', () => {

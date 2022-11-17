@@ -6,7 +6,9 @@ import { Severity } from '../../types/Severity'
 const name = 'maxLineLength'
 const description = 'Restrict lines to the specified length.'
 const message = 'Line exceeds maximum length'
+
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
+  const severity = config?.severityLevel[name] || Severity.Warning
   const maxLineLength = config?.maxLineLength || 80
   if (value.length <= maxLineLength) return []
   return [
@@ -15,7 +17,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
       lineNumber,
       startColumnNumber: 1,
       endColumnNumber: 1,
-      severity: Severity.Warning
+      severity
     }
   ]
 }

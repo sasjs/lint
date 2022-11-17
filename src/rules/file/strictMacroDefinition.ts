@@ -25,9 +25,11 @@ const validOptions = [
 const processParams = (
   content: string,
   macro: Macro,
-  diagnostics: Diagnostic[]
+  diagnostics: Diagnostic[],
+  config?: LintConfig
 ): string => {
   const declaration = macro.declaration
+  const severity = config?.severityLevel[name] || Severity.Warning
 
   const regExpParams = new RegExp(/(?<=\().*(?=\))/)
   const regExpParamsResult = regExpParams.exec(declaration)
@@ -88,7 +90,7 @@ const processParams = (
           lineNumber: paramLineNumber,
           startColumnNumber: paramStartIndex + 1,
           endColumnNumber: paramEndIndex,
-          severity: Severity.Warning
+          severity
         })
       }
     })
@@ -101,9 +103,11 @@ const processParams = (
 const processOptions = (
   _declaration: string,
   macro: Macro,
-  diagnostics: Diagnostic[]
+  diagnostics: Diagnostic[],
+  config?: LintConfig
 ): void => {
   let optionsPresent = _declaration.split('/')?.[1]?.trim()
+  const severity = config?.severityLevel[name] || Severity.Warning
 
   if (optionsPresent) {
     const regex = new RegExp(/="(.*?)"/, 'g')
@@ -136,7 +140,7 @@ const processOptions = (
             startColumnNumber: declarationLine.indexOf(trimmedOption) + 1,
             endColumnNumber:
               declarationLine.indexOf(trimmedOption) + trimmedOption.length,
-            severity: Severity.Warning
+            severity
           })
         }
       })
@@ -149,9 +153,9 @@ const test = (value: string, config?: LintConfig) => {
   const macros = parseMacros(value, config)
 
   macros.forEach((macro) => {
-    const _declaration = processParams(value, macro, diagnostics)
+    const _declaration = processParams(value, macro, diagnostics, config)
 
-    processOptions(_declaration, macro, diagnostics)
+    processOptions(_declaration, macro, diagnostics, config)
   })
 
   return diagnostics

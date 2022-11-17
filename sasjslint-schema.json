@@ -159,6 +159,115 @@
       "description": "An array of paths or path patterns to ignore when linting. Any files or matching patterns in the .gitignore file will also be ignored.",
       "default": ["sasjsbuild/", "sasjsresults/"],
       "examples": ["sasjs/tests", "tmp/scratch.sas"]
+    },
+    "severityLevel": {
+      "$id": "#/properties/severityLevel",
+      "type": "object",
+      "title": "severityLevel",
+      "description": "An object which specifies the severity level of each rule.",
+      "default": {},
+      "examples": [{
+        "hasDoxygenHeader": "warn",
+        "maxLineLength": "warn",
+        "noTrailingSpaces": "error"   
+      }, {
+        "hasDoxygenHeader": "warn",
+        "maxLineLength": "error",
+        "noTrailingSpaces": "error"   
+      }],
+      "properties": {
+        "noEncodedPasswords": {
+          "$id": "#/properties/severityLevel/noEncodedPasswords",
+          "title": "noEncodedPasswords",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "error"
+        },
+        "hasDoxygenHeader": {
+          "$id": "#/properties/severityLevel/hasDoxygenHeader",
+          "title": "hasDoxygenHeader",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"        },
+        "hasMacroNameInMend": {
+          "$id": "#/properties/severityLevel/hasMacroNameInMend",
+          "title": "hasMacroNameInMend",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "hasMacroParentheses": {
+          "$id": "#/properties/severityLevel/hasMacroParentheses",
+          "title": "hasMacroParentheses",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "indentationMultiple": {
+          "$id": "#/properties/severityLevel/indentationMultiple",
+          "title": "indentationMultiple",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "lowerCaseFileNames": {
+          "$id": "#/properties/severityLevel/lowerCaseFileNames",
+          "title": "lowerCaseFileNames",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "maxLineLength": {
+          "$id": "#/properties/severityLevel/maxLineLength",
+          "title": "maxLineLength",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noNestedMacros": {
+          "$id": "#/properties/severityLevel/noNestedMacros",
+          "title": "noNestedMacros",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noSpacesInFileNames": {
+          "$id": "#/properties/severityLevel/noSpacesInFileNames",
+          "title": "noSpacesInFileNames",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noTabIndentation": {
+          "$id": "#/properties/severityLevel/noTabIndentation",
+          "title": "noTabIndentation",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noTrailingSpaces": {
+          "$id": "#/properties/severityLevel/noTrailingSpaces",
+          "title": "noTrailingSpaces",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "lineEndings": {
+          "$id": "#/properties/severityLevel/lineEndings",
+          "title": "lineEndings",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "strictMacroDefinition": {
+          "$id": "#/properties/severityLevel/strictMacroDefinition",
+          "title": "strictMacroDefinition",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        }
+      }
+        
     }
   }
 }

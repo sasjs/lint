@@ -1,3 +1,4 @@
+import { LintConfig } from '../../types'
 import { LineLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
@@ -5,7 +6,9 @@ import { Severity } from '../../types/Severity'
 const name = 'noEncodedPasswords'
 const description = 'Disallow encoded passwords in SAS code.'
 const message = 'Line contains encoded password'
-const test = (value: string, lineNumber: number) => {
+
+const test = (value: string, lineNumber: number, config?: LintConfig) => {
+  const severity = config?.severityLevel[name] || Severity.Error
   const regex = new RegExp(/{sas(\d{2,4}|enc)}[^;"'\s]*/, 'gi')
   const matches = value.match(regex)
   if (!matches || !matches.length) return []
@@ -14,7 +17,7 @@ const test = (value: string, lineNumber: number) => {
     lineNumber,
     startColumnNumber: value.indexOf(match) + 1,
     endColumnNumber: value.indexOf(match) + match.length + 1,
-    severity: Severity.Error
+    severity
   }))
 }
 

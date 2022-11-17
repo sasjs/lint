@@ -40,9 +40,19 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 
 ### SAS Lint Settings
 
+Each setting can have three states:
+
+* OFF - usually by setting the value to `false` or 0.  In this case, the rule won't be executed.
+* WARN - a warning is written to the log, but the return code will be 0
+* ERROR - an error is written to the log, and the return code is 1
+
+For more details, and the default state, see the description of each rule below.  It is also possible to change whether a rule returns ERROR or WARN using the `severityLevels` object.
+
 #### defaultHeader
 
-This sets the default program header - applies when a SAS program does NOT begin with `/**`.  The default header is as follows:
+This isn't actually a rule - but rather a formatting setting, which applies to SAS program that do NOT begin with `/**`.  It can be triggered by running `sasjs lint fix` in the SASjs CLI, or by hitting "save" when using the SASjs VS Code extension (with "formatOnSave" in place)
+
+The default header is as follows:
 
 ```sas
 /**
@@ -51,8 +61,7 @@ This sets the default program header - applies when a SAS program does NOT begin
   <h4> SAS Macros </h4>
 **/
 ```
-
-The default header is automatically applied when running `sasjs lint fix` in the SASjs CLI, or by hitting "save" when using the SASjs VS Code extension.  If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
+If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
 
 ```json
 {
@@ -62,7 +71,7 @@ The default header is automatically applied when running `sasjs lint fix` in the
 
 #### noEncodedPasswords
 
-This will highlight any rows that contain a `{sas00X}` type password, or `{sasenc}`.  These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
+This rule will highlight any rows that contain a `{sas00X}` type password, or `{sasenc}`.  These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
 
 * Default:  true
 * Severity: ERROR
@@ -138,6 +147,26 @@ This will highlight lines with trailing spaces.  Trailing spaces serve no useful
 
 * Default:  true
 * severity: WARNING
+
+### severityLevel
+
+This setting allows the default severity to be adjusted.  This is helpful when running the lint in a pipeline or git hook.  Simply list the rules you would like to adjust along with the desired setting ("warn" or "error"), eg as follows:
+
+```json
+{
+  "noTrailingSpaces": true,
+  "hasDoxygenHeader": true,
+  "maxLineLength": 100,
+  "severityLevel": {
+    "hasDoxygenHeader": "warn",
+    "maxLineLength": "error",
+    "noTrailingSpaces": "error"
+  }
+}
+```
+
+* "warn" - show warning in the log (doesn’t affect exit code)
+* "error" - show error in the log (exit code is 1 when triggered)
 
 ### Upcoming Linting Rules:
 
