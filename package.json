@@ -49,6 +49,6 @@
   },
   "dependencies": {
     "@sasjs/utils": "^2.19.0",
-    "ignore": "^5.2.0"
+    "ignore": "^5.2.1"
   }
 }
