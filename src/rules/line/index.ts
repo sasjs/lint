@@ -1,5 +1,5 @@
 export { indentationMultiple } from './indentationMultiple'
 export { maxLineLength } from './maxLineLength'
 export { noEncodedPasswords } from './noEncodedPasswords'
-export { noTabIndentation } from './noTabIndentation'
+export { noTabs } from './noTabs'
 export { noTrailingSpaces } from './noTrailingSpaces'
