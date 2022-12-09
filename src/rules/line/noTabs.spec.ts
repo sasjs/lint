@@ -11,10 +11,10 @@ describe('noTabs', () => {
     const line = "\t%put 'hello';"
     expect(noTabs.test(line, 1)).toEqual([
       {
-        message: 'Line is indented with a tab',
+        message: 'Line contains tab indentation',
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 1,
+        endColumnNumber: 2,
         severity: Severity.Warning
       }
     ])
