@@ -46,10 +46,10 @@ const expectedDiagnostics = [
     severity: Severity.Error
   },
   {
-    message: 'Line is indented with a tab',
+    message: 'Line contains tab indentation',
     lineNumber: 7,
     startColumnNumber: 1,
-    endColumnNumber: 1,
+    endColumnNumber: 2,
     severity: Severity.Warning
   },
   {
