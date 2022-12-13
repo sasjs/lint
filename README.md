@@ -9,48 +9,46 @@
 
 Our goal is to help SAS developers everywhere spend less time on code reviews, bug fixing and arguing about standards - and more time delivering extraordinary business value.
 
-## Linting
+# Linting
+
 @sasjs/lint is used by the following products:
 
-  * [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the VSCode marketplace, and select view/problems in the menu bar.
-  * [@sasjs/cli](https://cli.sasjs.io/lint) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
+- [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the VSCode marketplace, and select view/problems in the menu bar.
+- [@sasjs/cli](https://cli.sasjs.io/lint) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
 
 Configuration is via a `.sasjslint` file with the following structure (these are also the defaults if no .sasjslint file is found):
 
 ```json
 {
-    "noEncodedPasswords": true,
-    "hasDoxygenHeader": true,
-    "hasMacroNameInMend": true,
-    "hasMacroParentheses": true,
-    "ignoreList": [
-      "sajsbuild/",
-      "sasjsresults/"
-    ],
-    "indentationMultiple": 2,
-    "lowerCaseFileNames": true,
-    "maxLineLength": 80,
-    "noNestedMacros": true,
-    "noSpacesInFileNames": true,
-    "noTabIndentation": true,
-    "noTrailingSpaces": true,
-    "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/"
+  "noEncodedPasswords": true,
+  "hasDoxygenHeader": true,
+  "hasMacroNameInMend": true,
+  "hasMacroParentheses": true,
+  "ignoreList": ["sajsbuild/", "sasjsresults/"],
+  "indentationMultiple": 2,
+  "lowerCaseFileNames": true,
+  "maxLineLength": 80,
+  "noNestedMacros": true,
+  "noSpacesInFileNames": true,
+  "noTabs": true,
+  "noTrailingSpaces": true,
+  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/"
 }
 ```
 
-### SAS Lint Settings
+## SAS Lint Settings
 
 Each setting can have three states:
 
-* OFF - usually by setting the value to `false` or 0.  In this case, the rule won't be executed.
-* WARN - a warning is written to the log, but the return code will be 0
-* ERROR - an error is written to the log, and the return code is 1
+- OFF - usually by setting the value to `false` or 0. In this case, the rule won't be executed.
+- WARN - a warning is written to the log, but the return code will be 0
+- ERROR - an error is written to the log, and the return code is 1
 
-For more details, and the default state, see the description of each rule below.  It is also possible to change whether a rule returns ERROR or WARN using the `severityLevels` object.
+For more details, and the default state, see the description of each rule below. It is also possible to change whether a rule returns ERROR or WARN using the `severityLevels` object.
 
-#### defaultHeader
+### defaultHeader
 
-This isn't actually a rule - but rather a formatting setting, which applies to SAS program that do NOT begin with `/**`.  It can be triggered by running `sasjs lint fix` in the SASjs CLI, or by hitting "save" when using the SASjs VS Code extension (with "formatOnSave" in place)
+This isn't actually a rule - but rather a formatting setting, which applies to SAS program that do NOT begin with `/**`. It can be triggered by running `sasjs lint fix` in the SASjs CLI, or by hitting "save" when using the SASjs VS Code extension (with "formatOnSave" in place)
 
 The default header is as follows:
 
@@ -61,6 +59,7 @@ The default header is as follows:
   <h4> SAS Macros </h4>
 **/
 ```
+
 If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
 
 ```json
@@ -69,88 +68,100 @@ If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
 }
 ```
 
-#### noEncodedPasswords
+### noEncodedPasswords
 
-This rule will highlight any rows that contain a `{sas00X}` type password, or `{sasenc}`.  These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
+This rule will highlight any rows that contain a `{sas00X}` type password, or `{sasenc}`. These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
 
-* Default:  true
-* Severity: ERROR
+- Default: true
+- Severity: ERROR
 
-#### hasDoxygenHeader
-The SASjs framework recommends the use of Doxygen headers for describing all types of SAS program.  This check will identify files where a doxygen header does not begin in the first line.
+### hasDoxygenHeader
 
-* Default:  true
-* Severity: WARNING
+The SASjs framework recommends the use of Doxygen headers for describing all types of SAS program. This check will identify files where a doxygen header does not begin in the first line.
 
-#### hasMacroNameInMend
-The addition of the macro name in the `%mend` statement is optional, but can approve readability in large programs.  A discussion on this topic can be found [here](https://www.linkedin.com/posts/allanbowe_sas-sasapps-sasjs-activity-6783413360781266945-1-7m).  The default setting was the result of a poll with over 300 votes.
+- Default: true
+- Severity: WARNING
 
-* Default:  true
-* Severity: WARNING
+### hasMacroNameInMend
 
-#### hasMacroParentheses
-As per the example [here](https://github.com/sasjs/lint/issues/20), macros defined without parentheses cause problems if that macro is ever extended (it's not possible to reliably extend that macro without potentially breaking some code that has used the macro).  It's better to always define parentheses, even if they are not used.  This check will also throw a warning if there are spaces between the macro name and the opening parenthesis.
+The addition of the macro name in the `%mend` statement is optional, but can approve readability in large programs. A discussion on this topic can be found [here](https://www.linkedin.com/posts/allanbowe_sas-sasapps-sasjs-activity-6783413360781266945-1-7m). The default setting was the result of a poll with over 300 votes.
 
-* Default:  true
-* Severity: WARNING
+- Default: true
+- Severity: WARNING
 
-#### ignoreList
-There may be specific files (or folders) that are not good candidates for linting.  Simply list them in this array and they will be ignored.  In addition, any files in the project `.gitignore` file will also be ignored.
+### hasMacroParentheses
 
-#### indentationMultiple
+As per the example [here](https://github.com/sasjs/lint/issues/20), macros defined without parentheses cause problems if that macro is ever extended (it's not possible to reliably extend that macro without potentially breaking some code that has used the macro). It's better to always define parentheses, even if they are not used. This check will also throw a warning if there are spaces between the macro name and the opening parenthesis.
+
+- Default: true
+- Severity: WARNING
+
+### ignoreList
+
+There may be specific files (or folders) that are not good candidates for linting. Simply list them in this array and they will be ignored. In addition, any files in the project `.gitignore` file will also be ignored.
+
+### indentationMultiple
+
 This will check each line to ensure that the count of leading spaces can be divided cleanly by this multiple.
 
-* Default:  2
-* Severity: WARNING
+- Default: 2
+- Severity: WARNING
 
-#### lowerCaseFileNames
-On *nix systems, it is imperative that autocall macros are in lowercase.  When sharing code between windows and *nix systems, the difference in case sensitivity can also be a cause of lost developer time.  For this reason, we recommend that sas filenames are always lowercase.
+### lowerCaseFileNames
 
-* Default: true
-* Severity: WARNING
+On *nix systems, it is imperative that autocall macros are in lowercase. When sharing code between windows and *nix systems, the difference in case sensitivity can also be a cause of lost developer time. For this reason, we recommend that sas filenames are always lowercase.
 
-#### maxLineLength
-Code becomes far more readable when line lengths are short.  The most compelling reason for short line lengths is to avoid the need to scroll when performing a side-by-side 'compare' between two files (eg as part of a GIT feature branch review).  A longer discussion on optimal code line length can be found [here](https://stackoverflow.com/questions/578059/studies-on-optimal-code-width)
+- Default: true
+- Severity: WARNING
+
+### maxLineLength
+
+Code becomes far more readable when line lengths are short. The most compelling reason for short line lengths is to avoid the need to scroll when performing a side-by-side 'compare' between two files (eg as part of a GIT feature branch review). A longer discussion on optimal code line length can be found [here](https://stackoverflow.com/questions/578059/studies-on-optimal-code-width)
 
 In batch mode, long SAS code lines may also be truncated, causing hard-to-detect errors.
 
-We strongly recommend a line length limit, and set the bar at 80.  To turn this feature off, set the value to 0.
+We strongly recommend a line length limit, and set the bar at 80. To turn this feature off, set the value to 0.
 
-* Default: 80
-* Severity: WARNING
+- Default: 80
+- Severity: WARNING
 
-#### noNestedMacros
-Where macros are defined inside other macros, they are recompiled every time the outer macro is invoked.  Hence, it is widely considered inefficient, and bad practice, to nest macro definitions.
+### noNestedMacros
 
-* Default:  true
-* Severity: WARNING
+Where macros are defined inside other macros, they are recompiled every time the outer macro is invoked. Hence, it is widely considered inefficient, and bad practice, to nest macro definitions.
 
-#### noSpacesInFileNames
+- Default: true
+- Severity: WARNING
+
+### noSpacesInFileNames
+
 The 'beef' we have with spaces in filenames is twofold:
 
-* Loss of the in-built ability to 'click' a filepath and have the file open automatically
-* The need to quote such filepaths in order to use them in CLI commands
+- Loss of the in-built ability to 'click' a filepath and have the file open automatically
+- The need to quote such filepaths in order to use them in CLI commands
 
-In addition, when such files are used in URLs, they are often padded with a messy "%20" type quotation.  And of course, for macros (where the macro should match the filename) then spaces are simply not valid.
+In addition, when such files are used in URLs, they are often padded with a messy "%20" type quotation. And of course, for macros (where the macro should match the filename) then spaces are simply not valid.
 
-* Default:  true
-* Severity: WARNING
+- Default: true
+- Severity: WARNING
 
-#### noTabIndentation
-Whilst there are some arguments for using tabs to indent (such as the ability to set your own indentation width, and to reduce character count) there are many, many, many developers who think otherwise.  We're in that camp.  Sorry (not sorry).
+### noTabs
 
-* Default:  true
-* Severity: WARNING
+Whilst there are some arguments for using tabs (such as the ability to set your own indentation width, and to reduce character count) there are many, many, many developers who think otherwise. We're in that camp. Sorry (not sorry).
 
-#### noTrailingSpaces
-This will highlight lines with trailing spaces.  Trailing spaces serve no useful purpose in a SAS program.
+- Alias: noTabIndentation
+- Default: true
+- Severity: WARNING
 
-* Default:  true
-* severity: WARNING
+### noTrailingSpaces
 
-### severityLevel
+This will highlight lines with trailing spaces. Trailing spaces serve no useful purpose in a SAS program.
 
-This setting allows the default severity to be adjusted.  This is helpful when running the lint in a pipeline or git hook.  Simply list the rules you would like to adjust along with the desired setting ("warn" or "error"), eg as follows:
+- Default: true
+- severity: WARNING
+
+## severityLevel
+
+This setting allows the default severity to be adjusted. This is helpful when running the lint in a pipeline or git hook. Simply list the rules you would like to adjust along with the desired setting ("warn" or "error"), eg as follows:
 
 ```json
 {
@@ -165,46 +176,46 @@ This setting allows the default severity to be adjusted.  This is helpful when r
 }
 ```
 
-* "warn" - show warning in the log (doesn’t affect exit code)
-* "error" - show error in the log (exit code is 1 when triggered)
+- "warn" - show warning in the log (doesn’t affect exit code)
+- "error" - show error in the log (exit code is 1 when triggered)
 
-### Upcoming Linting Rules:
+## Upcoming Linting Rules:
 
-* `noTabs` -> does what it says on the tin
-* `noGremlins` -> identifies all invisible characters, other than spaces / tabs / line endings.  If you really need that bell character, use a hex literal!
-* `lineEndings` -> set a standard line ending, such as LF or CRLF
+- `noGremlins` -> identifies all invisible characters, other than spaces / tabs / line endings. If you really need that bell character, use a hex literal!
+- `lineEndings` -> set a standard line ending, such as LF or CRLF
 
-## SAS Formatter
+# SAS Formatter
 
 A formatter will automatically apply rules when you hit SAVE, which can save a LOT of time.
 
 We've already implemented the following rules:
 
-* Add the macro name to the %mend statement
-* Add a doxygen header template if none exists
-* Remove trailing spaces
+- Add the macro name to the %mend statement
+- Add a doxygen header template if none exists
+- Remove trailing spaces
 
 We're looking to implement the following rules:
 
-* Change tabs to spaces
-* zap gremlins
-* fix line endings
+- Change tabs to spaces
+- zap gremlins
+- fix line endings
 
 We are also investigating some harder stuff, such as automatic indentation and code layout
 
-## Sponsorship & Contributions
+# Sponsorship & Contributions
 
-SASjs is an open source framework!  Contributions are welcomed.  If you would like to see a feature, because it would be useful in your project, but you don't have the requisite (Typescript) experience - then how about you engage us on a short project and we build it for you?
+SASjs is an open source framework! Contributions are welcomed. If you would like to see a feature, because it would be useful in your project, but you don't have the requisite (Typescript) experience - then how about you engage us on a short project and we build it for you?
 
 Contact [Allan Bowe](https://www.linkedin.com/in/allanbowe/) for further details.
 
+# Contributors ✨
 
-
-
-## Contributors ✨
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

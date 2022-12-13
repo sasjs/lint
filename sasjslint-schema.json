@@ -15,7 +15,7 @@
     "maxLineLength": 80,
     "noNestedMacros": true,
     "noSpacesInFileNames": true,
-    "noTabIndentation": true,
+    "noTabs": true,
     "noTrailingSpaces": true,
     "lineEndings": "lf",
     "strictMacroDefinition": true,
@@ -29,7 +29,7 @@
       "noSpacesInFileNames": true,
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
-      "noTabIndentation": true,
+      "noTabs": true,
       "indentationMultiple": 4,
       "hasMacroNameInMend": true,
       "noNestedMacros": true,
@@ -120,11 +120,11 @@
       "default": true,
       "examples": [true, false]
     },
-    "noTabIndentation": {
-      "$id": "#/properties/noTabIndentation",
+    "noTabs": {
+      "$id": "#/properties/noTabs",
       "type": "boolean",
-      "title": "noTabIndentation",
-      "description": "Enforces no indentation using tabs. Shows a warning when a line starts with a tab.",
+      "title": "noTabs",
+      "description": "Enforces no indentation using tabs. Shows a warning when a line contains a tab.",
       "default": true,
       "examples": [true, false]
     },
@@ -166,15 +166,18 @@
       "title": "severityLevel",
       "description": "An object which specifies the severity level of each rule.",
       "default": {},
-      "examples": [{
-        "hasDoxygenHeader": "warn",
-        "maxLineLength": "warn",
-        "noTrailingSpaces": "error"   
-      }, {
-        "hasDoxygenHeader": "warn",
-        "maxLineLength": "error",
-        "noTrailingSpaces": "error"   
-      }],
+      "examples": [
+        {
+          "hasDoxygenHeader": "warn",
+          "maxLineLength": "warn",
+          "noTrailingSpaces": "error"
+        },
+        {
+          "hasDoxygenHeader": "warn",
+          "maxLineLength": "error",
+          "noTrailingSpaces": "error"
+        }
+      ],
       "properties": {
         "noEncodedPasswords": {
           "$id": "#/properties/severityLevel/noEncodedPasswords",
@@ -188,7 +191,8 @@
           "title": "hasDoxygenHeader",
           "type": "string",
           "enum": ["error", "warn"],
-          "default": "warn"        },
+          "default": "warn"
+        },
         "hasMacroNameInMend": {
           "$id": "#/properties/severityLevel/hasMacroNameInMend",
           "title": "hasMacroNameInMend",
@@ -238,9 +242,9 @@
           "enum": ["error", "warn"],
           "default": "warn"
         },
-        "noTabIndentation": {
-          "$id": "#/properties/severityLevel/noTabIndentation",
-          "title": "noTabIndentation",
+        "noTabs": {
+          "$id": "#/properties/severityLevel/noTabs",
+          "title": "noTabs",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"
@@ -267,7 +271,6 @@
           "default": "warn"
         }
       }
-        
     }
   }
 }

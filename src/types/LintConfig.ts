@@ -10,7 +10,7 @@ import {
   indentationMultiple,
   maxLineLength,
   noEncodedPasswords,
-  noTabIndentation,
+  noTabs,
   noTrailingSpaces
 } from '../rules/line'
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
@@ -60,8 +60,8 @@ export class LintConfig {
       this.lineLintRules.push(noEncodedPasswords)
     }
 
-    if (json?.noTabIndentation) {
-      this.lineLintRules.push(noTabIndentation)
+    if (json?.noTabs || json?.noTabIndentation) {
+      this.lineLintRules.push(noTabs)
     }
 
     if (json?.maxLineLength) {
