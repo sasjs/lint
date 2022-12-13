@@ -7,7 +7,7 @@ import { getIndicesOf } from '../../utils'
 const name = 'noTabs'
 const alias = 'noTabIndentation'
 const description = 'Disallow indenting with tabs.'
-const message = 'Line contains tab indentation'
+const message = 'Line contains a tab character (09x)'
 
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
   const severity =
