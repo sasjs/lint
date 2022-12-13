@@ -46,7 +46,7 @@ const expectedDiagnostics = [
     severity: Severity.Error
   },
   {
-    message: 'Line contains tab indentation',
+    message: 'Line contains a tab character (09x)',
     lineNumber: 7,
     startColumnNumber: 1,
     endColumnNumber: 2,
