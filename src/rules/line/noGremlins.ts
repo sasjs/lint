@@ -4,8 +4,8 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 
 const name = 'noGremlins'
-const description = 'Disallow characters specified in grimlins array'
-const message = 'Line contains a grimlin'
+const description = 'Disallow characters specified in gremlins array'
+const message = 'Line contains a gremlin'
 
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
   const severity = config?.severityLevel[name] || Severity.Warning
@@ -45,7 +45,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
 }
 
 /**
- * Lint rule that checks if a given line of text contains any grimlin.
+ * Lint rule that checks if a given line of text contains any gremlins.
  */
 export const noGremlins: LineLintRule = {
   type: LintRuleType.Line,

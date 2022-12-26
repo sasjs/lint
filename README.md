@@ -29,6 +29,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "lowerCaseFileNames": true,
   "maxLineLength": 80,
   "noNestedMacros": true,
+  "noGremlins": true,
   "noSpacesInFileNames": true,
   "noTabs": true,
   "noTrailingSpaces": true,
@@ -123,6 +124,15 @@ In batch mode, long SAS code lines may also be truncated, causing hard-to-detect
 We strongly recommend a line length limit, and set the bar at 80. To turn this feature off, set the value to 0.
 
 - Default: 80
+- Severity: WARNING
+
+### noGremlins
+
+Capture zero-width whitespace and other non-standard characters.  The logic is borrowed from the [VSCode Gremlins Extension](https://github.com/nhoizey/vscode-gremlins) - if you are looking for more advanced gremlin zapping capabilities, we highly recommend to use their extension instead.
+
+The list of characters can be found in this file: [https://github.com/sasjs/lint/blob/main/src/rules/line/noGremlins.ts](https://github.com/sasjs/lint/blob/main/src/rules/line/noGremlins.ts)
+
+- Default: true
 - Severity: WARNING
 
 ### noNestedMacros
