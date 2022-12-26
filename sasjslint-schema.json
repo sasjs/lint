@@ -64,6 +64,14 @@
       "default": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/",
       "examples": []
     },
+    "noGremlins": {
+      "$id": "#/properties/noGremlins",
+      "type": "array",
+      "title": "noGremlins",
+      "description": "",
+      "default": [true],
+      "examples": [true, false]
+    },
     "hasMacroNameInMend": {
       "$id": "#/properties/hasMacroNameInMend",
       "type": "boolean",
@@ -189,6 +197,13 @@
         "hasDoxygenHeader": {
           "$id": "#/properties/severityLevel/hasDoxygenHeader",
           "title": "hasDoxygenHeader",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noGremlins": {
+          "$id": "#/properties/severityLevel/noGremlins",
+          "title": "noGremlins",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"
