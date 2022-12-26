@@ -5,7 +5,7 @@ import { Severity } from '../../types/Severity'
 
 const name = 'noGremlins'
 const description = 'Disallow characters specified in grimlins array'
-const message = 'Line contains a grimlin character'
+const message = 'Line contains a grimlin'
 
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
   const severity = config?.severityLevel[name] || Severity.Warning
