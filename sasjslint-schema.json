@@ -68,7 +68,7 @@
     },
     "noGremlins": {
       "$id": "#/properties/noGremlins",
-      "type": "array",
+      "type": "boolean",
       "title": "noGremlins",
       "description": "Captures problematic characters such as zero-width whitespace and others that look valid but usually are not (such as the en dash)",
       "default": [true],
