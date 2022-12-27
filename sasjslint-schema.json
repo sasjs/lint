@@ -13,6 +13,7 @@
     "indentationMultiple": 2,
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
+    "noGremlins": true,
     "noNestedMacros": true,
     "noSpacesInFileNames": true,
     "noTabs": true,
@@ -29,6 +30,7 @@
       "noSpacesInFileNames": true,
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
+      "noGremlins": true,
       "noTabs": true,
       "indentationMultiple": 4,
       "hasMacroNameInMend": true,
@@ -63,6 +65,14 @@
       "description": "This sets the default program header - applies when a SAS program does NOT begin with `/**`.",
       "default": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/",
       "examples": []
+    },
+    "noGremlins": {
+      "$id": "#/properties/noGremlins",
+      "type": "array",
+      "title": "noGremlins",
+      "description": "Captures problematic characters such as zero-width whitespace and others that look valid but usually are not (such as the en dash)",
+      "default": [true],
+      "examples": [true, false]
     },
     "hasMacroNameInMend": {
       "$id": "#/properties/hasMacroNameInMend",
@@ -189,6 +199,13 @@
         "hasDoxygenHeader": {
           "$id": "#/properties/severityLevel/hasDoxygenHeader",
           "title": "hasDoxygenHeader",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noGremlins": {
+          "$id": "#/properties/severityLevel/noGremlins",
+          "title": "noGremlins",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

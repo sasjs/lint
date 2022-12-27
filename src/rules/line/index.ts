@@ -1,3 +1,4 @@
+export { noGremlins } from './noGremlins'
 export { indentationMultiple } from './indentationMultiple'
 export { maxLineLength } from './maxLineLength'
 export { noEncodedPasswords } from './noEncodedPasswords'

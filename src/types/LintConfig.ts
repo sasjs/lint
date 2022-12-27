@@ -11,7 +11,8 @@ import {
   maxLineLength,
   noEncodedPasswords,
   noTabs,
-  noTrailingSpaces
+  noTrailingSpaces,
+  noGremlins
 } from '../rules/line'
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
@@ -117,6 +118,10 @@ export class LintConfig {
 
     if (json?.strictMacroDefinition) {
       this.fileLintRules.push(strictMacroDefinition)
+    }
+
+    if (json?.noGremlins) {
+      this.lineLintRules.push(noGremlins)
     }
 
     if (json?.severityLevel) {
