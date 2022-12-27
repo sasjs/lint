@@ -120,7 +120,7 @@ export class LintConfig {
       this.fileLintRules.push(strictMacroDefinition)
     }
 
-    if (json?.noGremlins) {
+    if (json?.noGremlins === undefined || json?.noGremlins) {
       this.lineLintRules.push(noGremlins)
     }
 
