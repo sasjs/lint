@@ -32,16 +32,8 @@ describe('formatFile', () => {
     const expectedContent = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend;`
     const expectedResult = {
       updatedFilePaths: [path.join(__dirname, 'format-file-config.sas')],
-      fixedDiagnosticsCount: 2,
-      unfixedDiagnostics: [
-        {
-          endColumnNumber: 7,
-          lineNumber: 8,
-          message: '%mend statement is missing macro name - somemacro',
-          severity: 1,
-          startColumnNumber: 1
-        }
-      ]
+      fixedDiagnosticsCount: 4,
+      unfixedDiagnostics: []
     }
     await createFile(path.join(__dirname, 'format-file-config.sas'), content)
 
