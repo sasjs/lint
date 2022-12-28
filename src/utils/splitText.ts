@@ -8,10 +8,19 @@ import { LineEndings } from '../types/LineEndings'
  */
 export const splitText = (text: string, config: LintConfig): string[] => {
   if (!text) return []
+
   const expectedLineEndings =
     config.lineEndings === LineEndings.LF ? '\n' : '\r\n'
+
   const incorrectLineEndings = expectedLineEndings === '\n' ? '\r\n' : '\n'
-  return text
-    .replace(new RegExp(incorrectLineEndings, 'g'), expectedLineEndings)
-    .split(expectedLineEndings)
+
+  text = text.replace(
+    new RegExp(incorrectLineEndings, 'g'),
+    expectedLineEndings
+  )
+
+  // splitting text on '\r\n' was causing some problem
+  // as it was retaining carriage return at the end of each line
+  // so, removed the carriage returns from text and splitted on line feed (lf)
+  return text.replace(/\r/g, '').split(/\n/)
 }
