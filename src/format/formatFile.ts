@@ -16,7 +16,7 @@ export const formatFile = async (
   configuration?: LintConfig
 ): Promise<FormatResult> => {
   const config = configuration || (await getLintConfig())
-  const diagnosticsBeforeFormat = await lintFile(filePath)
+  const diagnosticsBeforeFormat = await lintFile(filePath, config)
   const diagnosticsCountBeforeFormat = diagnosticsBeforeFormat.length
 
   const text = await readFile(filePath)
@@ -25,7 +25,7 @@ export const formatFile = async (
 
   await createFile(filePath, formattedText)
 
-  const diagnosticsAfterFormat = await lintFile(filePath)
+  const diagnosticsAfterFormat = await lintFile(filePath, config)
   const diagnosticsCountAfterFormat = diagnosticsAfterFormat.length
 
   const fixedDiagnosticsCount =
