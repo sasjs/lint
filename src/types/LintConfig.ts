@@ -53,23 +53,25 @@ export class LintConfig {
       }
     }
 
-    if (json?.noTrailingSpaces) {
+    if (json?.noTrailingSpaces !== false) {
       this.lineLintRules.push(noTrailingSpaces)
     }
 
-    if (json?.noEncodedPasswords) {
+    if (json?.noEncodedPasswords !== false) {
       this.lineLintRules.push(noEncodedPasswords)
     }
 
-    if (json?.noTabs || json?.noTabIndentation) {
-      this.lineLintRules.push(noTabs)
+    this.lineLintRules.push(noTabs)
+    if (json?.noTabs === false || json?.noTabIndentation === false) {
+      this.lineLintRules.pop()
     }
 
-    if (json?.maxLineLength) {
+    this.lineLintRules.push(maxLineLength)
+    if (!isNaN(json?.maxLineLength)) {
       this.maxLineLength = json.maxLineLength
-      this.lineLintRules.push(maxLineLength)
     }
 
+    this.fileLintRules.push(lineEndings)
     if (json?.lineEndings) {
       if (
         json.lineEndings !== LineEndings.LF &&
@@ -80,15 +82,14 @@ export class LintConfig {
         )
       }
       this.lineEndings = json.lineEndings
-      this.fileLintRules.push(lineEndings)
     }
 
+    this.lineLintRules.push(indentationMultiple)
     if (!isNaN(json?.indentationMultiple)) {
       this.indentationMultiple = json.indentationMultiple as number
-      this.lineLintRules.push(indentationMultiple)
     }
 
-    if (json?.hasDoxygenHeader) {
+    if (json?.hasDoxygenHeader !== false) {
       this.fileLintRules.push(hasDoxygenHeader)
     }
 
@@ -96,11 +97,11 @@ export class LintConfig {
       this.defaultHeader = json.defaultHeader
     }
 
-    if (json?.noSpacesInFileNames) {
+    if (json?.noSpacesInFileNames !== false) {
       this.pathLintRules.push(noSpacesInFileNames)
     }
 
-    if (json?.lowerCaseFileNames) {
+    if (json?.lowerCaseFileNames !== false) {
       this.pathLintRules.push(lowerCaseFileNames)
     }
 
@@ -108,19 +109,19 @@ export class LintConfig {
       this.fileLintRules.push(hasMacroNameInMend)
     }
 
-    if (json?.noNestedMacros) {
+    if (json?.noNestedMacros !== false) {
       this.fileLintRules.push(noNestedMacros)
     }
 
-    if (json?.hasMacroParentheses) {
+    if (json?.hasMacroParentheses !== false) {
       this.fileLintRules.push(hasMacroParentheses)
     }
 
-    if (json?.strictMacroDefinition) {
+    if (json?.strictMacroDefinition !== false) {
       this.fileLintRules.push(strictMacroDefinition)
     }
 
-    if (json?.noGremlins) {
+    if (json?.noGremlins !== false) {
       this.lineLintRules.push(noGremlins)
     }
 

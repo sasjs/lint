@@ -4,96 +4,75 @@ import { LintRuleType } from './LintRuleType'
 import { Severity } from './Severity'
 
 describe('LintConfig', () => {
-  it('should create an empty instance', () => {
+  it('should create an instance with default values when no configuration is provided', () => {
     const config = new LintConfig()
-
     expect(config).toBeTruthy()
-    expect(config.fileLintRules.length).toEqual(0)
-    expect(config.lineLintRules.length).toEqual(0)
   })
 
-  it('should create an instance with the noTrailingSpaces flag set', () => {
-    const config = new LintConfig({ noTrailingSpaces: true })
+  it('should create an instance with the noTrailingSpaces flag off', () => {
+    const config = new LintConfig({ noTrailingSpaces: false })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(1)
-    expect(config.lineLintRules[0].name).toEqual('noTrailingSpaces')
-    expect(config.lineLintRules[0].type).toEqual(LintRuleType.Line)
-    expect(config.fileLintRules.length).toEqual(0)
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.lineLintRules.find((rule) => rule.name === 'noTrailingSpaces')
+    ).toBeUndefined()
   })
 
-  it('should create an instance with the noEncodedPasswords flag set', () => {
-    const config = new LintConfig({ noEncodedPasswords: true })
+  it('should create an instance with the noEncodedPasswords flag off', () => {
+    const config = new LintConfig({ noEncodedPasswords: false })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(1)
-    expect(config.lineLintRules[0].name).toEqual('noEncodedPasswords')
-    expect(config.lineLintRules[0].type).toEqual(LintRuleType.Line)
-    expect(config.fileLintRules.length).toEqual(0)
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.lineLintRules.find((rule) => rule.name === 'noEncodedPasswords')
+    ).toBeUndefined()
   })
 
-  it('should create an instance with the hasDoxygenHeader flag set', () => {
-    const config = new LintConfig({ hasDoxygenHeader: true })
+  it('should create an instance with the hasDoxygenHeader flag off', () => {
+    const config = new LintConfig({ hasDoxygenHeader: false })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(0)
-    expect(config.fileLintRules.length).toEqual(1)
-    expect(config.fileLintRules[0].name).toEqual('hasDoxygenHeader')
-    expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
-  })
-
-  it('should create an instance with the hasMacroNameInMend flag set', () => {
-    const config = new LintConfig({ hasMacroNameInMend: true })
-
-    expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(0)
-    expect(config.fileLintRules.length).toEqual(1)
-    expect(config.fileLintRules[0].name).toEqual('hasMacroNameInMend')
-    expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'hasDoxygenHeader')
+    ).toBeUndefined()
   })
 
   it('should create an instance with the hasMacroNameInMend flag off', () => {
     const config = new LintConfig({ hasMacroNameInMend: false })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(0)
-    expect(config.fileLintRules.length).toEqual(0)
-  })
-
-  it('should create an instance with the noNestedMacros flag set', () => {
-    const config = new LintConfig({ noNestedMacros: true })
-
-    expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(0)
-    expect(config.fileLintRules.length).toEqual(1)
-    expect(config.fileLintRules[0].name).toEqual('noNestedMacros')
-    expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'hasMacroNameInMend')
+    ).toBeUndefined()
   })
 
   it('should create an instance with the noNestedMacros flag off', () => {
     const config = new LintConfig({ noNestedMacros: false })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(0)
-    expect(config.fileLintRules.length).toEqual(0)
-  })
-
-  it('should create an instance with the hasMacroParentheses flag set', () => {
-    const config = new LintConfig({ hasMacroParentheses: true })
-
-    expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(0)
-    expect(config.fileLintRules.length).toEqual(1)
-    expect(config.fileLintRules[0].name).toEqual('hasMacroParentheses')
-    expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'noNestedMacros')
+    ).toBeUndefined()
   })
 
   it('should create an instance with the hasMacroParentheses flag off', () => {
     const config = new LintConfig({ hasMacroParentheses: false })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(0)
-    expect(config.fileLintRules.length).toEqual(0)
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'hasMacroParentheses')
+    ).toBeUndefined()
   })
 
   it('should create an instance with the indentation multiple set', () => {
@@ -166,11 +145,12 @@ describe('LintConfig', () => {
       indentationMultiple: 2,
       hasMacroNameInMend: true,
       noNestedMacros: true,
-      hasMacroParentheses: true
+      hasMacroParentheses: true,
+      noGremlins: true
     })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(5)
+    expect(config.lineLintRules.length).toEqual(6)
     expect(config.lineLintRules[0].name).toEqual('noTrailingSpaces')
     expect(config.lineLintRules[0].type).toEqual(LintRuleType.Line)
     expect(config.lineLintRules[1].name).toEqual('noEncodedPasswords')
@@ -181,16 +161,22 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[3].type).toEqual(LintRuleType.Line)
     expect(config.lineLintRules[4].name).toEqual('indentationMultiple')
     expect(config.lineLintRules[4].type).toEqual(LintRuleType.Line)
+    expect(config.lineLintRules[5].name).toEqual('noGremlins')
+    expect(config.lineLintRules[5].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(4)
-    expect(config.fileLintRules[0].name).toEqual('hasDoxygenHeader')
+    expect(config.fileLintRules.length).toEqual(6)
+    expect(config.fileLintRules[0].name).toEqual('lineEndings')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[1].name).toEqual('hasMacroNameInMend')
+    expect(config.fileLintRules[1].name).toEqual('hasDoxygenHeader')
     expect(config.fileLintRules[1].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[2].name).toEqual('noNestedMacros')
+    expect(config.fileLintRules[2].name).toEqual('hasMacroNameInMend')
     expect(config.fileLintRules[2].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[3].name).toEqual('hasMacroParentheses')
+    expect(config.fileLintRules[3].name).toEqual('noNestedMacros')
     expect(config.fileLintRules[3].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[4].name).toEqual('hasMacroParentheses')
+    expect(config.fileLintRules[4].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[5].name).toEqual('strictMacroDefinition')
+    expect(config.fileLintRules[5].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')

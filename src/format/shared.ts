@@ -30,7 +30,7 @@ export const processLine = (config: LintConfig, line: string): string => {
   config.lineLintRules
     .filter((r) => !!r.fix)
     .forEach((rule) => {
-      processedLine = rule.fix!(line, config)
+      processedLine = rule.fix!(processedLine, config)
     })
 
   return processedLine

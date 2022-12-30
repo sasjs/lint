@@ -22,6 +22,7 @@ export const DefaultLintConfiguration = {
   noNestedMacros: true,
   hasMacroParentheses: true,
   strictMacroDefinition: true,
+  noGremlins: true,
   defaultHeader: getDefaultHeader()
 }
 

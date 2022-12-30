@@ -2,8 +2,8 @@ import * as fileModule from '@sasjs/utils/file'
 import { LintConfig } from '../types/LintConfig'
 import { getLintConfig } from './getLintConfig'
 
-const expectedFileLintRulesCount = 5
-const expectedLineLintRulesCount = 5
+const expectedFileLintRulesCount = 6
+const expectedLineLintRulesCount = 6
 const expectedPathLintRulesCount = 2
 
 describe('getLintConfig', () => {
