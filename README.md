@@ -1,4 +1,3 @@
-[![License](https://img.shields.io/apm/l/atomic-design-ui.svg)](/LICENSE)
 ![GitHub top language](https://img.shields.io/github/languages/top/sasjs/lint)
 [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/sasjs/lint)](https://github.com/sasjs/lint/issues?q=is%3Aissue+is%3Aclosed)
 [![GitHub issues](https://img.shields.io/github/issues-raw/sasjs/lint)](https://github.com/sasjs/lint/issues)
@@ -130,7 +129,7 @@ We strongly recommend a line length limit, and set the bar at 80. To turn this f
 
 Capture zero-width whitespace and other non-standard characters.  The logic is borrowed from the [VSCode Gremlins Extension](https://github.com/nhoizey/vscode-gremlins) - if you are looking for more advanced gremlin zapping capabilities, we highly recommend to use their extension instead.
 
-The list of characters can be found in this file: [https://github.com/sasjs/lint/blob/main/src/rules/line/noGremlins.ts](https://github.com/sasjs/lint/blob/main/src/rules/line/noGremlins.ts)
+The list of characters can be found in this file: [https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts)
 
 - Default: true
 - Severity: WARNING
