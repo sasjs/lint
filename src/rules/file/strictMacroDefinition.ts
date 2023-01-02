@@ -110,7 +110,7 @@ const processOptions = (
   const severity = config?.severityLevel[name] || Severity.Warning
 
   if (optionsPresent) {
-    const regex = new RegExp(/="(.*?)"/, 'g')
+    const regex = new RegExp(/=["|'](.*?)["|']/, 'g')
 
     let result = regex.exec(optionsPresent)
 
