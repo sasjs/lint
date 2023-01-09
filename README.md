@@ -46,9 +46,22 @@ Each setting can have three states:
 
 For more details, and the default state, see the description of each rule below. It is also possible to change whether a rule returns ERROR or WARN using the `severityLevels` object.
 
+### allowedGremlins
+
+An array of hex codes that represents allowed gremlins (invisible / undesirable characters).  To allow all gremlins, you can also set the `noGremlins` rule to `false`.
+
+Example:
+
+```json
+{
+      "noGremlins": true,
+      "allowedGremlins": ["0x0080", "0x3000"]
+}
+```
+
 ### defaultHeader
 
-This isn't actually a rule - but rather a formatting setting, which applies to SAS program that do NOT begin with `/**`. It can be triggered by running `sasjs lint fix` in the SASjs CLI, or by hitting "save" when using the SASjs VS Code extension (with "formatOnSave" in place)
+This isn't a rule, but a formatting setting, which applies to SAS program that do NOT begin with `/**`. It can be triggered by running `sasjs lint fix` in the SASjs CLI, or by hitting "save" when using the SASjs VS Code extension (with "formatOnSave" in place)
 
 The default header is as follows:
 
