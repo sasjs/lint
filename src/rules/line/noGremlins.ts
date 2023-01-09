@@ -10,15 +10,18 @@ const message = 'Line contains a gremlin'
 
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
   const severity = config?.severityLevel[name] || Severity.Warning
+  const allowedGremlins = config?.allowedGremlins || []
 
   const diagnostics: Diagnostic[] = []
 
   const gremlins: any = {}
 
-  for (const [hexCode, config] of Object.entries(gremlinCharacters)) {
-    gremlins[charFromHex(hexCode)] = Object.assign({}, config, {
-      hexCode
-    })
+  for (const [hexCode, gremlinConfig] of Object.entries(gremlinCharacters)) {
+    if (!allowedGremlins.includes(hexCode)) {
+      gremlins[charFromHex(hexCode)] = Object.assign({}, gremlinConfig, {
+        hexCode
+      })
+    }
   }
 
   const regexpWithAllChars = new RegExp(
@@ -56,4 +59,5 @@ export const noGremlins: LineLintRule = {
   test
 }
 
-const charFromHex = (hexCode: string) => String.fromCodePoint(parseInt(hexCode))
+export const charFromHex = (hexCode: string) =>
+  String.fromCodePoint(parseInt(hexCode))

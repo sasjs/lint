@@ -29,6 +29,7 @@ import { Severity } from './Severity'
  */
 export class LintConfig {
   readonly ignoreList: string[] = []
+  readonly allowedGremlins: string[] = []
   readonly lineLintRules: LineLintRule[] = []
   readonly fileLintRules: FileLintRule[] = []
   readonly pathLintRules: PathLintRule[] = []
@@ -123,6 +124,23 @@ export class LintConfig {
 
     if (json?.noGremlins !== false) {
       this.lineLintRules.push(noGremlins)
+
+      if (json?.allowedGremlins) {
+        if (Array.isArray(json.allowedGremlins)) {
+          json.allowedGremlins.forEach((item: any) => {
+            if (typeof item === 'string' && /^0x[0-9a-f]{4}$/i.test(item))
+              this.allowedGremlins.push(item)
+            else
+              throw new Error(
+                `Property "allowedGremlins" has invalid type of values. It can contain only strings of form hexcode like '["0x0080", "0x3000"]'`
+              )
+          })
+        } else {
+          throw new Error(
+            `Property "allowedGremlins" can only be an array of strings of form hexcode like '["0x0080", "0x3000"]'`
+          )
+        }
+      }
     }
 
     if (json?.severityLevel) {
