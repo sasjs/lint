@@ -31,6 +31,7 @@
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
       "noGremlins": true,
+      "allowedGremlins": ["0x0080", "0x3000"],
       "noTabs": true,
       "indentationMultiple": 4,
       "hasMacroNameInMend": true,
@@ -73,6 +74,18 @@
       "description": "Captures problematic characters such as zero-width whitespace and others that look valid but usually are not (such as the en dash)",
       "default": [true],
       "examples": [true, false]
+    },
+    "allowedGremlins": {
+      "$id": "#/properties/allowedGremlins",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^0x[0-9A-Fa-f]{4}$"
+      },
+      "title": "allowedGremlins",
+      "description": "An array of hex codes that represents allowed gremlins.",
+      "default": [],
+      "examples": ["0x0080", "0x3000"]
     },
     "hasMacroNameInMend": {
       "$id": "#/properties/hasMacroNameInMend",
