@@ -68,12 +68,9 @@ export class LintConfig {
       this.lineLintRules.pop()
     }
 
-    if (json?.maxLineLength) {
+    if (json?.maxLineLength > 0) {
       this.lineLintRules.push(maxLineLength)
-
-      if (!isNaN(json?.maxLineLength)) {
-        this.maxLineLength = json.maxLineLength
-      }
+      this.maxLineLength = json.maxLineLength
 
       if (!isNaN(json?.maxHeaderLineLength)) {
         this.maxHeaderLineLength = json.maxHeaderLineLength
