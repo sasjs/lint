@@ -7,12 +7,12 @@ import { splitText } from './splitText'
 export const getHeaderLinesCount = (text: string, config: LintConfig) => {
   let count = 0
 
-  if (text.trimStart().startsWith('/**')) {
+  if (text.trimStart().startsWith('/*')) {
     const lines = splitText(text, config)
 
     for (const line of lines) {
       count++
-      if (line.match(/\*\*\//)) {
+      if (line.match(/\*\//)) {
         break
       }
     }
