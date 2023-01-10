@@ -132,7 +132,7 @@
     "maxHeaderLineLength": {
       "$id": "#/properties/maxHeaderLineLength",
       "type": "number",
-      "title": "maxLineLength",
+      "title": "maxHeaderLineLength",
       "description": "Enforces a configurable maximum line length for header section. Shows a warning for lines exceeding this length.",
       "default": 80,
       "examples": [60, 80, 120]
