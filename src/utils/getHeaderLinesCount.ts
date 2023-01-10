@@ -3,6 +3,7 @@ import { splitText } from './splitText'
 
 /**
  * This funtion returns the number of lines header spans upon.
+ * The file must start with "/*" and the header will finish with ⇙
  */
 export const getHeaderLinesCount = (text: string, config: LintConfig) => {
   let count = 0
