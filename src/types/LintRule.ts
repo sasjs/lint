@@ -18,7 +18,12 @@ export interface LintRule {
  */
 export interface LineLintRule extends LintRule {
   type: LintRuleType.Line
-  test: (value: string, lineNumber: number, config?: LintConfig) => Diagnostic[]
+  test: (
+    value: string,
+    lineNumber: number,
+    config?: LintConfig,
+    isHeaderLine?: boolean
+  ) => Diagnostic[]
   fix?: (value: string, config?: LintConfig) => string
 }
 

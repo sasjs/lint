@@ -1,12 +1,16 @@
 import { LintConfig, Diagnostic } from '../types'
-import { splitText } from '../utils'
+import { getHeaderLinesCount, splitText } from '../utils'
 
 export const processText = (text: string, config: LintConfig) => {
   const lines = splitText(text, config)
+  const headerLinesCount = getHeaderLinesCount(text, config)
   const diagnostics: Diagnostic[] = []
   diagnostics.push(...processContent(config, text))
   lines.forEach((line, index) => {
-    diagnostics.push(...processLine(config, line, index + 1))
+    index += 1
+    diagnostics.push(
+      ...processLine(config, line, index, index <= headerLinesCount)
+    )
   })
 
   return diagnostics
@@ -36,11 +40,12 @@ const processContent = (config: LintConfig, content: string): Diagnostic[] => {
 export const processLine = (
   config: LintConfig,
   line: string,
-  lineNumber: number
+  lineNumber: number,
+  isHeaderLine: boolean
 ): Diagnostic[] => {
   const diagnostics: Diagnostic[] = []
   config.lineLintRules.forEach((rule) => {
-    diagnostics.push(...rule.test(line, lineNumber, config))
+    diagnostics.push(...rule.test(line, lineNumber, config, isHeaderLine))
   })
 
   return diagnostics
