@@ -2,6 +2,7 @@ import { LintConfig } from '../../types'
 import { LineLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
+import { DefaultLintConfiguration } from '../../utils'
 
 const name = 'maxLineLength'
 const description = 'Restrict lines to the specified length.'
@@ -14,7 +15,9 @@ const test = (
   isHeaderLine?: boolean
 ) => {
   const severity = config?.severityLevel[name] || Severity.Warning
-  let maxLineLength = config?.maxLineLength || 80
+  let maxLineLength = config
+    ? config.maxLineLength
+    : DefaultLintConfiguration.maxLineLength
 
   if (isHeaderLine && config) {
     maxLineLength = Math.max(config.maxLineLength, config.maxHeaderLineLength)
