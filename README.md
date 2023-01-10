@@ -139,8 +139,8 @@ The `maxHeaderLineLength` setting is always the _higher_ of `maxHeaderLineLength
 
 See also:
 
- * [hasDoxygenHeader](#hasDoxygenHeader)
- * [maxlinelength](#maxlinelength)
+ * [hasDoxygenHeader](#hasdoxygenheader)
+ * [maxLineLength](#maxlinelength)
 
 ### maxLineLength
 
@@ -155,7 +155,7 @@ We strongly recommend a line length limit, and set the bar at 80. To turn this f
 
 See also:
 
- * [maxHeaderLineLength](#maxHeaderLineLength)
+ * [maxHeaderLineLength](#maxheaderlinelength)
 
 ### noGremlins
 
