@@ -31,6 +31,28 @@ describe('LintConfig', () => {
     ).toBeUndefined()
   })
 
+  it('should create an instance with the maxLineLength flag off by setting value to 0', () => {
+    const config = new LintConfig({ maxLineLength: 0 })
+
+    expect(config).toBeTruthy()
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.lineLintRules.find((rule) => rule.name === 'maxLineLength')
+    ).toBeUndefined()
+  })
+
+  it('should create an instance with the maxLineLength flag off by setting value to a negative number', () => {
+    const config = new LintConfig({ maxLineLength: -1 })
+
+    expect(config).toBeTruthy()
+    expect(config.lineLintRules.length).toBeGreaterThan(0)
+    expect(config.fileLintRules.length).toBeGreaterThan(0)
+    expect(
+      config.lineLintRules.find((rule) => rule.name === 'maxLineLength')
+    ).toBeUndefined()
+  })
+
   it('should create an instance with the hasDoxygenHeader flag off', () => {
     const config = new LintConfig({ hasDoxygenHeader: false })
 

@@ -13,6 +13,7 @@
     "indentationMultiple": 2,
     "lowerCaseFileNames": true,
     "maxLineLength": 80,
+    "maxHeaderLineLength": 80,
     "noGremlins": true,
     "noNestedMacros": true,
     "noSpacesInFileNames": true,
@@ -30,6 +31,7 @@
       "noSpacesInFileNames": true,
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
+      "maxHeaderLineLength": 80,
       "noGremlins": true,
       "allowedGremlins": ["0x0080", "0x3000"],
       "noTabs": true,
@@ -124,6 +126,14 @@
       "type": "number",
       "title": "maxLineLength",
       "description": "Enforces a configurable maximum line length. Shows a warning for lines exceeding this length.",
+      "default": 80,
+      "examples": [60, 80, 120]
+    },
+    "maxHeaderLineLength": {
+      "$id": "#/properties/maxHeaderLineLength",
+      "type": "number",
+      "title": "maxHeaderLineLength",
+      "description": "Enforces a configurable maximum line length for header section. Shows a warning for lines exceeding this length.",
       "default": 80,
       "examples": [60, 80, 120]
     },

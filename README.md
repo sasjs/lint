@@ -26,6 +26,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "ignoreList": ["sajsbuild/", "sasjsresults/"],
   "indentationMultiple": 2,
   "lowerCaseFileNames": true,
+  "maxHeaderLineLength": 80,
   "maxLineLength": 80,
   "noNestedMacros": true,
   "noGremlins": true,
@@ -127,6 +128,20 @@ On *nix systems, it is imperative that autocall macros are in lowercase. When sh
 - Default: true
 - Severity: WARNING
 
+### maxHeaderLineLength
+
+In a program header it can be necessary to insert items such as URLs or markdown tables, that cannot be split over multiple lines.  To avoid the need to increase `maxLineLength` for the entire project, it is possible to raise the line length limit for the header section only.
+
+The `maxHeaderLineLength` setting is always the _higher_ of `maxHeaderLineLength` and `maxLineLength` (if you set a lower number, it is ignored).
+
+- Default: 80
+- Severity: WARNING
+
+See also:
+
+ * [hasDoxygenHeader](#hasdoxygenheader)
+ * [maxLineLength](#maxlinelength)
+
 ### maxLineLength
 
 Code becomes far more readable when line lengths are short. The most compelling reason for short line lengths is to avoid the need to scroll when performing a side-by-side 'compare' between two files (eg as part of a GIT feature branch review). A longer discussion on optimal code line length can be found [here](https://stackoverflow.com/questions/578059/studies-on-optimal-code-width)
@@ -137,6 +152,10 @@ We strongly recommend a line length limit, and set the bar at 80. To turn this f
 
 - Default: 80
 - Severity: WARNING
+
+See also:
+
+ * [maxHeaderLineLength](#maxheaderlinelength)
 
 ### noGremlins
 

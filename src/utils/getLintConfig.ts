@@ -16,6 +16,7 @@ export const DefaultLintConfiguration = {
   noSpacesInFileNames: true,
   lowerCaseFileNames: true,
   maxLineLength: 80,
+  maxHeaderLineLength: 80,
   noTabIndentation: true,
   indentationMultiple: 2,
   hasMacroNameInMend: true,
