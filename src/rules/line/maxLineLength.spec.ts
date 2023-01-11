@@ -41,4 +41,44 @@ describe('maxLineLength', () => {
       'Prow scuttle parrel provost Sail ho shrouds spirits boom mizzenmast yard'
     expect(maxLineLength.test(line, 1)).toEqual([])
   })
+
+  it('should return an array with a single diagnostic when the line in header section exceeds the specified length', () => {
+    const line = 'This line is from header section'
+    const config = new LintConfig({
+      maxLineLength: 10,
+      maxHeaderLineLength: 15
+    })
+    expect(maxLineLength.test(line, 1, config, { isHeaderLine: true })).toEqual(
+      [
+        {
+          message: `Line exceeds maximum length by ${
+            line.length - config.maxHeaderLineLength
+          } characters`,
+          lineNumber: 1,
+          startColumnNumber: 1,
+          endColumnNumber: 1,
+          severity: Severity.Warning
+        }
+      ]
+    )
+  })
+
+  it('should return an array with a single diagnostic when the line in data section exceeds the specified length', () => {
+    const line = 'GROUP_LOGIC:$3. SUBGROUP_LOGIC:$3. SUBGROUP_ID:8.'
+    const config = new LintConfig({
+      maxLineLength: 10,
+      maxDataLineLength: 15
+    })
+    expect(maxLineLength.test(line, 1, config, { isDataLine: true })).toEqual([
+      {
+        message: `Line exceeds maximum length by ${
+          line.length - config.maxDataLineLength
+        } characters`,
+        lineNumber: 1,
+        startColumnNumber: 1,
+        endColumnNumber: 1,
+        severity: Severity.Warning
+      }
+    ])
+  })
 })

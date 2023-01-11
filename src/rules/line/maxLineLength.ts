@@ -1,5 +1,5 @@
 import { LintConfig } from '../../types'
-import { LineLintRule } from '../../types/LintRule'
+import { LineLintRule, LineLintRuleOptions } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { DefaultLintConfiguration } from '../../utils'
@@ -12,15 +12,19 @@ const test = (
   value: string,
   lineNumber: number,
   config?: LintConfig,
-  isHeaderLine?: boolean
+  options?: LineLintRuleOptions
 ) => {
   const severity = config?.severityLevel[name] || Severity.Warning
-  let maxLineLength = config
-    ? config.maxLineLength
-    : DefaultLintConfiguration.maxLineLength
+  let maxLineLength = DefaultLintConfiguration.maxLineLength
 
-  if (isHeaderLine && config) {
-    maxLineLength = Math.max(config.maxLineLength, config.maxHeaderLineLength)
+  if (config) {
+    if (options?.isHeaderLine) {
+      maxLineLength = Math.max(config.maxLineLength, config.maxHeaderLineLength)
+    } else if (options?.isDataLine) {
+      maxLineLength = Math.max(config.maxLineLength, config.maxDataLineLength)
+    } else {
+      maxLineLength = config.maxLineLength
+    }
   }
 
   if (value.length <= maxLineLength) return []
