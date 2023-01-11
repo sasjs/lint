@@ -48,8 +48,8 @@ describe('getDataSectionsDetail', () => {
     ])
   })
 
-  it(`should return the detail of data section when it begins and ends with '${datalinesBeginPattern4}' and '${datalinesEndPattern1}' markers`, () => {
-    const text = `%put  hello\n${datalinesBeginPattern4}\n${datalines}\n${datalinesEndPattern1}\n%put world;`
+  it(`should return the detail of data section when it begins and ends with '${datalinesBeginPattern4}' and '${datalinesEndPattern2}' markers`, () => {
+    const text = `%put  hello\n${datalinesBeginPattern4}\n${datalines}\n${datalinesEndPattern2}\n%put world;`
     expect(getDataSectionsDetail(text, config)).toEqual([
       {
         start: 1,

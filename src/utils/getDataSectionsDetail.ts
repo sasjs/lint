@@ -11,10 +11,12 @@ export const getDataSectionsDetail = (text: string, config: LintConfig) => {
   const lines = splitText(text, config)
 
   const dataSectionStartRegex1 = new RegExp(
-    '^(datalines;)|(cards;)|(cards4;)|(parmcards;)'
+    '^(datalines;)|(cards;)|(parmcards;)'
   )
   const dataSectionEndRegex1 = new RegExp(';')
-  const dataSectionStartRegex2 = new RegExp('^(datalines4)|(parmcards4);')
+  const dataSectionStartRegex2 = new RegExp(
+    '^(datalines4;)|(cards4;)|(parmcards4;)'
+  )
   const dataSectionEndRegex2 = new RegExp(';;;;')
 
   let dataSectionStarted = false
