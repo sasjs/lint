@@ -26,6 +26,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "ignoreList": ["sajsbuild/", "sasjsresults/"],
   "indentationMultiple": 2,
   "lowerCaseFileNames": true,
+  "maxDataLineLength": 80,
   "maxHeaderLineLength": 80,
   "maxLineLength": 80,
   "noNestedMacros": true,
@@ -128,6 +129,30 @@ On *nix systems, it is imperative that autocall macros are in lowercase. When sh
 - Default: true
 - Severity: WARNING
 
+### maxDataLineLength
+
+Datalines can be very wide, so to avoid the need to increase `maxLineLength` for the entire project, it is possible to raise the line length limit for the data records only. On a related note, as a developer, you should also be aware that code submitted in batch may have a default line length limit which is lower than you expect.  See this [usage note](https://support.sas.com/kb/15/883.html) (and thanks to [sasutils for reminding us](https://github.com/sasjs/lint/issues/47#issuecomment-1064340104)).
+
+This feature will work for the following statements:
+
+* cards
+* cards4
+* datalines
+* datalines4
+* parmcards
+* parmcards4
+
+The `maxDataLineLength` setting is always the _higher_ of `maxDataLineLength` and `maxLineLength` (if you set a lower number, it is ignored).
+
+- Default: 80
+- Severity: WARNING
+
+See also:
+
+ * [hasDoxygenHeader](#hasdoxygenheader)
+ * [maxHeaderLineLength](#maxheaderlinelength)
+ * [maxLineLength](#maxlinelength)
+
 ### maxHeaderLineLength
 
 In a program header it can be necessary to insert items such as URLs or markdown tables, that cannot be split over multiple lines.  To avoid the need to increase `maxLineLength` for the entire project, it is possible to raise the line length limit for the header section only.
@@ -140,6 +165,7 @@ The `maxHeaderLineLength` setting is always the _higher_ of `maxHeaderLineLength
 See also:
 
  * [hasDoxygenHeader](#hasdoxygenheader)
+ * [maxDataLineLength](#maxdatalinelength)
  * [maxLineLength](#maxlinelength)
 
 ### maxLineLength
@@ -155,6 +181,7 @@ We strongly recommend a line length limit, and set the bar at 80. To turn this f
 
 See also:
 
+ * [maxDataLineLength](#maxdatalinelength)
  * [maxHeaderLineLength](#maxheaderlinelength)
 
 ### noGremlins
