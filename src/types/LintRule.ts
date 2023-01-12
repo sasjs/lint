@@ -13,6 +13,11 @@ export interface LintRule {
   message: string
 }
 
+export interface LineLintRuleOptions {
+  isHeaderLine?: boolean
+  isDataLine?: boolean
+}
+
 /**
  * A LineLintRule is run once per line of text.
  */
@@ -22,7 +27,7 @@ export interface LineLintRule extends LintRule {
     value: string,
     lineNumber: number,
     config?: LintConfig,
-    isHeaderLine?: boolean
+    options?: LineLintRuleOptions
   ) => Diagnostic[]
   fix?: (value: string, config?: LintConfig) => string
 }

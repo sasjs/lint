@@ -35,6 +35,7 @@ export class LintConfig {
   readonly pathLintRules: PathLintRule[] = []
   readonly maxLineLength: number = 80
   readonly maxHeaderLineLength: number = 80
+  readonly maxDataLineLength: number = 80
   readonly indentationMultiple: number = 2
   readonly lineEndings: LineEndings = LineEndings.LF
   readonly defaultHeader: string = getDefaultHeader()
@@ -74,6 +75,10 @@ export class LintConfig {
 
       if (!isNaN(json?.maxHeaderLineLength)) {
         this.maxHeaderLineLength = json.maxHeaderLineLength
+      }
+
+      if (!isNaN(json?.maxDataLineLength)) {
+        this.maxDataLineLength = json.maxDataLineLength
       }
     }
 
