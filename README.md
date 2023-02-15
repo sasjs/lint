@@ -254,8 +254,6 @@ This setting allows the default severity to be adjusted. This is helpful when ru
 - "warn" - show warning in the log (doesn’t affect exit code)
 - "error" - show error in the log (exit code is 1 when triggered)
 
-## Upcoming Linting Rules:
-
 # SAS Formatter
 
 A formatter will automatically apply rules when you hit SAVE, which can save a LOT of time.
