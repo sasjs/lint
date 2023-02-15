@@ -50,14 +50,14 @@ For more details, and the default state, see the description of each rule below.
 
 ### allowedGremlins
 
-An array of hex codes that represents allowed gremlins (invisible / undesirable characters).  To allow all gremlins, you can also set the `noGremlins` rule to `false`.
+An array of hex codes that represents allowed gremlins (invisible / undesirable characters). To allow all gremlins, you can also set the `noGremlins` rule to `false`.
 
 Example:
 
 ```json
 {
-      "noGremlins": true,
-      "allowedGremlins": ["0x0080", "0x3000"]
+  "noGremlins": true,
+  "allowedGremlins": ["0x0080", "0x3000"]
 }
 ```
 
@@ -122,6 +122,13 @@ This will check each line to ensure that the count of leading spaces can be divi
 - Default: 2
 - Severity: WARNING
 
+### lineEndings
+
+This setting ensures the line endings in a file conform to the configured type. Possible values are `lf` and `crlf`.
+
+- Default: lf
+- Severity: WARNING
+
 ### lowerCaseFileNames
 
 On *nix systems, it is imperative that autocall macros are in lowercase. When sharing code between windows and *nix systems, the difference in case sensitivity can also be a cause of lost developer time. For this reason, we recommend that sas filenames are always lowercase.
@@ -131,16 +138,16 @@ On *nix systems, it is imperative that autocall macros are in lowercase. When sh
 
 ### maxDataLineLength
 
-Datalines can be very wide, so to avoid the need to increase `maxLineLength` for the entire project, it is possible to raise the line length limit for the data records only. On a related note, as a developer, you should also be aware that code submitted in batch may have a default line length limit which is lower than you expect.  See this [usage note](https://support.sas.com/kb/15/883.html) (and thanks to [sasutils for reminding us](https://github.com/sasjs/lint/issues/47#issuecomment-1064340104)).
+Datalines can be very wide, so to avoid the need to increase `maxLineLength` for the entire project, it is possible to raise the line length limit for the data records only. On a related note, as a developer, you should also be aware that code submitted in batch may have a default line length limit which is lower than you expect. See this [usage note](https://support.sas.com/kb/15/883.html) (and thanks to [sasutils for reminding us](https://github.com/sasjs/lint/issues/47#issuecomment-1064340104)).
 
 This feature will work for the following statements:
 
-* cards
-* cards4
-* datalines
-* datalines4
-* parmcards
-* parmcards4
+- cards
+- cards4
+- datalines
+- datalines4
+- parmcards
+- parmcards4
 
 The `maxDataLineLength` setting is always the _higher_ of `maxDataLineLength` and `maxLineLength` (if you set a lower number, it is ignored).
 
@@ -149,13 +156,13 @@ The `maxDataLineLength` setting is always the _higher_ of `maxDataLineLength` an
 
 See also:
 
- * [hasDoxygenHeader](#hasdoxygenheader)
- * [maxHeaderLineLength](#maxheaderlinelength)
- * [maxLineLength](#maxlinelength)
+- [hasDoxygenHeader](#hasdoxygenheader)
+- [maxHeaderLineLength](#maxheaderlinelength)
+- [maxLineLength](#maxlinelength)
 
 ### maxHeaderLineLength
 
-In a program header it can be necessary to insert items such as URLs or markdown tables, that cannot be split over multiple lines.  To avoid the need to increase `maxLineLength` for the entire project, it is possible to raise the line length limit for the header section only.
+In a program header it can be necessary to insert items such as URLs or markdown tables, that cannot be split over multiple lines. To avoid the need to increase `maxLineLength` for the entire project, it is possible to raise the line length limit for the header section only.
 
 The `maxHeaderLineLength` setting is always the _higher_ of `maxHeaderLineLength` and `maxLineLength` (if you set a lower number, it is ignored).
 
@@ -164,9 +171,9 @@ The `maxHeaderLineLength` setting is always the _higher_ of `maxHeaderLineLength
 
 See also:
 
- * [hasDoxygenHeader](#hasdoxygenheader)
- * [maxDataLineLength](#maxdatalinelength)
- * [maxLineLength](#maxlinelength)
+- [hasDoxygenHeader](#hasdoxygenheader)
+- [maxDataLineLength](#maxdatalinelength)
+- [maxLineLength](#maxlinelength)
 
 ### maxLineLength
 
@@ -181,12 +188,12 @@ We strongly recommend a line length limit, and set the bar at 80. To turn this f
 
 See also:
 
- * [maxDataLineLength](#maxdatalinelength)
- * [maxHeaderLineLength](#maxheaderlinelength)
+- [maxDataLineLength](#maxdatalinelength)
+- [maxHeaderLineLength](#maxheaderlinelength)
 
 ### noGremlins
 
-Capture zero-width whitespace and other non-standard characters.  The logic is borrowed from the [VSCode Gremlins Extension](https://github.com/nhoizey/vscode-gremlins) - if you are looking for more advanced gremlin zapping capabilities, we highly recommend to use their extension instead.
+Capture zero-width whitespace and other non-standard characters. The logic is borrowed from the [VSCode Gremlins Extension](https://github.com/nhoizey/vscode-gremlins) - if you are looking for more advanced gremlin zapping capabilities, we highly recommend to use their extension instead.
 
 The list of characters can be found in this file: [https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts)
 
@@ -248,9 +255,6 @@ This setting allows the default severity to be adjusted. This is helpful when ru
 - "error" - show error in the log (exit code is 1 when triggered)
 
 ## Upcoming Linting Rules:
-
-- `noGremlins` -> identifies all invisible characters, other than spaces / tabs / line endings. If you really need that bell character, use a hex literal!
-- `lineEndings` -> set a standard line ending, such as LF or CRLF
 
 # SAS Formatter
 
