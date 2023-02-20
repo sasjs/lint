@@ -25,6 +25,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "hasMacroParentheses": true,
   "ignoreList": ["sajsbuild/", "sasjsresults/"],
   "indentationMultiple": 2,
+  "lineEndings": '',
   "lowerCaseFileNames": true,
   "maxDataLineLength": 80,
   "maxHeaderLineLength": 80,
