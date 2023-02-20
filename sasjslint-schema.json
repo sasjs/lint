@@ -20,7 +20,7 @@
     "noSpacesInFileNames": true,
     "noTabs": true,
     "noTrailingSpaces": true,
-    "lineEndings": "lf",
+    "lineEndings": "off",
     "strictMacroDefinition": true,
     "ignoreList": ["sajsbuild", "sasjsresults"]
   },
@@ -185,7 +185,7 @@
       "enum": ["lf", "crlf", "off"],
       "title": "lineEndings",
       "description": "Enforces the configured terminating character for each line. Shows a warning when incorrect line endings are present.",
-      "default": "lf",
+      "default": "off",
       "examples": ["lf", "crlf"]
     },
     "strictMacroDefinition": {

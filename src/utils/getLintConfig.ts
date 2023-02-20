@@ -2,6 +2,7 @@ import path from 'path'
 import { LintConfig } from '../types/LintConfig'
 import { readFile } from '@sasjs/utils/file'
 import { getProjectRoot } from './getProjectRoot'
+import { LineEndings } from '../types/LineEndings'
 
 export const getDefaultHeader = () =>
   `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/`
@@ -10,6 +11,7 @@ export const getDefaultHeader = () =>
  * Default configuration that is used when a .sasjslint file is not found
  */
 export const DefaultLintConfiguration = {
+  lineEndings: LineEndings.OFF,
   noTrailingSpaces: true,
   noEncodedPasswords: true,
   hasDoxygenHeader: true,
