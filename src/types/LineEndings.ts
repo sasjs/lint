@@ -1,4 +1,5 @@
 export enum LineEndings {
   LF = 'lf',
-  CRLF = 'crlf'
+  CRLF = 'crlf',
+  OFF = 'off'
 }

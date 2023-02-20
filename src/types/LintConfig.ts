@@ -82,7 +82,7 @@ export class LintConfig {
       }
     }
 
-    if (json?.lineEndings) {
+    if (json?.lineEndings && json.lineEndings !== LineEndings.OFF) {
       if (
         json.lineEndings !== LineEndings.LF &&
         json.lineEndings !== LineEndings.CRLF
