@@ -168,7 +168,8 @@ describe('LintConfig', () => {
       hasMacroNameInMend: true,
       noNestedMacros: true,
       hasMacroParentheses: true,
-      noGremlins: true
+      noGremlins: true,
+      lineEndings: 'lf'
     })
 
     expect(config).toBeTruthy()

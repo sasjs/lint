@@ -82,8 +82,7 @@ export class LintConfig {
       }
     }
 
-    this.fileLintRules.push(lineEndings)
-    if (json?.lineEndings) {
+    if (json?.lineEndings && json.lineEndings !== LineEndings.OFF) {
       if (
         json.lineEndings !== LineEndings.LF &&
         json.lineEndings !== LineEndings.CRLF
@@ -92,6 +91,7 @@ export class LintConfig {
           `Invalid value for lineEndings: can be ${LineEndings.LF} or ${LineEndings.CRLF}`
         )
       }
+      this.fileLintRules.push(lineEndings)
       this.lineEndings = json.lineEndings
     }
 

@@ -182,6 +182,7 @@
     "lineEndings": {
       "$id": "#/properties/lineEndings",
       "type": "string",
+      "enum": ["lf", "crlf", "off"],
       "title": "lineEndings",
       "description": "Enforces the configured terminating character for each line. Shows a warning when incorrect line endings are present.",
       "default": "lf",
