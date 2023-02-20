@@ -25,7 +25,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "hasMacroParentheses": true,
   "ignoreList": ["sajsbuild/", "sasjsresults/"],
   "indentationMultiple": 2,
-  "lineEndings": "",
+  "lineEndings": "off",
   "lowerCaseFileNames": true,
   "maxDataLineLength": 80,
   "maxHeaderLineLength": 80,
@@ -125,7 +125,7 @@ This will check each line to ensure that the count of leading spaces can be divi
 
 ### lineEndings
 
-This setting ensures the line endings in a file to conform the configured type. Possible values are `lf`, `crlf` and `off` (off means rule is set to be off). If the value is missing, null or undefined then the check would be switched off (no default applied).
+This setting ensures the line endings in a file to conform the configured type. Possible values are `lf`, `crlf` and `off` (off means rule is set to be off). If the value is missing, null or undefined then the check would also be switched off (no default applied).
 
 - Severity: WARNING
 
