@@ -49,6 +49,8 @@ Each setting can have three states:
 
 For more details, and the default state, see the description of each rule below. It is also possible to change whether a rule returns ERROR or WARN using the `severityLevels` object.
 
+Configuring a non-zero return code (ERROR) is helpful when running `sasjs lint` as part of a git pre-commit hook.  An example is available [here](https://github.com/sasjs/template_jobs/blob/main/.git-hooks/pre-commit).
+
 ### allowedGremlins
 
 An array of hex codes that represents allowed gremlins (invisible / undesirable characters). To allow all gremlins, you can also set the `noGremlins` rule to `false`.
