@@ -23,7 +23,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "hasDoxygenHeader": true,
   "hasMacroNameInMend": true,
   "hasMacroParentheses": true,
-  "ignoreList": ["sajsbuild/", "sasjsresults/"],
+  "ignoreList": ["sasjsbuild/", "sasjsresults/"],
   "indentationMultiple": 2,
   "lineEndings": "off",
   "lowerCaseFileNames": true,
