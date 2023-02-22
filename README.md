@@ -53,7 +53,7 @@ Configuring a non-zero return code (ERROR) is helpful when running `sasjs lint` 
 
 ### allowedGremlins
 
-An array of hex codes that represents allowed gremlins (invisible / undesirable characters). To allow all gremlins, you can also set the `noGremlins` rule to `false`.
+An array of hex codes that represents allowed gremlins (invisible / undesirable characters). To allow all gremlins, you can also set the `noGremlins` rule to `false`.  The full gremlin list is [here](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts).
 
 Example:
 
