@@ -228,6 +228,13 @@ In addition, when such files are used in URLs, they are often padded with a mess
 - Default: true
 - Severity: WARNING
 
+As an alternative (or in addition) to using a lint rule, you can also set the following in your `.gitignore` file to prevent files with spaces from being committed:
+
+```
+# prevent files/folders with spaces
+**\ **
+```
+
 ### noTabs
 
 Whilst there are some arguments for using tabs (such as the ability to set your own indentation width, and to reduce character count) there are many, many, many developers who think otherwise. We're in that camp. Sorry (not sorry).
