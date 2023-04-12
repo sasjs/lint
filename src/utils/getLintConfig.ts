@@ -1,4 +1,5 @@
 import path from 'path'
+import os from 'os'
 import { LintConfig } from '../types/LintConfig'
 import { readFile } from '@sasjs/utils/file'
 import { getProjectRoot } from './getProjectRoot'
@@ -31,14 +32,15 @@ export const DefaultLintConfiguration = {
 }
 
 /**
- * Fetches the config from the .sasjslint file and creates a LintConfig object.
+ * Fetches the config from the .sasjslint file (at project root or home directory) and creates a LintConfig object.
  * Returns the default configuration when a .sasjslint file is unavailable.
  * @returns {Promise<LintConfig>} resolves with an object representing the current lint configuration.
  */
 export async function getLintConfig(): Promise<LintConfig> {
   const projectRoot = await getProjectRoot()
+  const lintFileLocation = projectRoot || os.homedir()
   const configuration = await readFile(
-    path.join(projectRoot, '.sasjslint')
+    path.join(lintFileLocation, '.sasjslint')
   ).catch((_) => {
     return JSON.stringify(DefaultLintConfiguration)
   })

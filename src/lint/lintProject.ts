@@ -6,10 +6,12 @@ import { lintFolder } from './lintFolder'
  * @returns {Promise<Map<string, Diagnostic[]>>} Resolves with a map with array of diagnostic objects, each containing a warning, line number and column number, and grouped by file path.
  */
 export const lintProject = async () => {
-  const projectRoot =
-    (await getProjectRoot()) || process.projectDir || process.currentDir
+  const projectRoot = (await getProjectRoot()) || process.currentDir
   if (!projectRoot) {
     throw new Error('SASjs Project Root was not found.')
   }
+
+  console.info(`Linting all .sas files under ${projectRoot}`)
+
   return await lintFolder(projectRoot)
 }
