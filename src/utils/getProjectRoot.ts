@@ -1,4 +1,5 @@
 import path from 'path'
+import os from 'os'
 import { fileExists } from '@sasjs/utils/file'
 
 /**
@@ -11,10 +12,11 @@ export async function getProjectRoot(): Promise<string> {
   let rootFound = false
   let i = 1
   let currentLocation = process.cwd()
+  const homeDir = os.homedir()
 
   const maxLevels = currentLocation.split(path.sep).length
 
-  while (i <= maxLevels && !rootFound) {
+  while (i <= maxLevels && !rootFound && currentLocation !== homeDir) {
     const isRoot = await fileExists(path.join(currentLocation, '.sasjslint'))
 
     if (isRoot) {
