@@ -13,7 +13,7 @@ export const lintFile = async (
   filePath: string,
   configuration?: LintConfig
 ): Promise<Diagnostic[]> => {
-  if (await isIgnored(filePath)) return []
+  if (await isIgnored(filePath, configuration)) return []
 
   const config = configuration || (await getLintConfig())
   const text = await readFile(filePath)

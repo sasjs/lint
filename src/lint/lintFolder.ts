@@ -26,7 +26,7 @@ export const lintFolder = async (
   const config = configuration || (await getLintConfig())
   let diagnostics: Map<string, Diagnostic[]> = new Map<string, Diagnostic[]>()
 
-  if (await isIgnored(folderPath)) return diagnostics
+  if (await isIgnored(folderPath, config)) return diagnostics
 
   const fileNames = await listSasFiles(folderPath)
   await asyncForEach(fileNames, async (fileName) => {
