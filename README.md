@@ -8,6 +8,8 @@
 
 Our goal is to help SAS developers everywhere spend less time on code reviews, bug fixing and arguing about standards - and more time delivering extraordinary business value.
 
+*Note:* The SASjs project and its repositories are not affiliated with SAS Institute.
+
 # Linting
 
 @sasjs/lint is used by the following products:
