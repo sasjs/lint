@@ -258,7 +258,7 @@ This will highlight lines with trailing spaces. Trailing spaces serve no useful 
 
 This will require macros to have the options listed as "requiredMacroOptions." This is helpful if you want to ensure all macros are SECURE.
 
-- Default: true
+- Default: false
 - severity: WARNING
 
 
