@@ -261,6 +261,13 @@ This will require macros to have the options listed as "requiredMacroOptions." T
 - Default: false
 - severity: WARNING
 
+Example
+```json
+{
+  "hasRequiredMacroOptions": true,
+  "requiredMacroOptions": ["SECURE", "SRC"]
+}
+```
 
 ## severityLevel
 
