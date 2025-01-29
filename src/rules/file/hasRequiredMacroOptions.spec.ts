@@ -8,20 +8,26 @@ describe('hasRequiredMacroOptions - test', () => {
       hasRequiredMacroOptions: true,
       requiredMacroOptions: ['SECURE']
     })
-    expect(hasRequiredMacroOptions.test(contentSecure, configSecure)).toEqual([])
+    expect(hasRequiredMacroOptions.test(contentSecure, configSecure)).toEqual(
+      []
+    )
 
     const contentSecureSrc = '%macro somemacro/ SECURE SRC;'
     const configSecureSrc = new LintConfig({
       hasRequiredMacroOptions: true,
       requiredMacroOptions: ['SECURE', 'SRC']
     })
-    expect(hasRequiredMacroOptions.test(contentSecureSrc, configSecureSrc)).toEqual([])
+    expect(
+      hasRequiredMacroOptions.test(contentSecureSrc, configSecureSrc)
+    ).toEqual([])
 
     const configEmpty = new LintConfig({
       hasRequiredMacroOptions: true,
       requiredMacroOptions: ['']
     })
-    expect(hasRequiredMacroOptions.test(contentSecureSrc, configEmpty)).toEqual([])
+    expect(hasRequiredMacroOptions.test(contentSecureSrc, configEmpty)).toEqual(
+      []
+    )
   })
 
   it('should return an array with a single diagnostic when Macro does not contain the required option', () => {
@@ -31,7 +37,9 @@ describe('hasRequiredMacroOptions - test', () => {
     })
 
     const contentMinXOperator = '%macro somemacro(var1, var2)/minXoperator;'
-    expect(hasRequiredMacroOptions.test(contentMinXOperator, configSecure)).toEqual([
+    expect(
+      hasRequiredMacroOptions.test(contentMinXOperator, configSecure)
+    ).toEqual([
       {
         message: `Macro 'somemacro' does not contain the required option 'SECURE'`,
         lineNumber: 1,
@@ -42,7 +50,9 @@ describe('hasRequiredMacroOptions - test', () => {
     ])
 
     const contentSecureSplit = '%macro somemacro(var1, var2)/ SE CURE;'
-    expect(hasRequiredMacroOptions.test(contentSecureSplit, configSecure)).toEqual([
+    expect(
+      hasRequiredMacroOptions.test(contentSecureSplit, configSecure)
+    ).toEqual([
       {
         message: `Macro 'somemacro' does not contain the required option 'SECURE'`,
         lineNumber: 1,
@@ -53,15 +63,17 @@ describe('hasRequiredMacroOptions - test', () => {
     ])
 
     const contentNoOption = '%macro somemacro(var1, var2);'
-    expect(hasRequiredMacroOptions.test(contentNoOption, configSecure)).toEqual([
-      {
-        message: `Macro 'somemacro' does not contain the required option 'SECURE'`,
-        lineNumber: 1,
-        startColumnNumber: 0,
-        endColumnNumber: 0,
-        severity: Severity.Warning
-      }
-    ])
+    expect(hasRequiredMacroOptions.test(contentNoOption, configSecure)).toEqual(
+      [
+        {
+          message: `Macro 'somemacro' does not contain the required option 'SECURE'`,
+          lineNumber: 1,
+          startColumnNumber: 0,
+          endColumnNumber: 0,
+          severity: Severity.Warning
+        }
+      ]
+    )
   })
 
   it('should return an array with a two diagnostics when Macro does not contain the required options', () => {
@@ -71,7 +83,9 @@ describe('hasRequiredMacroOptions - test', () => {
       severityLevel: { hasRequiredMacroOptions: 'warn' }
     })
     const contentMinXOperator = '%macro somemacro(var1, var2)/minXoperator;'
-    expect(hasRequiredMacroOptions.test(contentMinXOperator, configSrcStmt)).toEqual([
+    expect(
+      hasRequiredMacroOptions.test(contentMinXOperator, configSrcStmt)
+    ).toEqual([
       {
         message: `Macro 'somemacro' does not contain the required option 'SRC'`,
         lineNumber: 1,
