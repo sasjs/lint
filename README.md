@@ -21,7 +21,6 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 
 ```json
 {
-  "noEncodedPasswords": true,
   "hasDoxygenHeader": true,
   "hasMacroNameInMend": true,
   "hasMacroParentheses": true,
@@ -34,6 +33,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "maxDataLineLength": 80,
   "maxHeaderLineLength": 80,
   "maxLineLength": 80,
+  "noEncodedPasswords": true,
   "noNestedMacros": true,
   "noGremlins": true,
   "noSpacesInFileNames": true,
@@ -89,13 +89,6 @@ If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
   "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief Our Company Brief{lineEnding}**/"
 }
 ```
-
-### noEncodedPasswords
-
-This rule will highlight any rows that contain a `{sas00X}` type password, or `{sasenc}`. These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
-
-- Default: true
-- Severity: ERROR
 
 ### hasDoxygenHeader
 
@@ -220,6 +213,13 @@ See also:
 
 - [maxDataLineLength](#maxdatalinelength)
 - [maxHeaderLineLength](#maxheaderlinelength)
+
+### noEncodedPasswords
+
+This rule will highlight any rows that contain a `{sas00X}` type password, or `{sasenc}`. These passwords (especially 001 and 002) are NOT secure, and should NEVER be pushed to source control or saved to the filesystem without special permissions applied.
+
+- Default: true
+- Severity: ERROR
 
 ### noGremlins
 
