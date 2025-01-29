@@ -25,6 +25,8 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "hasDoxygenHeader": true,
   "hasMacroNameInMend": true,
   "hasMacroParentheses": true,
+  "hasRequiredMacroOptions": false,
+  "requiredMacroOptions": ["SECURE", "SRC"],
   "ignoreList": ["sasjsbuild/", "sasjsresults/"],
   "indentationMultiple": 2,
   "lineEndings": "off",
@@ -115,6 +117,21 @@ As per the example [here](https://github.com/sasjs/lint/issues/20), macros defin
 
 - Default: true
 - Severity: WARNING
+
+### hasRequiredMacroOptions
+
+This will require macros to have the options listed as "requiredMacroOptions." This is helpful if you want to ensure all macros are SECURE.
+
+- Default: false
+- severity: WARNING
+
+Example
+```json
+{
+  "hasRequiredMacroOptions": true,
+  "requiredMacroOptions": ["SECURE", "SRC"]
+}
+```
 
 ### ignoreList
 
@@ -254,20 +271,6 @@ This will highlight lines with trailing spaces. Trailing spaces serve no useful 
 - Default: true
 - severity: WARNING
 
-### hasRequiredMacroOptions
-
-This will require macros to have the options listed as "requiredMacroOptions." This is helpful if you want to ensure all macros are SECURE.
-
-- Default: false
-- severity: WARNING
-
-Example
-```json
-{
-  "hasRequiredMacroOptions": true,
-  "requiredMacroOptions": ["SECURE", "SRC"]
-}
-```
 
 ## severityLevel
 
