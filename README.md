@@ -254,6 +254,21 @@ This will highlight lines with trailing spaces. Trailing spaces serve no useful 
 - Default: true
 - severity: WARNING
 
+### hasRequiredMacroOptions
+
+This will require macros to have the options listed as "requiredMacroOptions." This is helpful if you want to ensure all macros are SECURE.
+
+- Default: false
+- severity: WARNING
+
+Example
+```json
+{
+  "hasRequiredMacroOptions": true,
+  "requiredMacroOptions": ["SECURE", "SRC"]
+}
+```
+
 ## severityLevel
 
 This setting allows the default severity to be adjusted. This is helpful when running the lint in a pipeline or git hook. Simply list the rules you would like to adjust along with the desired setting ("warn" or "error"), eg as follows:

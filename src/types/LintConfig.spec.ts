@@ -1,3 +1,4 @@
+import { hasRequiredMacroOptions } from '../rules/file'
 import { LineEndings } from './LineEndings'
 import { LintConfig } from './LintConfig'
 import { LintRuleType } from './LintRuleType'
@@ -168,6 +169,7 @@ describe('LintConfig', () => {
       hasMacroNameInMend: true,
       noNestedMacros: true,
       hasMacroParentheses: true,
+      hasRequiredMacroOptions: true,
       noGremlins: true,
       lineEndings: 'lf'
     })
@@ -187,7 +189,7 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[5].name).toEqual('noGremlins')
     expect(config.lineLintRules[5].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(6)
+    expect(config.fileLintRules.length).toEqual(7)
     expect(config.fileLintRules[0].name).toEqual('lineEndings')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[1].name).toEqual('hasDoxygenHeader')
@@ -200,11 +202,34 @@ describe('LintConfig', () => {
     expect(config.fileLintRules[4].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[5].name).toEqual('strictMacroDefinition')
     expect(config.fileLintRules[5].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[6].name).toEqual('hasRequiredMacroOptions')
+    expect(config.fileLintRules[6].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')
     expect(config.pathLintRules[0].type).toEqual(LintRuleType.Path)
     expect(config.pathLintRules[1].name).toEqual('lowerCaseFileNames')
     expect(config.pathLintRules[1].type).toEqual(LintRuleType.Path)
+  })
+
+  it('should throw an error with an invalid value for requiredMacroOptions', () => {
+    expect(
+      () =>
+        new LintConfig({
+          hasRequiredMacroOptions: true,
+          requiredMacroOptions: 'test'
+        })
+    ).toThrowError(
+      `Property "requiredMacroOptions" can only be an array of strings.`
+    )
+    expect(
+      () =>
+        new LintConfig({
+          hasRequiredMacroOptions: true,
+          requiredMacroOptions: ['test', 2]
+        })
+    ).toThrowError(
+      `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
+    )
   })
 })

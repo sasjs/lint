@@ -4,7 +4,8 @@ import {
   noNestedMacros,
   hasMacroParentheses,
   lineEndings,
-  strictMacroDefinition
+  strictMacroDefinition,
+  hasRequiredMacroOptions
 } from '../rules/file'
 import {
   indentationMultiple,
@@ -40,6 +41,7 @@ export class LintConfig {
   readonly lineEndings: LineEndings = LineEndings.LF
   readonly defaultHeader: string = getDefaultHeader()
   readonly severityLevel: { [key: string]: Severity } = {}
+  readonly requiredMacroOptions: string[] = []
 
   constructor(json?: any) {
     if (json?.ignoreList) {
@@ -130,6 +132,31 @@ export class LintConfig {
 
     if (json?.strictMacroDefinition !== false) {
       this.fileLintRules.push(strictMacroDefinition)
+    }
+
+    if (json?.hasRequiredMacroOptions) {
+      this.fileLintRules.push(hasRequiredMacroOptions)
+
+      if (json?.requiredMacroOptions) {
+        if (
+          Array.isArray(json.requiredMacroOptions) &&
+          json.requiredMacroOptions.length > 0
+        ) {
+          json.requiredMacroOptions.forEach((item: any) => {
+            if (typeof item === 'string') {
+              this.requiredMacroOptions.push(item)
+            } else {
+              throw new Error(
+                `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
+              )
+            }
+          })
+        } else {
+          throw new Error(
+            `Property "requiredMacroOptions" can only be an array of strings.`
+          )
+        }
+      }
     }
 
     if (json?.noGremlins !== false) {

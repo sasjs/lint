@@ -22,7 +22,9 @@
     "noTrailingSpaces": true,
     "lineEndings": "off",
     "strictMacroDefinition": true,
-    "ignoreList": ["sajsbuild", "sasjsresults"]
+    "ignoreList": ["sajsbuild", "sasjsresults"],
+    "hasRequiredMacroOptions": false,
+    "requiredMacroOptions": []
   },
   "examples": [
     {
@@ -43,7 +45,9 @@
       "hasMacroParentheses": true,
       "lineEndings": "crlf",
       "strictMacroDefinition": true,
-      "ignoreList": ["sajsbuild", "sasjsresults"]
+      "ignoreList": ["sajsbuild", "sasjsresults"],
+      "hasRequiredMacroOptions": false,
+      "requiredMacroOptions": []
     }
   ],
   "properties": {
@@ -204,6 +208,22 @@
       "default": ["sasjsbuild/", "sasjsresults/"],
       "examples": ["sasjs/tests", "tmp/scratch.sas"]
     },
+    "hasRequiredMacroOptions": {
+      "$id": "#/properties/hasRequiredMacroOptions",
+      "type": "boolean",
+      "title": "hasRequiredMacroOptions",
+      "description": "Enforces required macro options as defined by requiredMacroOptions",
+      "default": false,
+      "examples": [true, false]
+    },
+    "requiredMacroOptions": {
+      "$id": "#/properties/requiredMacroOptions",
+      "type": "array",
+      "title": "requiredMacroOptions",
+      "description": "An array of macro options to require all macros to include.",
+      "default": [],
+      "examples": ["['SECURE']", "['SRC', 'STMT']"]
+    },
     "severityLevel": {
       "$id": "#/properties/severityLevel",
       "type": "object",
@@ -317,6 +337,13 @@
         "strictMacroDefinition": {
           "$id": "#/properties/severityLevel/strictMacroDefinition",
           "title": "strictMacroDefinition",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "hasRequiredMacroOptions": {
+          "$id": "#/properties/severityLevel/hasRequiredMacroOptions",
+          "title": "hasRequiredMacroOptions",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"
