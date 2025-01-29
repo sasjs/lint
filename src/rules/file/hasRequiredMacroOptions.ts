@@ -12,7 +12,7 @@ const processOptions = (
   diagnostics: Diagnostic[],
   config?: LintConfig
 ): void => {
-  let optionsPresent = macro.declaration.split('/')?.[1]?.trim() ?? ''
+  const optionsPresent = macro.declaration.split('/')?.[1]?.trim() ?? ''
   const severity = config?.severityLevel[name] || Severity.Warning
 
   config?.requiredMacroOptions.forEach((option) => {
