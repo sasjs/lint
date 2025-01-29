@@ -101,6 +101,15 @@
         "test",
         "review"
       ]
+    },
+    {
+      "login": "McGwire-Jones",
+      "name": "McGwire-Jones",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51411005?v=4",
+      "profile": "https://github.com/McGwire-Jones",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -109,5 +118,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "none"
+  "commitConvention": "none",
+  "commitType": "docs"
 }
