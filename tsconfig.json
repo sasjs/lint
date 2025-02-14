@@ -5,7 +5,7 @@
           "DOM",
           "ES2019.String"
       ],
-      "target": "es5",
+      "target": "es6",
       "module": "commonjs",
       "downlevelIteration": true,
       "moduleResolution": "node",
