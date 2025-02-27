@@ -18,6 +18,8 @@ jobs:
         run: npm ci
       - name: Check Code Style
         run: npm run lint
+      - name: Install rimraf
+        run: npm i -g rimraf
       - name: Build Project
         run: npm run build
       - name: Semantic Release
