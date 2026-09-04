@@ -164,6 +164,9 @@ export const gremlinCharacters = {
   '0x2013': {
     description: 'En Dash'
   },
+  '0x2014': {
+    description: 'Em Dash'
+  },
   '0x2018': {
     description: 'Left Single Quotation Mark'
   },

@@ -23,4 +23,12 @@ describe('noTabs', () => {
     const diagnostics = noGremlins.test(line, 1, config)
     expect(diagnostics.length).toEqual(0)
   })
+
+  it('should flag an Em Dash (U+2014) gremlin', () => {
+    const line = `%put 'hello' — world;`
+    const diagnostics = noGremlins.test(line, 1)
+    expect(diagnostics.length).toEqual(1)
+    expect(diagnostics[0].message).toMatch(/Em Dash/)
+    expect(diagnostics[0].message).toMatch(/0x2014/)
+  })
 })

@@ -44,7 +44,7 @@ describe('formatProject', () => {
       .spyOn(getProjectRootModule, 'getProjectRoot')
       .mockImplementationOnce(() => Promise.resolve(''))
 
-    await expect(formatProject()).rejects.toThrowError(
+    await expect(formatProject()).rejects.toThrow(
       'SASjs Project Root was not found.'
     )
   })

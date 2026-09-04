@@ -6,7 +6,7 @@ describe('getColumnNumber', () => {
   })
 
   it('should throw an error when the specified string is not found within the text', () => {
-    expect(() => getColumnNumber('foo bar', 'baz')).toThrowError(
+    expect(() => getColumnNumber('foo bar', 'baz')).toThrow(
       "String 'baz' was not found in line 'foo bar'"
     )
   })
