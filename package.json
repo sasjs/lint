@@ -6,8 +6,7 @@
     "build": "npx rimraf build && tsc",
     "preinstall": "node checkNodeVersion",
     "prebuild": "node checkNodeVersion",
-    "prepublishOnly": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
-    "postpublish": "git clean -fd",
+    "publishInit": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
     "package:lib": "npm run build && cp ./package.json ./checkNodeVersion.js build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
     "lint:fix": "npx prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
     "lint": "npx prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
@@ -19,6 +18,26 @@
   "release": {
     "branches": [
       "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version"
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "package-lock.json"
+          ]
+        }
+      ],
+      "@semantic-release/github"
     ]
   },
   "repository": {
@@ -39,9 +58,12 @@
   },
   "homepage": "https://github.com/sasjs/lint#readme",
   "devDependencies": {
+    "@semantic-release/exec": "6.0.3",
+    "@semantic-release/git": "10.0.1",
     "@types/jest": "30.0.0",
     "@types/node": "26.4.1",
     "jest": "30.5.1",
+    "semantic-release": "25.0.8",
     "ts-jest": "29.4.12",
     "typescript": "5.9.3"
   },
