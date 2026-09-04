@@ -11,19 +11,62 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write       # required for npm provenance (trusted publisher)
+      issues: write         # optional: lets @semantic-release/github comment on issues
+      pull-requests: write  # optional: lets @semantic-release/github comment on PRs
+
+    strategy:
+      matrix:
+        node-version: [22]
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # Mint a short-lived GitHub App token (bypass-capable)
+      - name: Generate token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      # Checkout using the app token so the release commit can be pushed
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
+          fetch-depth: 0      # semantic-release needs full history + tags
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org
+
+      # Node 22 ships npm 10.x — OIDC trusted publishing needs npm >= 11.5.1
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Install Dependencies
         run: npm ci
+
       - name: Check Code Style
         run: npm run lint
-      - name: Install rimraf
-        run: npm i -g rimraf
+
+      - name: Run Unit Tests
+        run: npm test
+
       - name: Build Project
         run: npm run build
+
+      - name: Clean up ready for publishing
+        run: npm run publishInit
+
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v3
+        run: npx semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}   # <-- app token, not secrets.GITHUB_TOKEN
+
+      - name: Publish to npm with trusted publisher
+        if: success()
+        run: npm publish --access public
