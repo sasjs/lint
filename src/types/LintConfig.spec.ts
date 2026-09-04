@@ -151,7 +151,7 @@ describe('LintConfig', () => {
   })
 
   it('should throw an error with an invalid value for line endings', () => {
-    expect(() => new LintConfig({ lineEndings: 'test' })).toThrowError(
+    expect(() => new LintConfig({ lineEndings: 'test' })).toThrow(
       `Invalid value for lineEndings: can be ${LineEndings.LF} or ${LineEndings.CRLF}`
     )
   })
@@ -219,7 +219,7 @@ describe('LintConfig', () => {
           hasRequiredMacroOptions: true,
           requiredMacroOptions: 'test'
         })
-    ).toThrowError(
+    ).toThrow(
       `Property "requiredMacroOptions" can only be an array of strings.`
     )
     expect(
@@ -228,7 +228,7 @@ describe('LintConfig', () => {
           hasRequiredMacroOptions: true,
           requiredMacroOptions: ['test', 2]
         })
-    ).toThrowError(
+    ).toThrow(
       `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
     )
   })

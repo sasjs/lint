@@ -118,7 +118,7 @@ describe('lintProject', () => {
       .spyOn(getProjectRootModule, 'getProjectRoot')
       .mockImplementationOnce(() => Promise.resolve(''))
 
-    await expect(lintProject()).rejects.toThrowError(
+    await expect(lintProject()).rejects.toThrow(
       'SASjs Project Root was not found.'
     )
   })
