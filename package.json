@@ -43,7 +43,7 @@
     "@types/node": "26.4.1",
     "jest": "30.5.1",
     "ts-jest": "29.4.12",
-    "typescript": "^5.9.3"
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "@sasjs/utils": "3.6.2",
