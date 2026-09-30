@@ -59,6 +59,7 @@
   },
   "homepage": "https://github.com/sasjs/lint#readme",
   "devDependencies": {
+    "@nogoo9/gitleaks": "8.30.1-post.2",
     "@semantic-release/exec": "6.0.3",
     "@semantic-release/git": "10.0.1",
     "@types/jest": "30.0.0",
