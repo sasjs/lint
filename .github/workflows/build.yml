@@ -24,6 +24,14 @@ jobs:
           cache: npm
       - name: Install Dependencies
         run: npm ci
+      - name: Scan for secrets (gitleaks)
+        # The local pre-commit hook is suppressed entirely when .npmrc sets
+        # ignore-scripts=true (the prepare script that would activate the
+        # hooks never runs), so CI is the enforcement point: a leaked
+        # credential must fail the build, not just a commit.
+        # Uses the same @nogoo9/gitleaks binary the pre-commit hook pins - the
+        # gitleaks-action requires a license key for organization repos.
+        run: node_modules/.bin/gitleaks detect --source . --redact --no-banner -v
       - name: Security Audit
         # `npm audit` fails on advisories inside the `npm` package bundled by
         # @semantic-release/npm, which no overrides entry can reach. The audit
