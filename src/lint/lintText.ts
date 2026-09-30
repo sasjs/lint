@@ -1,12 +1,19 @@
-import { getLintConfig } from '../utils/getLintConfig'
+import { Diagnostic, LintConfig } from '../types'
+import { getLintConfig } from '../utils'
 import { processText } from './shared'
 
 /**
  * Analyses and produces a set of diagnostics for the given text content.
  * @param {string} text - the text content to be linted.
- * @returns {Diagnostic[]} array of diagnostic objects, each containing a warning, line number and column number.
+ * @param {LintConfig} configuration - an optional lint configuration. The
+ * nearest `.sasjslint` file provides the configuration when it is omitted.
+ * @returns {Diagnostic[]} array of diagnostic objects, each containing a
+ * warning, line number and column number.
  */
-export const lintText = async (text: string) => {
-  const config = await getLintConfig()
+export const lintText = async (
+  text: string,
+  configuration?: LintConfig
+): Promise<Diagnostic[]> => {
+  const config = configuration || (await getLintConfig())
   return processText(text, config)
 }

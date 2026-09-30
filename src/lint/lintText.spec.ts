@@ -1,4 +1,5 @@
 import { lintText } from './lintText'
+import { LintConfig } from '../types'
 import { Severity } from '../types/Severity'
 
 describe('lintText', () => {
@@ -64,6 +65,21 @@ describe('lintText', () => {
     **/`
     const results = await lintText(text)
 
+    expect(results.length).toEqual(0)
+  })
+
+  it('should lint with the given configuration instead of the file one', async () => {
+    const configuration = new LintConfig({
+      lineEndings: 'lf',
+      noTrailingSpaces: false,
+      hasDoxygenHeader: false,
+      noEncodedPasswords: true
+    })
+    const text = `%put 'hello'; \n%put 'world';  `
+
+    const results = await lintText(text, configuration)
+
+    // The configuration turns off the rules the text would otherwise trip.
     expect(results.length).toEqual(0)
   })
 })
