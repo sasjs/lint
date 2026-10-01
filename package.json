@@ -71,7 +71,7 @@
   },
   "dependencies": {
     "@sasjs/utils": "3.6.2",
-    "ignore": "7.0.8"
+    "ignore": "7.0.10"
   },
   "version": "2.6.0"
 }
