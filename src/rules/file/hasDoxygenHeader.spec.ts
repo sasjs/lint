@@ -148,7 +148,9 @@ describe('hasDoxygenHeader - fix', () => {
       `/**
   @file
   @brief <Your brief here>
+
   <h4> SAS Macros </h4>
+
 **/` +
         '\n' +
         content
@@ -160,7 +162,7 @@ describe('hasDoxygenHeader - fix', () => {
     const config = new LintConfig({ lineEndings: 'crlf' })
 
     expect(hasDoxygenHeader.fix!(content, config)).toEqual(
-      `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/` +
+      `/**\r\n  @file\r\n  @brief <Your brief here>\r\n\r\n  <h4> SAS Macros </h4>\r\n\r\n**/` +
         '\r\n' +
         content
     )

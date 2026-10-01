@@ -6,7 +6,7 @@ import { LintConfig } from '../types'
 describe('formatFile', () => {
   it('should fix linting issues in a given file', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
+    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n\n  <h4> SAS Macros </h4>\n\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
     await createFile(path.join(__dirname, 'format-file-test.sas'), content)
     const expectedResult = {
       updatedFilePaths: [path.join(__dirname, 'format-file-test.sas')],
@@ -29,7 +29,7 @@ describe('formatFile', () => {
 
   it('should use the provided config if available', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend;`
+    const expectedContent = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n\r\n  <h4> SAS Macros </h4>\r\n\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend;`
     const expectedResult = {
       updatedFilePaths: [path.join(__dirname, 'format-file-config.sas')],
       fixedDiagnosticsCount: 4,

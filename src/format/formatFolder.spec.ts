@@ -11,7 +11,7 @@ import { Diagnostic, LintConfig } from '../types'
 describe('formatFolder', () => {
   it('should fix linting issues in a given folder', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
+    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n\n  <h4> SAS Macros </h4>\n\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
     const expectedResult = {
       updatedFilePaths: [
         path.join(__dirname, 'format-folder-test', 'format-folder-test.sas')
@@ -45,7 +45,7 @@ describe('formatFolder', () => {
 
   it('should fix linting issues in subfolders of a given folder', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
+    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n\n  <h4> SAS Macros </h4>\n\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
     const expectedResult = {
       updatedFilePaths: [
         path.join(
@@ -101,7 +101,7 @@ describe('formatFolder', () => {
 
   it('should use a custom configuration when provided', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
+    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n\n  <h4> SAS Macros </h4>\n\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
     const expectedResult = {
       updatedFilePaths: [
         path.join(__dirname, 'format-folder-test', 'format-folder-test.sas')
@@ -141,7 +141,7 @@ describe('formatFolder', () => {
 
   it('should fix linting issues in subfolders of a given folder', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n  <h4> SAS Macros </h4>\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
+    const expectedContent = `/**\n  @file\n  @brief <Your brief here>\n\n  <h4> SAS Macros </h4>\n\n**/\n%macro somemacro();\n%put 'hello';\n%mend somemacro;`
     const expectedResult = {
       updatedFilePaths: [
         path.join(
