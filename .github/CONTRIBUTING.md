@@ -52,3 +52,30 @@ If you are using VS Code for development, you can automatically fix your code to
   ```
 
 If you are using another editor, or are unable to install the extension, you can run `npm run lint:fix` to fix the formatting after you've made your changes.
+
+## Git hooks
+
+The repo ships its own git hooks in [`.git-hooks/`](../.git-hooks):
+
+- `pre-commit` - scans staged changes for secrets with gitleaks, and requires the `@nogoo9/gitleaks` devDependency to be installed
+- `commit-msg` - verifies the commit message follows the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) standard
+
+The repo `.npmrc` sets `ignore-scripts=true`, so the `prepare` script that would normally set `core.hooksPath` during `npm i` never runs. After cloning (or if your commits are not being checked), activate the hooks with a one-time command, run from the repo root:
+
+```bash
+git config core.hooksPath ./.git-hooks
+```
+
+The pre-commit hook runs the gitleaks binary provided by the `@nogoo9/gitleaks` devDependency, so make sure `npm i` has run in the repo root before your first commit.
+
+If you use the [pre-commit](https://pre-commit.com) framework, the repo also ships a [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) that pins the upstream gitleaks hook to an exact release tag. Activate it with `pre-commit install`.
+
+## CI is the enforcement point
+
+The [build workflow](./workflows/build.yml) scans the full history for secrets with gitleaks, runs `npm audit`, checks code style and runs the tests. The local hooks are convenience - CI is what a red finding must fail.
+
+## The release toolchain lives in the workflow
+
+semantic-release is not a project dependency. Every `@semantic-release` plugin declares a `semantic-release` peer, so adding one to `devDependencies` makes npm auto-install semantic-release along with the `npm` package it bundles - and that bundled npm carries advisories this repo cannot fix.
+
+Instead, [publish.yml](./workflows/publish.yml) installs semantic-release, `@semantic-release/exec` and `@semantic-release/git` on the fly, pinned to exact versions. When you add or remove an entry in `release.plugins` (package.json), update that command to match.
