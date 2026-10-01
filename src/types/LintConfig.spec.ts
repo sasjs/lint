@@ -109,6 +109,42 @@ describe('LintConfig', () => {
     ).toBeTruthy()
   })
 
+  it('should create an instance with the noUndeclaredMacros flag on by default', () => {
+    const config = new LintConfig({})
+
+    expect(config).toBeTruthy()
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'noUndeclaredMacros')
+    ).toBeTruthy()
+  })
+
+  it('should create an instance with the noUndeclaredMacros flag off', () => {
+    const config = new LintConfig({ noUndeclaredMacros: false })
+
+    expect(config).toBeTruthy()
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'noUndeclaredMacros')
+    ).toBeUndefined()
+  })
+
+  it('should create an instance with the noUnusedMacros flag on by default', () => {
+    const config = new LintConfig({})
+
+    expect(config).toBeTruthy()
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'noUnusedMacros')
+    ).toBeTruthy()
+  })
+
+  it('should create an instance with the noUnusedMacros flag off', () => {
+    const config = new LintConfig({ noUnusedMacros: false })
+
+    expect(config).toBeTruthy()
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'noUnusedMacros')
+    ).toBeUndefined()
+  })
+
   it('should create an instance with the hasMacroParentheses flag off', () => {
     const config = new LintConfig({ hasMacroParentheses: false })
 
@@ -194,7 +230,9 @@ describe('LintConfig', () => {
       hasRequiredMacroOptions: true,
       noGremlins: true,
       lineEndings: 'lf',
-      noSingleAsteriskComments: true
+      noSingleAsteriskComments: true,
+      noUndeclaredMacros: true,
+      noUnusedMacros: true
     })
 
     expect(config).toBeTruthy()
@@ -212,7 +250,7 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[5].name).toEqual('noGremlins')
     expect(config.lineLintRules[5].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(8)
+    expect(config.fileLintRules.length).toEqual(10)
     expect(config.fileLintRules[0].name).toEqual('lineEndings')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[1].name).toEqual('hasDoxygenHeader')
@@ -229,6 +267,10 @@ describe('LintConfig', () => {
     expect(config.fileLintRules[6].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[7].name).toEqual('noSingleAsteriskComments')
     expect(config.fileLintRules[7].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[8].name).toEqual('noUndeclaredMacros')
+    expect(config.fileLintRules[8].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[9].name).toEqual('noUnusedMacros')
+    expect(config.fileLintRules[9].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')

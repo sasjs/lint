@@ -6,7 +6,9 @@ import {
   lineEndings,
   strictMacroDefinition,
   hasRequiredMacroOptions,
-  noSingleAsteriskComments
+  noSingleAsteriskComments,
+  noUndeclaredMacros,
+  noUnusedMacros
 } from '../rules/file'
 import {
   indentationMultiple,
@@ -162,6 +164,14 @@ export class LintConfig {
 
     if (json?.noSingleAsteriskComments) {
       this.fileLintRules.push(noSingleAsteriskComments)
+    }
+
+    if (json?.noUndeclaredMacros !== false) {
+      this.fileLintRules.push(noUndeclaredMacros)
+    }
+
+    if (json?.noUnusedMacros !== false) {
+      this.fileLintRules.push(noUnusedMacros)
     }
 
     if (json?.noGremlins !== false) {

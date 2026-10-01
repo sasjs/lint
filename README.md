@@ -40,7 +40,9 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "noSpacesInFileNames": true,
   "noTabs": true,
   "noTrailingSpaces": true,
-  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/"
+  "noUndeclaredMacros": true,
+  "noUnusedMacros": true,
+  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/"
 }
 ```
 
@@ -79,9 +81,13 @@ The default header is as follows:
 /**
   @file
   @brief <Your brief here>
+
   <h4> SAS Macros </h4>
+
 **/
 ```
+
+A blank line separates the `<h4> SAS Macros </h4>` section from the header content before it and from whatever follows the list. The same blank-line convention applies to the `<h4> Other Macros </h4>` section.
 
 If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
 
@@ -289,6 +295,27 @@ This will highlight lines with trailing spaces. Trailing spaces serve no useful 
 - Default: true
 - severity: WARNING
 
+### noUndeclaredMacros
+
+SASjs programs declare the macros they use in the `<h4> SAS Macros </h4>` section of the header, so that the compiler can assemble the job before it runs. This rule reports a warning for each macro that a file invokes without declaring it - either by defining it in the file, or by listing it under `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>`.
+
+The macros that ship with SAS (`%scan`, `%index`, `%sysfunc` and the other macro functions, along with the macro language keywords such as `%if`, `%then` and `%do`) are always considered declared, so they are never reported. That list is generated from the `macroStatements` and `macroFunctions` groups of `@sasjs/sas-language` (`npm run generate:macros`), so it tracks the SAS language data rather than being maintained here. Macros made available through the `SASAUTOS` system option are not visible to the linter and will be reported.
+
+The warning is resolved by adding the macro name to the header. Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) adds the missing macros automatically, as a unique list sorted alphabetically.
+
+- Default: true
+- Severity: WARNING
+
+### noUnusedMacros
+
+The counterpart of `noUndeclaredMacros`. This rule reports a warning for each macro listed under `<h4> SAS Macros </h4>` that the file itself never invokes, which usually means the header is out of date.
+
+A macro can be referenced indirectly - for example by another macro in the dependency chain, or through a dynamic `%&macro` call - without appearing as a direct invocation in the file, so the warning is advisory.
+
+Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) removes the unused entries from the header. Together with `noUndeclaredMacros`, this leaves the `<h4> SAS Macros </h4>` section listing exactly the macros the file uses.
+
+- Default: true
+- Severity: WARNING
 
 ## severityLevel
 
@@ -318,6 +345,8 @@ We've already implemented the following rules:
 
 - Add the macro name to the %mend statement
 - Add a doxygen header template if none exists
+- Add undeclared macros to the `<h4> SAS Macros </h4>` section
+- Remove unused macros from the `<h4> SAS Macros </h4>` section
 - Remove trailing spaces
 
 We're looking to implement the following rules:

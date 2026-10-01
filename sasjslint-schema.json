@@ -7,7 +7,7 @@
   "default": {
     "noEncodedPasswords": true,
     "hasDoxygenHeader": true,
-    "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/",
+    "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/",
     "hasMacroNameInMend": false,
     "hasMacroParentheses": true,
     "indentationMultiple": 2,
@@ -21,6 +21,8 @@
     "noSpacesInFileNames": true,
     "noTabs": true,
     "noTrailingSpaces": true,
+    "noUndeclaredMacros": true,
+    "noUnusedMacros": true,
     "lineEndings": "off",
     "strictMacroDefinition": true,
     "ignoreList": ["sajsbuild", "sasjsresults"],
@@ -44,6 +46,8 @@
       "hasMacroNameInMend": true,
       "noNestedMacros": true,
       "noSingleAsteriskComments": false,
+      "noUndeclaredMacros": true,
+      "noUnusedMacros": true,
       "hasMacroParentheses": true,
       "lineEndings": "crlf",
       "strictMacroDefinition": true,
@@ -74,7 +78,7 @@
       "type": "string",
       "title": "defaultHeader",
       "description": "This sets the default program header - applies when a SAS program does NOT begin with `/**`.",
-      "default": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/",
+      "default": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/",
       "examples": []
     },
     "noGremlins": {
@@ -190,6 +194,22 @@
       "type": "boolean",
       "title": "noTrailingSpaces",
       "description": "Enforces no trailing spaces in lines of SAS code. Shows a warning when they are present.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "noUndeclaredMacros": {
+      "$id": "#/properties/noUndeclaredMacros",
+      "type": "boolean",
+      "title": "noUndeclaredMacros",
+      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>` section of the header. Macros that ship with SAS are always considered declared. The formatter resolves the warning by adding the macro names to the header, sorted alphabetically.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "noUnusedMacros": {
+      "$id": "#/properties/noUnusedMacros",
+      "type": "boolean",
+      "title": "noUnusedMacros",
+      "description": "Reports a warning for each macro declared in the `<h4> SAS Macros </h4>` section of the header that the file itself never invokes. The formatter removes the unused entries. A macro can be referenced indirectly, so the warning is advisory.",
       "default": true,
       "examples": [true, false]
     },
@@ -340,6 +360,20 @@
         "noTrailingSpaces": {
           "$id": "#/properties/severityLevel/noTrailingSpaces",
           "title": "noTrailingSpaces",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noUndeclaredMacros": {
+          "$id": "#/properties/severityLevel/noUndeclaredMacros",
+          "title": "noUndeclaredMacros",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noUnusedMacros": {
+          "$id": "#/properties/severityLevel/noUnusedMacros",
+          "title": "noUnusedMacros",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

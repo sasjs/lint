@@ -6,7 +6,7 @@ import { getProjectRoot } from './getProjectRoot'
 import { LineEndings } from '../types/LineEndings'
 
 export const getDefaultHeader = () =>
-  `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}  <h4> SAS Macros </h4>{lineEnding}**/`
+  `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/`
 
 /**
  * Default configuration that is used when a .sasjslint file is not found
