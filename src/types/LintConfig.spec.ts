@@ -330,6 +330,19 @@ describe('LintConfig', () => {
       )
     ).toBeTruthy()
   })
+
+  it('should throw an error with an invalid value for ignoredLibnames', () => {
+    expect(
+      () =>
+        new LintConfig({ noUnusedLibnames: true, ignoredLibnames: 'outData' })
+    ).toThrow(`Property "ignoredLibnames" can only be an array of strings.`)
+    expect(
+      () =>
+        new LintConfig({ noUnusedLibnames: true, ignoredLibnames: ['a', 2] })
+    ).toThrow(
+      `Property "ignoredLibnames" has invalid type of values. It can only contain strings.`
+    )
+  })
 })
 
 describe('LintConfig.override', () => {

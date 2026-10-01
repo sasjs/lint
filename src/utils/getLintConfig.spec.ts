@@ -46,6 +46,7 @@ describe('DefaultLintConfiguration', () => {
           // also sees the settings that are only read conditionally.
           switch (key) {
             case 'allowedGremlins':
+            case 'ignoredLibnames':
             case 'ignoreList':
               return []
             case 'requiredMacroOptions':

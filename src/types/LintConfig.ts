@@ -8,7 +8,8 @@ import {
   hasRequiredMacroOptions,
   noSingleAsteriskComments,
   noUndeclaredMacros,
-  noUnusedMacros
+  noUnusedMacros,
+  noUnusedLibnames
 } from '../rules/file'
 import {
   indentationMultiple,
@@ -48,6 +49,7 @@ export class LintConfig {
   readonly defaultHeader: string = getDefaultHeader()
   readonly severityLevel: { [key: string]: Severity } = {}
   readonly requiredMacroOptions: string[] = []
+  readonly ignoredLibnames: string[] = []
 
   constructor(json?: any) {
     this.source = json ?? {}
@@ -179,6 +181,29 @@ export class LintConfig {
 
     if (json?.noUnusedMacros !== false) {
       this.fileLintRules.push(noUnusedMacros)
+    }
+
+    // Off by default: a libref a file assigns can be used by another file.
+    if (json?.noUnusedLibnames) {
+      this.fileLintRules.push(noUnusedLibnames)
+
+      if (json?.ignoredLibnames) {
+        if (!Array.isArray(json.ignoredLibnames)) {
+          throw new Error(
+            `Property "ignoredLibnames" can only be an array of strings.`
+          )
+        }
+
+        json.ignoredLibnames.forEach((item: any) => {
+          if (typeof item === 'string') {
+            this.ignoredLibnames.push(item)
+          } else {
+            throw new Error(
+              `Property "ignoredLibnames" has invalid type of values. It can only contain strings.`
+            )
+          }
+        })
+      }
     }
 
     if (json?.noGremlins !== false) {
