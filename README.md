@@ -28,6 +28,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "hasMacroParentheses": true,
   "hasRequiredMacroOptions": false,
   "ignoreList": [],
+  "ignoredLibnames": [],
   "indentationMultiple": 2,
   "lineEndings": "off",
   "lowerCaseFileNames": true,
@@ -42,6 +43,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "noTabs": true,
   "noTrailingSpaces": true,
   "noUndeclaredMacros": true,
+  "noUnusedLibnames": false,
   "noUnusedMacros": true,
   "requiredMacroOptions": [],
   "severityLevel": {},
@@ -164,6 +166,21 @@ Example
 ### ignoreList
 
 There may be specific files (or folders) that are not good candidates for linting. Simply list them in this array and they will be ignored. In addition, any files in the project `.gitignore` file will also be ignored.
+
+### ignoredLibnames
+
+The librefs that `noUnusedLibnames` leaves alone. List the librefs that a file assigns but does not use itself - because the connection is used by an autoexec, by `%include`d code, or by another file in the same flow:
+
+```json
+{
+  "ignoredLibnames": ["outData", "TESTWORK"]
+}
+```
+
+A single file can add to this list with the `ignoredLibnames` key of its [`@sasjslint`](#per-file-overrides) header block, which is the per-file escape hatch for the rule.
+
+- Default: []
+- Used by: `noUnusedLibnames`
 
 ### indentationMultiple
 
@@ -332,6 +349,50 @@ The macros that ship with SAS (`%scan`, `%index`, `%sysfunc` and the other macro
 The warning is resolved by adding the macro name to the header. Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) adds the missing macros automatically, as a unique list sorted alphabetically.
 
 - Default: true
+- Severity: WARNING
+
+### noUnusedLibnames
+
+Assigning a libref opens a connection, and on a remote engine that costs time, so a `LIBNAME` statement that a file never uses is worth knowing about.
+
+This rule reports a warning for each libref a file assigns and never mentions again. A mention is any occurrence of the libref outside the `LIBNAME` statement, which covers the indirect forms SAS accepts as well as two-level names:
+
+```sas
+libname outData "&dirOut.";
+libname TESTWORK "&work";
+libname path2 "&sasjswork/path2";
+
+libText = pathname("outData", "L");        /* the libref as a string */
+%let dir = %sysfunc(pathname(TESTWORK));   /* the libref unquoted */
+proc format library=path2;                 /* the libref as an option value */
+options insert=(fmtsearch=(path1 path2));
+```
+
+The test is deliberately generous, because a use that is missed becomes a false positive. A `LIBNAME` statement that deassigns (`libname foo;`), clears (`libname foo clear;`) or reports (`libname foo list;`) assigns nothing, so it is never reported - and it counts as a use, since it refers to a libref assigned elsewhere. The reporting form `libname _all_ list;` names no libref. A libref built at runtime (`libname &lib;`) is not a literal, so there is nothing to check.
+
+The rule is **off by default**. A `.sas` file is not a complete job, so a libref it assigns can be used by:
+
+- an `autoexec.sas` that pre-assigns librefs
+- macros, functions or `%include`d programs that the linter never sees
+- another file in the same flow - in the SASjs framework, a secondary artefact
+
+Enable it per project with `"noUnusedLibnames": true`, and list the librefs it should leave alone in [`ignoredLibnames`](#ignoredlibnames). An individual file can exempt its own librefs, or enable the rule for itself, in its `@sasjslint` header block:
+
+```sas
+/**
+  @file
+  @brief Loads the settlement feed
+
+  <h4> SAS Macros </h4>
+  @li mf_trim.sas
+
+  @sasjslint {"noUnusedLibnames": true, "ignoredLibnames": ["outData"]}
+**/
+```
+
+There is no fix. `sasjs lint fix` leaves the file alone, because the formatter cannot see the rest of the job - removing the statement could break it, and silencing every warning into the ignore list would make the rule pointless.
+
+- Default: false
 - Severity: WARNING
 
 ### noUnusedMacros

@@ -74,4 +74,32 @@ ${line}
       )
     ).toBe(true)
   })
+
+  it('should let a file enable a rule that is off by default', async () => {
+    const config = new LintConfig({})
+
+    const text = `/**
+  @file
+  @sasjslint {"noUnusedLibnames": true}
+**/
+libname outData "x";`
+
+    expect(
+      (await lintText(text, config)).some((d) => /never used/.test(d.message))
+    ).toBe(true)
+  })
+
+  it('should let a file exempt its own librefs', async () => {
+    const config = new LintConfig({ noUnusedLibnames: true })
+
+    const text = `/**
+  @file
+  @sasjslint {"ignoredLibnames": ["outData"]}
+**/
+libname outData "x";`
+
+    expect(
+      (await lintText(text, config)).some((d) => /never used/.test(d.message))
+    ).toBe(false)
+  })
 })

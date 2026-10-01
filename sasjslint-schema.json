@@ -12,6 +12,7 @@
     "hasMacroParentheses": true,
     "hasRequiredMacroOptions": false,
     "ignoreList": [],
+    "ignoredLibnames": [],
     "indentationMultiple": 2,
     "lineEndings": "off",
     "lowerCaseFileNames": true,
@@ -26,6 +27,7 @@
     "noTabs": true,
     "noTrailingSpaces": true,
     "noUndeclaredMacros": true,
+    "noUnusedLibnames": false,
     "noUnusedMacros": true,
     "requiredMacroOptions": [],
     "severityLevel": {},
@@ -215,6 +217,14 @@
       "default": true,
       "examples": [true, false]
     },
+    "noUnusedLibnames": {
+      "$id": "#/properties/noUnusedLibnames",
+      "type": "boolean",
+      "title": "noUnusedLibnames",
+      "description": "Reports a warning for each libref a file assigns with a LIBNAME statement and never uses in that file. A mention of the libref anywhere else counts as a use, including the indirect forms SAS accepts, such as `pathname(TESTWORK)`, `library=path2` and `fmtsearch=(path1 path2)`. Off by default, because a file is not a complete job - the libref can be used by an autoexec, by `%include`d code, or by another file in the same flow. There is no fix; list the librefs to leave alone in `ignoredLibnames`.",
+      "default": false,
+      "examples": [true, false]
+    },
     "lineEndings": {
       "$id": "#/properties/lineEndings",
       "type": "string",
@@ -239,6 +249,14 @@
       "description": "An array of paths or path patterns to ignore when linting. Any files or matching patterns in the .gitignore file will also be ignored.",
       "default": [],
       "examples": [["sasjsbuild/", "sasjsresults/"], ["sasjs/tests", "tmp/scratch.sas"]]
+    },
+    "ignoredLibnames": {
+      "$id": "#/properties/ignoredLibnames",
+      "type": "array",
+      "title": "ignoredLibnames",
+      "description": "An array of librefs that `noUnusedLibnames` leaves alone. A single file can add to this list with the `ignoredLibnames` key of its `@sasjslint` header block.",
+      "default": [],
+      "examples": [["outData", "TESTWORK"]]
     },
     "hasRequiredMacroOptions": {
       "$id": "#/properties/hasRequiredMacroOptions",
@@ -376,6 +394,13 @@
         "noUnusedMacros": {
           "$id": "#/properties/severityLevel/noUnusedMacros",
           "title": "noUnusedMacros",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noUnusedLibnames": {
+          "$id": "#/properties/severityLevel/noUnusedLibnames",
+          "title": "noUnusedLibnames",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

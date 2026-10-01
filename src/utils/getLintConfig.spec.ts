@@ -46,6 +46,7 @@ describe('DefaultLintConfiguration', () => {
           // also sees the settings that are only read conditionally.
           switch (key) {
             case 'allowedGremlins':
+            case 'ignoredLibnames':
             case 'ignoreList':
               return []
             case 'requiredMacroOptions':
@@ -136,5 +137,32 @@ describe('DefaultLintConfiguration', () => {
     )
 
     expect(undocumented).toEqual([])
+  })
+
+  it('should give every rule a severityLevel entry in the schema', () => {
+    const schema = JSON.parse(
+      readFileSync(
+        join(__dirname, '..', '..', 'sasjslint-schema.json'),
+        'utf-8'
+      )
+    )
+
+    // Every rule, including the ones that are off by default.
+    const config = new LintConfig({
+      ...DefaultLintConfiguration,
+      hasRequiredMacroOptions: true,
+      noSingleAsteriskComments: true,
+      noUnusedLibnames: true
+    })
+
+    const rules = [
+      ...config.fileLintRules,
+      ...config.lineLintRules,
+      ...config.pathLintRules
+    ].map((rule) => rule.name)
+
+    const severities = schema.properties.severityLevel.properties
+
+    expect(rules.filter((name) => !(name in severities))).toEqual([])
   })
 })
