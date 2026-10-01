@@ -33,17 +33,15 @@ jobs:
         # gitleaks-action requires a license key for organization repos.
         run: node_modules/.bin/gitleaks detect --source . --redact --no-banner -v
       - name: Security Audit
-        # `npm audit` fails on advisories inside the `npm` package bundled by
-        # @semantic-release/npm, which no overrides entry can reach. The audit
-        # script names those and fails on everything else, so a new advisory
-        # anywhere in the tree still fails the build.
-        run: npm run audit
+        # The release toolchain is not a project dependency (see publish.yml),
+        # so the `npm` package bundled by @semantic-release/npm never reaches
+        # this tree - which is what made the old exemption-based audit script
+        # necessary. A plain audit is clean.
+        run: npm audit
       - name: Check Code Style
         run: npm run lint
       - name: Run Unit Tests
         run: npm test
-      - name: Install rimraf
-        run: npm i -g rimraf
       - name: Build Package
         run: npm run package:lib
         env:

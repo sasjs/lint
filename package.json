@@ -3,15 +3,14 @@
   "description": "Linting and formatting for SAS code",
   "scripts": {
     "test": "jest --coverage",
-    "build": "npx rimraf build && tsc",
+    "build": "rimraf build && tsc",
     "preinstall": "node checkNodeVersion",
     "prebuild": "node checkNodeVersion",
     "publishInit": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
     "package:lib": "npm run build && cp ./package.json ./checkNodeVersion.js build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
     "lint:fix": "npx prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
     "lint": "npx prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
-    "prepare": "git rev-parse --git-dir && git config core.hooksPath ./.git-hooks || true",
-    "audit": "node scripts/audit.mjs"
+    "prepare": "git rev-parse --git-dir && git config core.hooksPath ./.git-hooks || true"
   },
   "publishConfig": {
     "access": "public"
@@ -60,18 +59,16 @@
   "homepage": "https://github.com/sasjs/lint#readme",
   "devDependencies": {
     "@nogoo9/gitleaks": "8.30.1-post.2",
-    "@semantic-release/exec": "6.0.3",
-    "@semantic-release/git": "10.0.1",
     "@types/jest": "30.0.0",
-    "@types/node": "26.4.1",
-    "jest": "30.5.1",
-    "semantic-release": "25.0.8",
-    "ts-jest": "29.4.12",
-    "typescript": "5.9.3"
+    "@types/node": "26.6.3",
+    "jest": "30.5.2",
+    "rimraf": "6.1.3",
+    "ts-jest": "29.4.14",
+    "typescript": "6.0.3"
   },
   "dependencies": {
     "@sasjs/utils": "3.6.2",
-    "ignore": "7.0.8"
+    "ignore": "7.0.11"
   },
   "version": "2.6.0"
 }

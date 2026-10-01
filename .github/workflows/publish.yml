@@ -64,7 +64,18 @@ jobs:
         run: npm run publishInit
 
       - name: Semantic Release
-        run: npx semantic-release
+        # The release toolchain is deliberately not a project dependency: every
+        # @semantic-release plugin declares a `semantic-release` peer, which npm
+        # auto-installs together with the `npm` package semantic-release bundles
+        # - and that bundled npm carries advisories nothing here can fix.
+        # Installing it here, pinned, keeps the dependency tree clean. Keep
+        # these versions in step with `release.plugins` in package.json.
+        run: |
+          npx --yes \
+            --package semantic-release@25.0.9 \
+            --package @semantic-release/exec@7.1.0 \
+            --package @semantic-release/git@11.0.1 \
+            semantic-release
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}   # <-- app token, not secrets.GITHUB_TOKEN
 

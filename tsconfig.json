@@ -6,14 +6,16 @@
           "ES2019.String"
       ],
       "target": "es6",
-      "module": "commonjs",
-      "downlevelIteration": true,
-      "moduleResolution": "node",
+      "module": "node16",
+      "moduleResolution": "node16",
       "esModuleInterop": true,
       "declaration": true,
       "outDir": "./build",
+      "rootDir": "./src",
       "strict": true,
-      "sourceMap": true
+      "sourceMap": true,
+      "isolatedModules": true,
+      "types": ["jest", "node"]
   },
   "include": [
       "src"

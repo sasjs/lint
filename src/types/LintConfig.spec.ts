@@ -87,6 +87,28 @@ describe('LintConfig', () => {
     ).toBeUndefined()
   })
 
+  it('should create an instance with the noSingleAsteriskComments flag off by default', () => {
+    const config = new LintConfig({})
+
+    expect(config).toBeTruthy()
+    expect(
+      config.fileLintRules.find(
+        (rule) => rule.name === 'noSingleAsteriskComments'
+      )
+    ).toBeUndefined()
+  })
+
+  it('should create an instance with the noSingleAsteriskComments flag on', () => {
+    const config = new LintConfig({ noSingleAsteriskComments: true })
+
+    expect(config).toBeTruthy()
+    expect(
+      config.fileLintRules.find(
+        (rule) => rule.name === 'noSingleAsteriskComments'
+      )
+    ).toBeTruthy()
+  })
+
   it('should create an instance with the hasMacroParentheses flag off', () => {
     const config = new LintConfig({ hasMacroParentheses: false })
 
@@ -171,7 +193,8 @@ describe('LintConfig', () => {
       hasMacroParentheses: true,
       hasRequiredMacroOptions: true,
       noGremlins: true,
-      lineEndings: 'lf'
+      lineEndings: 'lf',
+      noSingleAsteriskComments: true
     })
 
     expect(config).toBeTruthy()
@@ -189,7 +212,7 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[5].name).toEqual('noGremlins')
     expect(config.lineLintRules[5].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(7)
+    expect(config.fileLintRules.length).toEqual(8)
     expect(config.fileLintRules[0].name).toEqual('lineEndings')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[1].name).toEqual('hasDoxygenHeader')
@@ -204,6 +227,8 @@ describe('LintConfig', () => {
     expect(config.fileLintRules[5].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[6].name).toEqual('hasRequiredMacroOptions')
     expect(config.fileLintRules[6].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[7].name).toEqual('noSingleAsteriskComments')
+    expect(config.fileLintRules[7].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')
