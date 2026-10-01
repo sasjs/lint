@@ -22,6 +22,7 @@ import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
 import { getDefaultHeader } from '../utils'
+import { mergeLintConfig } from '../utils/mergeLintConfig'
 import { Severity } from './Severity'
 
 /**
@@ -32,6 +33,8 @@ import { Severity } from './Severity'
  * More types of rules, when available, will be added here.
  */
 export class LintConfig {
+  /** The JSON this configuration was built from, so it can be overridden. */
+  readonly source: any
   readonly ignoreList: string[] = []
   readonly allowedGremlins: string[] = []
   readonly lineLintRules: LineLintRule[] = []
@@ -47,6 +50,8 @@ export class LintConfig {
   readonly requiredMacroOptions: string[] = []
 
   constructor(json?: any) {
+    this.source = json ?? {}
+
     if (json?.ignoreList) {
       if (Array.isArray(json.ignoreList)) {
         json.ignoreList.forEach((item: any) => {
@@ -201,5 +206,19 @@ export class LintConfig {
         if (severity === 'error') this.severityLevel[rule] = Severity.Error
       }
     }
+  }
+
+  /**
+   * Returns a new configuration with an override merged over this one, so a
+   * file can adjust the rules that apply to it.
+   *
+   * Scalars replace, arrays are additive and objects merge key by key - see
+   * `mergeLintConfig`.
+   *
+   * @param {object} json - the override, as read from a `@sasjslint` block.
+   * @returns {LintConfig} a new configuration; this one is unchanged.
+   */
+  override(json: any): LintConfig {
+    return new LintConfig(mergeLintConfig(this.source, json))
   }
 }

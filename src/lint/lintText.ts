@@ -1,5 +1,5 @@
 import { Diagnostic, LintConfig } from '../types'
-import { getLintConfig } from '../utils'
+import { applyLintOverride, getLintConfig } from '../utils'
 import { processText } from './shared'
 
 /**
@@ -15,5 +15,5 @@ export const lintText = async (
   configuration?: LintConfig
 ): Promise<Diagnostic[]> => {
   const config = configuration || (await getLintConfig())
-  return processText(text, config)
+  return processText(text, applyLintOverride(text, config))
 }

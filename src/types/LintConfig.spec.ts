@@ -300,3 +300,55 @@ describe('LintConfig', () => {
     )
   })
 })
+
+describe('LintConfig.override', () => {
+  it('should merge the override over the configuration it was built from', () => {
+    const config = new LintConfig({
+      maxLineLength: 80,
+      allowedGremlins: ['0x0080']
+    })
+    const overridden = config.override({
+      maxLineLength: 200,
+      allowedGremlins: ['0x3000']
+    })
+
+    expect(overridden.maxLineLength).toEqual(200)
+    expect(overridden.allowedGremlins).toEqual(['0x0080', '0x3000'])
+  })
+
+  it('should leave the original configuration unchanged', () => {
+    const config = new LintConfig({ maxLineLength: 80 })
+
+    config.override({ maxLineLength: 200 })
+
+    expect(config.maxLineLength).toEqual(80)
+  })
+
+  it('should switch a rule off', () => {
+    const config = new LintConfig({})
+
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'noUnusedMacros')
+    ).toBeTruthy()
+    expect(
+      config
+        .override({ noUnusedMacros: false })
+        .fileLintRules.find((rule) => rule.name === 'noUnusedMacros')
+    ).toBeUndefined()
+  })
+
+  it('should switch a rule on', () => {
+    const config = new LintConfig({})
+
+    expect(
+      config.fileLintRules.find(
+        (rule) => rule.name === 'noSingleAsteriskComments'
+      )
+    ).toBeUndefined()
+    expect(
+      config
+        .override({ noSingleAsteriskComments: true })
+        .fileLintRules.find((rule) => rule.name === 'noSingleAsteriskComments')
+    ).toBeTruthy()
+  })
+})

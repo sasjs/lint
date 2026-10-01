@@ -58,6 +58,29 @@ For more details, and the default state, see the description of each rule below.
 
 Configuring a non-zero return code (ERROR) is helpful when running `sasjs lint` as part of a git pre-commit hook.  An example is available [here](https://github.com/sasjs/template_jobs/blob/main/.git-hooks/pre-commit).
 
+## Per-file overrides
+
+A file can adjust the configuration for itself, with a `@sasjslint` block in its Doxygen header:
+
+```sas
+/**
+  @file
+  @brief Calls the settlement API
+
+  @sasjslint {"maxHeaderLineLength": 200, "noUndeclaredMacros": false}
+**/
+```
+
+The block holds a JSON object that is merged over the resolved `.sasjslint`:
+
+- scalars replace, so a file can switch a rule off, switch one on, or raise a limit for itself;
+- arrays are additive, so `allowedGremlins` and `requiredMacroOptions` gain entries rather than replacing the project's;
+- objects merge key by key, so a file can set one `severityLevel` without dropping the others.
+
+The override applies to the whole file, and to the formatter, so `sasjs lint fix` and format-on-save honour it - a file that switches `noUnusedMacros` off keeps the entries it would otherwise lose. Only the header is read, so an override cannot be hidden in the body of a file, and a block that is malformed is ignored rather than raised. Place it outside the `<h4> SAS Macros </h4>` section, which the formatter rewrites.
+
+One exception: `ignoreList` is evaluated before a file is read, so an entry a header adds cannot exclude the file it sits in.
+
 ### allowedGremlins
 
 An array of hex codes that represents allowed gremlins (invisible / undesirable characters). To allow all gremlins, you can also set the `noGremlins` rule to `false`.  The full gremlin list is [here](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts).
