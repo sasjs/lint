@@ -77,11 +77,31 @@ const blankNonCode = (text: string): string => {
       continue
     }
 
-    // Double-quoted string - kept, so its content counts as a mention.
+    // Double-quoted string - its content is kept, so a libref inside it counts
+    // as a mention, but any `;` is masked. A semicolon inside a string is not a
+    // statement boundary, and leaving it in place would invent one, so a
+    // `libname` inside generated-code text would read as a real assignment.
+    // `""` is an escaped quote character.
     if (char === '"') {
       let end = index + 1
-      while (end < length && text[end] !== '"' && text[end] !== '\n') end++
-      index = end + 1
+      while (end < length) {
+        if (text[end] === '"') {
+          if (text[end + 1] === '"') {
+            end += 2
+            continue
+          }
+          end++
+          break
+        }
+        if (text[end] === '\n') break
+        end++
+      }
+
+      for (let at = index; at < end; at++) {
+        if (chars[at] === ';') chars[at] = ' '
+      }
+
+      index = end
       continue
     }
 

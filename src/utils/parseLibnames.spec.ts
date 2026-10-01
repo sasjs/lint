@@ -73,6 +73,18 @@ describe('parseLibnames', () => {
     ).toEqual([])
   })
 
+  it('should ignore an assignment inside a double-quoted string', () => {
+    expect(
+      parseLibnames(`%let code = "libname a ""x"";";`, new LintConfig())
+    ).toEqual([])
+  })
+
+  it('should ignore a semicolon inside a double-quoted string', () => {
+    const text = `%let code = "data x; libname b ""y""; run;";`
+
+    expect(parseLibnames(text, new LintConfig())).toEqual([])
+  })
+
   it('should handle an escaped quote inside a single-quoted string', () => {
     expect(
       parseLibnames(`call execute('libname a ''x'';');`, new LintConfig())
@@ -81,6 +93,12 @@ describe('parseLibnames', () => {
 
   it('should recover from an unterminated single-quoted string', () => {
     const text = `libname a "x";\n%put 'oops\nmore text`
+
+    expect(parseLibnames(text, new LintConfig())).toEqual([unused('a', 1, 9)])
+  })
+
+  it('should recover from an unterminated double-quoted string', () => {
+    const text = `libname a "x";\n%put "oops\nmore text`
 
     expect(parseLibnames(text, new LintConfig())).toEqual([unused('a', 1, 9)])
   })
@@ -101,6 +119,12 @@ describe('getUnusedLibnames', () => {
 
   it('should count a libref used as a quoted string argument', () => {
     const text = `libname outData "&dirOut.";\nlibText = pathname("outData", "L");`
+
+    expect(getUnusedLibnames(text, new LintConfig())).toEqual([])
+  })
+
+  it('should count a libref in a double-quoted string that holds a semicolon', () => {
+    const text = `libname outData "&dirOut.";\n%put "outData; outData";`
 
     expect(getUnusedLibnames(text, new LintConfig())).toEqual([])
   })

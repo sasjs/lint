@@ -398,6 +398,13 @@
           "enum": ["error", "warn"],
           "default": "warn"
         },
+        "noUnusedLibnames": {
+          "$id": "#/properties/severityLevel/noUnusedLibnames",
+          "title": "noUnusedLibnames",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
         "lineEndings": {
           "$id": "#/properties/severityLevel/lineEndings",
           "title": "lineEndings",
