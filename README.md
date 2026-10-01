@@ -17,7 +17,7 @@ Our goal is to help SAS developers everywhere spend less time on code reviews, b
 - [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the VSCode marketplace, and select view/problems in the menu bar.
 - [@sasjs/cli](https://cli.sasjs.io/lint) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
 
-Configuration is via a `.sasjslint` file with the following structure (these are also the defaults if no .sasjslint file is found):
+Configuration is via a `.sasjslint` file with the following structure (these are also the defaults - a setting that is absent, and a project with no `.sasjslint` file at all, uses the value below):
 
 ```json
 {

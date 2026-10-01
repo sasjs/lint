@@ -95,4 +95,17 @@ describe('DefaultLintConfiguration', () => {
 
     expect(schema.default).toEqual(DefaultLintConfiguration)
   })
+
+  it('should apply the same rules whether or not a .sasjslint file exists', () => {
+    const ruleNames = (config: LintConfig) =>
+      [
+        ...config.fileLintRules.map((rule) => rule.name),
+        ...config.lineLintRules.map((rule) => rule.name),
+        ...config.pathLintRules.map((rule) => rule.name)
+      ].sort()
+
+    expect(ruleNames(new LintConfig({}))).toEqual(
+      ruleNames(new LintConfig(DefaultLintConfiguration))
+    )
+  })
 })

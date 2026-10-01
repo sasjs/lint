@@ -74,9 +74,14 @@ export class LintConfig {
       this.lineLintRules.pop()
     }
 
-    if (json?.maxLineLength > 0) {
+    // An absent setting falls back to the default, so the rule is on unless the
+    // value switches it off (0 or a negative number).
+    if (json?.maxLineLength === undefined || json?.maxLineLength > 0) {
       this.lineLintRules.push(maxLineLength)
-      this.maxLineLength = json.maxLineLength
+
+      if (!isNaN(json?.maxLineLength)) {
+        this.maxLineLength = json.maxLineLength
+      }
 
       if (!isNaN(json?.maxHeaderLineLength)) {
         this.maxHeaderLineLength = json.maxHeaderLineLength
@@ -121,7 +126,7 @@ export class LintConfig {
       this.pathLintRules.push(lowerCaseFileNames)
     }
 
-    if (json?.hasMacroNameInMend) {
+    if (json?.hasMacroNameInMend !== false) {
       this.fileLintRules.push(hasMacroNameInMend)
     }
 

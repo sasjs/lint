@@ -54,6 +54,23 @@ describe('LintConfig', () => {
     ).toBeUndefined()
   })
 
+  it('should create an instance with the maxLineLength flag on by default', () => {
+    const config = new LintConfig({})
+
+    expect(config.maxLineLength).toEqual(80)
+    expect(
+      config.lineLintRules.find((rule) => rule.name === 'maxLineLength')
+    ).toBeTruthy()
+  })
+
+  it('should create an instance with the hasMacroNameInMend flag on by default', () => {
+    const config = new LintConfig({})
+
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'hasMacroNameInMend')
+    ).toBeTruthy()
+  })
+
   it('should create an instance with the hasDoxygenHeader flag off', () => {
     const config = new LintConfig({ hasDoxygenHeader: false })
 
