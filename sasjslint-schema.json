@@ -5,16 +5,20 @@
   "title": "SASjs Lint Config File",
   "description": "The SASjs Lint Config file provides the settings for customising SAS code style in your project. A SAS file can override these settings for itself with a `@sasjslint` block in its Doxygen header.",
   "default": {
-    "noEncodedPasswords": true,
-    "hasDoxygenHeader": true,
+    "allowedGremlins": [],
     "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/",
-    "hasMacroNameInMend": false,
+    "hasDoxygenHeader": true,
+    "hasMacroNameInMend": true,
     "hasMacroParentheses": true,
+    "hasRequiredMacroOptions": false,
+    "ignoreList": [],
     "indentationMultiple": 2,
+    "lineEndings": "off",
     "lowerCaseFileNames": true,
-    "maxLineLength": 80,
-    "maxHeaderLineLength": 80,
     "maxDataLineLength": 80,
+    "maxHeaderLineLength": 80,
+    "maxLineLength": 80,
+    "noEncodedPasswords": true,
     "noGremlins": true,
     "noNestedMacros": true,
     "noSingleAsteriskComments": false,
@@ -23,11 +27,9 @@
     "noTrailingSpaces": true,
     "noUndeclaredMacros": true,
     "noUnusedMacros": true,
-    "lineEndings": "off",
-    "strictMacroDefinition": true,
-    "ignoreList": ["sajsbuild", "sasjsresults"],
-    "hasRequiredMacroOptions": false,
-    "requiredMacroOptions": []
+    "requiredMacroOptions": [],
+    "severityLevel": {},
+    "strictMacroDefinition": true
   },
   "examples": [
     {
@@ -106,7 +108,7 @@
       "type": "boolean",
       "title": "hasMacroNameInMend",
       "description": "Enforces the presence of macro names in %mend statements. Shows a warning for %mend statements with missing or mismatched macro names.",
-      "default": false,
+      "default": true,
       "examples": [true, false]
     },
     "hasMacroParentheses": {
@@ -235,8 +237,8 @@
       "type": "array",
       "title": "ignoreList",
       "description": "An array of paths or path patterns to ignore when linting. Any files or matching patterns in the .gitignore file will also be ignored.",
-      "default": ["sasjsbuild/", "sasjsresults/"],
-      "examples": ["sasjs/tests", "tmp/scratch.sas"]
+      "default": [],
+      "examples": [["sasjsbuild/", "sasjsresults/"], ["sasjs/tests", "tmp/scratch.sas"]]
     },
     "hasRequiredMacroOptions": {
       "$id": "#/properties/hasRequiredMacroOptions",

@@ -79,9 +79,14 @@ export class LintConfig {
       this.lineLintRules.pop()
     }
 
-    if (json?.maxLineLength > 0) {
+    // An absent setting falls back to the default, so the rule is on unless the
+    // value switches it off (0 or a negative number).
+    if (json?.maxLineLength === undefined || json?.maxLineLength > 0) {
       this.lineLintRules.push(maxLineLength)
-      this.maxLineLength = json.maxLineLength
+
+      if (!isNaN(json?.maxLineLength)) {
+        this.maxLineLength = json.maxLineLength
+      }
 
       if (!isNaN(json?.maxHeaderLineLength)) {
         this.maxHeaderLineLength = json.maxHeaderLineLength
@@ -126,7 +131,7 @@ export class LintConfig {
       this.pathLintRules.push(lowerCaseFileNames)
     }
 
-    if (json?.hasMacroNameInMend) {
+    if (json?.hasMacroNameInMend !== false) {
       this.fileLintRules.push(hasMacroNameInMend)
     }
 
@@ -146,24 +151,21 @@ export class LintConfig {
       this.fileLintRules.push(hasRequiredMacroOptions)
 
       if (json?.requiredMacroOptions) {
-        if (
-          Array.isArray(json.requiredMacroOptions) &&
-          json.requiredMacroOptions.length > 0
-        ) {
-          json.requiredMacroOptions.forEach((item: any) => {
-            if (typeof item === 'string') {
-              this.requiredMacroOptions.push(item)
-            } else {
-              throw new Error(
-                `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
-              )
-            }
-          })
-        } else {
+        if (!Array.isArray(json.requiredMacroOptions)) {
           throw new Error(
             `Property "requiredMacroOptions" can only be an array of strings.`
           )
         }
+
+        json.requiredMacroOptions.forEach((item: any) => {
+          if (typeof item === 'string') {
+            this.requiredMacroOptions.push(item)
+          } else {
+            throw new Error(
+              `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
+            )
+          }
+        })
       }
     }
 

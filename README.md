@@ -17,16 +17,17 @@ Our goal is to help SAS developers everywhere spend less time on code reviews, b
 - [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the VSCode marketplace, and select view/problems in the menu bar.
 - [@sasjs/cli](https://cli.sasjs.io/lint) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
 
-Configuration is via a `.sasjslint` file with the following structure (these are also the defaults if no .sasjslint file is found):
+Configuration is via a `.sasjslint` file with the following structure (these are also the defaults - a setting that is absent, and a project with no `.sasjslint` file at all, uses the value below):
 
 ```json
 {
+  "allowedGremlins": [],
+  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/",
   "hasDoxygenHeader": true,
   "hasMacroNameInMend": true,
   "hasMacroParentheses": true,
   "hasRequiredMacroOptions": false,
-  "requiredMacroOptions": ["SECURE", "SRC"],
-  "ignoreList": ["sasjsbuild/", "sasjsresults/"],
+  "ignoreList": [],
   "indentationMultiple": 2,
   "lineEndings": "off",
   "lowerCaseFileNames": true,
@@ -34,15 +35,17 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "maxHeaderLineLength": 80,
   "maxLineLength": 80,
   "noEncodedPasswords": true,
+  "noGremlins": true,
   "noNestedMacros": true,
   "noSingleAsteriskComments": false,
-  "noGremlins": true,
   "noSpacesInFileNames": true,
   "noTabs": true,
   "noTrailingSpaces": true,
   "noUndeclaredMacros": true,
   "noUnusedMacros": true,
-  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/"
+  "requiredMacroOptions": [],
+  "severityLevel": {},
+  "strictMacroDefinition": true
 }
 ```
 
