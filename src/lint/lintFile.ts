@@ -1,6 +1,6 @@
 import { readFile } from '@sasjs/utils/file'
 import { Diagnostic, LintConfig } from '../types'
-import { getLintConfig, isIgnored } from '../utils'
+import { applyLintOverride, getLintConfig, isIgnored } from '../utils'
 import { processFile, processText } from './shared'
 
 /**
@@ -17,9 +17,10 @@ export const lintFile = async (
 
   const config = configuration || (await getLintConfig())
   const text = await readFile(filePath)
+  const effectiveConfig = applyLintOverride(text, config)
 
-  const fileDiagnostics = processFile(filePath, config)
-  const textDiagnostics = processText(text, config)
+  const fileDiagnostics = processFile(filePath, effectiveConfig)
+  const textDiagnostics = processText(text, effectiveConfig)
 
   return [...fileDiagnostics, ...textDiagnostics]
 }

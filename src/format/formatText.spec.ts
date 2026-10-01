@@ -106,4 +106,31 @@ describe('formatText', () => {
 
     expect(output).toEqual(expectedOutput)
   })
+
+  it('should honour a header override', async () => {
+    jest
+      .spyOn(getLintConfigModule, 'getLintConfig')
+      .mockImplementationOnce(() =>
+        Promise.resolve(
+          new LintConfig(getLintConfigModule.DefaultLintConfiguration)
+        )
+      )
+    const text = `/**
+  @file
+  @brief test
+  @sasjslint {"noUnusedMacros": false}
+
+  <h4> SAS Macros </h4>
+  @li mf_unused.sas
+
+**/
+%mf_used()`
+
+    const output = await formatText(text)
+
+    // noUndeclaredMacros still adds mf_used; noUnusedMacros is off for this
+    // file, so mf_unused stays.
+    expect(output).toContain('@li mf_used.sas')
+    expect(output).toContain('@li mf_unused.sas')
+  })
 })

@@ -2,6 +2,7 @@ import { createFile, readFile } from '@sasjs/utils/file'
 import { lintFile } from '../lint'
 import { FormatResult } from '../types'
 import { LintConfig } from '../types/LintConfig'
+import { applyLintOverride } from '../utils/parseLintOverride'
 import { getLintConfig } from '../utils/getLintConfig'
 import { processText } from './shared'
 
@@ -21,7 +22,7 @@ export const formatFile = async (
 
   const text = await readFile(filePath)
 
-  const formattedText = processText(text, config)
+  const formattedText = processText(text, applyLintOverride(text, config))
 
   await createFile(filePath, formattedText)
 
