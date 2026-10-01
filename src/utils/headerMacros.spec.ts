@@ -100,6 +100,51 @@ describe('getHeaderMacros', () => {
 
     expect(getHeaderMacros(text, new LintConfig())).toEqual([])
   })
+
+  it('should locate a name that also appears inside the @li tag', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li li.sas
+**/`
+
+    expect(getHeaderMacros(text, new LintConfig())).toEqual([
+      {
+        name: 'li',
+        lineNumber: 4,
+        startColumnNumber: 7,
+        endColumnNumber: 9,
+        section: 'sasMacros'
+      }
+    ])
+  })
+
+  it('should read a list broken up by a blank line', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li mf_a.sas
+
+  @li mf_b.sas
+
+**/`
+
+    expect(getHeaderMacros(text, new LintConfig()).map((m) => m.name)).toEqual([
+      'mf_a',
+      'mf_b'
+    ])
+  })
+
+  it('should read an entry that shares the section tag line', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4> @li mf_a.sas
+**/`
+
+    expect(getHeaderMacros(text, new LintConfig()).map((m) => m.name)).toEqual([
+      'mf_a'
+    ])
+  })
 })
 
 describe('addMacrosToHeader', () => {
@@ -255,6 +300,40 @@ describe('addMacrosToHeader', () => {
       `/**\r\n  @file\r\n\r\n  <h4> SAS Macros </h4>\r\n  @li mf_trim.sas\r\n\r\n**/`
     )
   })
+
+  it('should not duplicate an entry that sits below a blank line', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li mf_a.sas
+
+  @li mf_b.sas
+
+**/`
+
+    const expected = `/**
+  @file
+
+  <h4> SAS Macros </h4>
+  @li mf_a.sas
+  @li mf_b.sas
+
+**/`
+
+    expect(addMacrosToHeader(text, new LintConfig(), ['mf_b'])).toEqual(
+      expected
+    )
+  })
+
+  it('should leave a section whose tag line carries an entry alone', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4> @li mf_a.sas
+**/
+%mf_b()`
+
+    expect(addMacrosToHeader(text, new LintConfig(), ['mf_b'])).toEqual(text)
+  })
 })
 
 describe('removeMacrosFromHeader', () => {
@@ -347,5 +426,27 @@ describe('removeMacrosFromHeader', () => {
 **/`
 
     expect(removeMacrosFromHeader(text, new LintConfig(), [])).toEqual(text)
+  })
+
+  it('should drop a duplicated entry when removing another', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li mf_a.sas
+  @li mf_a.sas
+  @li mf_b.sas
+**/`
+
+    const expected = `/**
+  @file
+
+  <h4> SAS Macros </h4>
+  @li mf_a.sas
+
+**/`
+
+    expect(removeMacrosFromHeader(text, new LintConfig(), ['mf_b'])).toEqual(
+      expected
+    )
   })
 })

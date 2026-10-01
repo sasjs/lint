@@ -15,24 +15,102 @@ export interface HeaderMacro {
   section: 'sasMacros' | 'otherMacros'
 }
 
+/** One `@li` entry, as found in a header. */
+interface HeaderEntry {
+  name: string
+  line: string
+  lineNumber: number
+  /** 1-based column at which the macro name starts. */
+  column: number
+}
+
 const sasMacrosHeader = /<h4>\s*SAS Macros\s*<\/h4>/i
 const otherMacrosHeader = /<h4>\s*Other Macros\s*<\/h4>/i
 const anyHeader = /<h4>/i
-const listItem = /^\s*@li\s+(.+?)\s*$/
+const headerTag = '</h4>'
+const listItem = /^(\s*@li\s+)(.+?)(\s*)$/
 
 /**
- * Extracts the macro name from the text that follows an `@li` tag. A header
- * entry is a file reference such as `mf_myfile.sas`, optionally preceded by a
- * path, so only the file name is kept and the `.sas` extension is dropped.
+ * Reads an `@li` entry, returning the macro name and the column at which it
+ * starts. The column is derived from the entry text rather than from a search
+ * for the name, so an entry such as `@li li.sas` reports the `li` after the
+ * tag, not the `li` inside it.
+ *
+ * @param {string} text - the line, or the tail of a line, to read.
+ * @param {number} offset - the 0-based column at which `text` starts in the
+ * line, so a trailing entry on a `<h4>` line still reports its real position.
  */
-const toMacroName = (item: string): string => {
-  const firstToken = item.trim().split(/\s+/)[0] || ''
-  const fileName = firstToken.replace(/\\/g, '/').split('/').pop() || ''
-  return fileName.replace(/\.sas$/i, '')
+const parseListItem = (
+  text: string,
+  offset = 0
+): { name: string; column: number } | null => {
+  const match = listItem.exec(text)
+  if (!match) return null
+
+  const entry = match[2]
+  const firstToken = entry.trim().split(/\s+/)[0] || ''
+
+  const normalised = firstToken.replace(/\\/g, '/')
+  const fileName = normalised.split('/').pop() || ''
+  const name = fileName.replace(/\.sas$/i, '')
+  if (!name) return null
+
+  const tokenOffset = entry.indexOf(firstToken)
+  const fileOffset = normalised.lastIndexOf('/') + 1
+  const column = offset + match[1].length + tokenOffset + fileOffset + 1
+
+  return { name, column }
 }
 
-const compareMacroNames = (a: string, b: string): number =>
-  a.toLowerCase().localeCompare(b.toLowerCase())
+/**
+ * Reads the `@li` entries of a section that starts at `sectionIndex`.
+ *
+ * A blank line ends the list unless the next non-blank line is another entry,
+ * so a list broken up by a stray blank line is still read in full - the
+ * formatter rewrites exactly the lines it read, and an entry it did not read
+ * would be left behind and duplicated.
+ *
+ * @returns the entries, and the index of the first line after the last one.
+ */
+const readSectionList = (
+  lines: string[],
+  sectionIndex: number,
+  limit: number
+): { entries: HeaderEntry[]; end: number } => {
+  const entries: HeaderEntry[] = []
+  let end = sectionIndex + 1
+  let index = sectionIndex + 1
+
+  while (index < limit && index < lines.length) {
+    const line = lines[index]
+
+    if (line.trim() === '') {
+      let next = index
+      while (next < limit && next < lines.length && lines[next].trim() === '') {
+        next++
+      }
+      if (next < limit && next < lines.length && listItem.test(lines[next])) {
+        index = next
+        continue
+      }
+      break
+    }
+
+    const parsed = parseListItem(line)
+    if (!parsed) break
+
+    entries.push({
+      name: parsed.name,
+      line,
+      lineNumber: index + 1,
+      column: parsed.column
+    })
+    index++
+    end = index
+  }
+
+  return { entries, end }
+}
 
 /**
  * Reads the macros declared in the header of a file - both the
@@ -53,7 +131,6 @@ export const getHeaderMacros = (
 
   const lines = splitText(text, cfg)
   const macros: HeaderMacro[] = []
-  let section: HeaderMacro['section'] | null = null
 
   for (
     let index = 0;
@@ -62,41 +139,35 @@ export const getHeaderMacros = (
   ) {
     const line = lines[index]
 
-    if (sasMacrosHeader.test(line)) {
-      section = 'sasMacros'
-      continue
-    }
-
-    if (otherMacrosHeader.test(line)) {
-      section = 'otherMacros'
-      continue
-    }
-
-    if (anyHeader.test(line)) {
-      section = null
-      continue
-    }
+    const section: HeaderMacro['section'] | null = sasMacrosHeader.test(line)
+      ? 'sasMacros'
+      : otherMacrosHeader.test(line)
+        ? 'otherMacros'
+        : null
 
     if (!section) continue
 
-    const match = listItem.exec(line)
-    if (!match) {
-      // A blank line, or any line that is not an @li entry, ends the list.
-      section = null
-      continue
+    // An entry can share the line with the section tag.
+    const tagEnd = line.indexOf(headerTag) + headerTag.length
+    const trailing = parseListItem(line.slice(tagEnd), tagEnd)
+    if (trailing) {
+      macros.push({
+        name: trailing.name,
+        lineNumber: index + 1,
+        startColumnNumber: trailing.column,
+        endColumnNumber: trailing.column + trailing.name.length,
+        section
+      })
     }
 
-    const name = toMacroName(match[1])
-    if (!name) continue
-
-    const nameIndex = line.indexOf(name)
-
-    macros.push({
-      name,
-      lineNumber: index + 1,
-      startColumnNumber: nameIndex + 1,
-      endColumnNumber: nameIndex + name.length + 1,
-      section
+    readSectionList(lines, index, headerLinesCount).entries.forEach((entry) => {
+      macros.push({
+        name: entry.name,
+        lineNumber: entry.lineNumber,
+        startColumnNumber: entry.column,
+        endColumnNumber: entry.column + entry.name.length,
+        section
+      })
     })
   }
 
@@ -144,16 +215,53 @@ const withSectionSpacing = (
 }
 
 /**
+ * Locates the `<h4> SAS Macros </h4>` section of a header.
+ *
+ * Returns `null` when the section is absent, and `null` when it cannot be
+ * rewritten without disturbing the surrounding text: when the section shares a
+ * line with the header's closing `**`, or when an `@li` entry shares the line
+ * with the section tag. In those cases the caller leaves the file alone, so a
+ * warning that cannot be resolved is preferable to a corrupted header.
+ */
+const findSasMacrosSection = (
+  lines: string[],
+  headerLinesCount: number
+): { sectionIndex: number; entries: HeaderEntry[]; end: number } | null => {
+  let sectionIndex = -1
+  for (
+    let index = 0;
+    index < headerLinesCount && index < lines.length;
+    index++
+  ) {
+    if (sasMacrosHeader.test(lines[index])) {
+      sectionIndex = index
+      break
+    }
+  }
+
+  if (sectionIndex === -1) return null
+  if (sectionIndex === headerLinesCount - 1) return null
+
+  const tagEnd = lines[sectionIndex].indexOf(headerTag) + headerTag.length
+  if (parseListItem(lines[sectionIndex].slice(tagEnd))) return null
+
+  const { entries, end } = readSectionList(
+    lines,
+    sectionIndex,
+    headerLinesCount
+  )
+
+  return { sectionIndex, entries, end }
+}
+
+/**
  * Adds macro names to the `<h4> SAS Macros </h4>` section of a file header,
- * merging them with the entries that are already listed and sorting the result
- * alphabetically. A new section is added when the header has none.
+ * merging them with the entries that are already listed, de-duplicating by
+ * name, and sorting the result alphabetically. A new section is added when the
+ * header has none.
  *
  * A blank line separates the section from the header content before it and from
  * whatever follows the list, so the section reads as its own block.
- *
- * The file is returned unchanged when it has no Doxygen header, or when the
- * `SAS Macros` section shares a line with the header's closing `**`, because
- * neither case can be edited without disturbing the surrounding text.
  *
  * @param {string} text - the text content of the file.
  * @param {LintConfig} config - the lint configuration, used for line endings.
@@ -174,20 +282,15 @@ export const addMacrosToHeader = (
   const lineEnding = config.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
   const headerEndIndex = headerLinesCount - 1
 
-  let sectionIndex = -1
-  for (
-    let index = 0;
-    index < headerLinesCount && index < lines.length;
-    index++
-  ) {
-    if (sasMacrosHeader.test(lines[index])) {
-      sectionIndex = index
-      break
-    }
-  }
+  const section = findSasMacrosSection(lines, headerLinesCount)
 
-  if (sectionIndex === -1) {
-    if (headerEndIndex === 0) return text
+  if (!section) {
+    // No section, or one that cannot be rewritten. Only a genuinely absent
+    // section is safe to create, so check for the tag first.
+    const hasSection = lines
+      .slice(0, headerLinesCount)
+      .some((line) => sasMacrosHeader.test(line))
+    if (hasSection || headerEndIndex === 0) return text
 
     const indent = getHeaderIndent(lines, headerLinesCount)
     const sectionLines = [
@@ -208,35 +311,29 @@ export const addMacrosToHeader = (
     ).join(lineEnding)
   }
 
-  if (sectionIndex === headerEndIndex) return text
-
+  const { sectionIndex, entries, end } = section
   const indent = (lines[sectionIndex].match(/^\s*/) as RegExpMatchArray)[0]
-  const entries: { name: string; line: string }[] = []
 
-  let listEnd = sectionIndex + 1
-  while (listEnd < headerLinesCount && listEnd < lines.length) {
-    const match = listItem.exec(lines[listEnd])
-    if (!match) break
-    entries.push({ name: toMacroName(match[1]), line: lines[listEnd] })
-    listEnd++
-  }
-
-  const seen = new Set(entries.map((entry) => entry.name.toLowerCase()))
+  const byName = new Map<string, { name: string; line: string }>()
+  entries.forEach((entry) => {
+    const key = entry.name.toLowerCase()
+    if (!byName.has(key))
+      byName.set(key, { name: entry.name, line: entry.line })
+  })
   macros.forEach((macro) => {
     const key = macro.toLowerCase()
-    if (seen.has(key)) return
-    seen.add(key)
-    entries.push({ name: macro, line: `${indent}@li ${macro}.sas` })
+    if (byName.has(key)) return
+    byName.set(key, { name: macro, line: `${indent}@li ${macro}.sas` })
   })
 
-  const sortedLines = entries
+  const sortedLines = [...byName.values()]
     .sort((a, b) => compareMacroNames(a.name, b.name))
     .map((entry) => entry.line)
 
   const result = [
     ...lines.slice(0, sectionIndex + 1),
     ...sortedLines,
-    ...lines.slice(listEnd)
+    ...lines.slice(end)
   ]
 
   return withSectionSpacing(
@@ -253,8 +350,8 @@ export const addMacrosToHeader = (
  * after the list is preserved.
  *
  * The file is returned unchanged when it has no Doxygen header, when the header
- * has no `SAS Macros` section, when the section shares a line with the header's
- * closing `**`, or when none of the named macros are listed.
+ * has no `SAS Macros` section, when the section cannot be rewritten safely, or
+ * when none of the named macros are listed.
  *
  * @param {string} text - the text content of the file.
  * @param {LintConfig} config - the lint configuration, used for line endings.
@@ -273,41 +370,37 @@ export const removeMacrosFromHeader = (
 
   const lines = splitText(text, config)
   const lineEnding = config.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
-  const headerEndIndex = headerLinesCount - 1
 
-  let sectionIndex = -1
-  for (
-    let index = 0;
-    index < headerLinesCount && index < lines.length;
-    index++
-  ) {
-    if (sasMacrosHeader.test(lines[index])) {
-      sectionIndex = index
-      break
-    }
-  }
+  const section = findSasMacrosSection(lines, headerLinesCount)
+  if (!section) return text
 
-  if (sectionIndex === -1 || sectionIndex === headerEndIndex) return text
-
+  const { sectionIndex, entries, end } = section
   const remove = new Set(macros.map((macro) => macro.toLowerCase()))
   const kept: string[] = []
+  const seen = new Set<string>()
   let changed = false
-  let listEnd = sectionIndex + 1
 
-  while (listEnd < headerLinesCount && listEnd < lines.length) {
-    const match = listItem.exec(lines[listEnd])
-    if (!match) break
-    if (remove.has(toMacroName(match[1]).toLowerCase())) changed = true
-    else kept.push(lines[listEnd])
-    listEnd++
-  }
+  entries.forEach((entry) => {
+    const key = entry.name.toLowerCase()
+    if (remove.has(key)) {
+      changed = true
+      return
+    }
+    if (seen.has(key)) {
+      // A duplicate entry for a macro that is kept.
+      changed = true
+      return
+    }
+    seen.add(key)
+    kept.push(entry.line)
+  })
 
   if (!changed) return text
 
   const result = [
     ...lines.slice(0, sectionIndex + 1),
     ...kept,
-    ...lines.slice(listEnd)
+    ...lines.slice(end)
   ]
 
   return withSectionSpacing(
@@ -316,3 +409,6 @@ export const removeMacrosFromHeader = (
     sectionIndex + 1 + kept.length
   ).join(lineEnding)
 }
+
+const compareMacroNames = (a: string, b: string): number =>
+  a.toLowerCase().localeCompare(b.toLowerCase())

@@ -154,4 +154,24 @@ describe('noUndeclaredMacros - fix', () => {
 
     expect(noUndeclaredMacros.fix!(text)).toContain('@li mf_trim.sas')
   })
+
+  it('should not duplicate an entry that sits below a blank line', () => {
+    const text = `/**
+  @file
+  @brief x
+
+  <h4> SAS Macros </h4>
+  @li mf_a.sas
+
+  @li mf_b.sas
+
+**/
+%mf_a()
+%mf_b()`
+
+    // Both macros are declared, so the fix has nothing to add and must leave
+    // the file alone. A reader that stopped at the blank line would treat mf_b
+    // as undeclared and add a second entry for it.
+    expect(noUndeclaredMacros.fix!(text, new LintConfig())).toEqual(text)
+  })
 })
