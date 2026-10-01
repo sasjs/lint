@@ -146,24 +146,21 @@ export class LintConfig {
       this.fileLintRules.push(hasRequiredMacroOptions)
 
       if (json?.requiredMacroOptions) {
-        if (
-          Array.isArray(json.requiredMacroOptions) &&
-          json.requiredMacroOptions.length > 0
-        ) {
-          json.requiredMacroOptions.forEach((item: any) => {
-            if (typeof item === 'string') {
-              this.requiredMacroOptions.push(item)
-            } else {
-              throw new Error(
-                `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
-              )
-            }
-          })
-        } else {
+        if (!Array.isArray(json.requiredMacroOptions)) {
           throw new Error(
             `Property "requiredMacroOptions" can only be an array of strings.`
           )
         }
+
+        json.requiredMacroOptions.forEach((item: any) => {
+          if (typeof item === 'string') {
+            this.requiredMacroOptions.push(item)
+          } else {
+            throw new Error(
+              `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
+            )
+          }
+        })
       }
     }
 

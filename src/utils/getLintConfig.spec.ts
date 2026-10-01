@@ -108,4 +108,14 @@ describe('DefaultLintConfiguration', () => {
       ruleNames(new LintConfig(DefaultLintConfiguration))
     )
   })
+
+  it('should accept the documented defaults with hasRequiredMacroOptions enabled', () => {
+    expect(
+      () =>
+        new LintConfig({
+          ...DefaultLintConfiguration,
+          hasRequiredMacroOptions: true
+        })
+    ).not.toThrow()
+  })
 })

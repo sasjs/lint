@@ -316,4 +316,18 @@ describe('LintConfig', () => {
       `Property "requiredMacroOptions" has invalid type of values. It can only contain strings.`
     )
   })
+
+  it('should accept an empty requiredMacroOptions list', () => {
+    const config = new LintConfig({
+      hasRequiredMacroOptions: true,
+      requiredMacroOptions: []
+    })
+
+    expect(config.requiredMacroOptions).toEqual([])
+    expect(
+      config.fileLintRules.find(
+        (rule) => rule.name === 'hasRequiredMacroOptions'
+      )
+    ).toBeTruthy()
+  })
 })
