@@ -49,6 +49,8 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 }
 ```
 
+Two keys do not have a section of their own. `requiredMacroOptions` is documented with [`hasRequiredMacroOptions`](#hasrequiredmacrooptions), the rule it configures. The deprecated alias `noTabIndentation` is accepted in place of `noTabs`, and is therefore not listed above - it is an alternative spelling rather than a setting of its own.
+
 ## SAS Lint Settings
 
 Each setting can have three states:
@@ -57,7 +59,7 @@ Each setting can have three states:
 - WARN - a warning is written to the log, but the return code will be 0
 - ERROR - an error is written to the log, and the return code is 1
 
-For more details, and the default state, see the description of each rule below. It is also possible to change whether a rule returns ERROR or WARN using the `severityLevels` object.
+For more details, and the default state, see the description of each rule below. It is also possible to change whether a rule returns ERROR or WARN using the `severityLevel` object.
 
 Configuring a non-zero return code (ERROR) is helpful when running `sasjs lint` as part of a git pre-commit hook.  An example is available [here](https://github.com/sasjs/template_jobs/blob/main/.git-hooks/pre-commit).
 
@@ -339,6 +341,18 @@ The counterpart of `noUndeclaredMacros`. This rule reports a warning for each ma
 A macro can be referenced indirectly - for example by another macro in the dependency chain, or through a dynamic `%&macro` call - without appearing as a direct invocation in the file, so the warning is advisory.
 
 Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) removes the unused entries from the header. Together with `noUndeclaredMacros`, this leaves the `<h4> SAS Macros </h4>` section listing exactly the macros the file uses.
+
+- Default: true
+- Severity: WARNING
+
+### strictMacroDefinition
+
+This will check the syntax of a macro definition, and warn about two things:
+
+- a parameter name that contains a space, as in `%macro myMacro(my var);`
+- an option that SAS does not recognise, as in `%macro myMacro()/nonsense;`
+
+The options SAS accepts are `CMD`, `DES`, `MINDELIMITER`, `MINOPERATOR`, `NOMINOPERATOR`, `PARMBUFF`, `SECURE`, `NOSECURE`, `STMT`, `SOURCE`, `SRC` and `STORE`.
 
 - Default: true
 - Severity: WARNING
