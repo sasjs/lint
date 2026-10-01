@@ -118,4 +118,23 @@ describe('DefaultLintConfiguration', () => {
         })
     ).not.toThrow()
   })
+
+  it('should document every setting in the README', () => {
+    const readme = readFileSync(
+      join(__dirname, '..', '..', 'README.md'),
+      'utf-8'
+    )
+
+    // `requiredMacroOptions` is documented with the rule it configures, and
+    // `severityLevel` is a top-level section rather than a rule.
+    const documentedElsewhere = ['requiredMacroOptions']
+
+    const undocumented = Object.keys(DefaultLintConfiguration).filter(
+      (setting) =>
+        !documentedElsewhere.includes(setting) &&
+        !new RegExp(`^#{2,3} ${setting}$`, 'm').test(readme)
+    )
+
+    expect(undocumented).toEqual([])
+  })
 })
