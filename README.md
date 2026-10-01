@@ -21,12 +21,13 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 
 ```json
 {
+  "allowedGremlins": [],
+  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/",
   "hasDoxygenHeader": true,
   "hasMacroNameInMend": true,
   "hasMacroParentheses": true,
   "hasRequiredMacroOptions": false,
-  "requiredMacroOptions": ["SECURE", "SRC"],
-  "ignoreList": ["sasjsbuild/", "sasjsresults/"],
+  "ignoreList": [],
   "indentationMultiple": 2,
   "lineEndings": "off",
   "lowerCaseFileNames": true,
@@ -34,15 +35,17 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "maxHeaderLineLength": 80,
   "maxLineLength": 80,
   "noEncodedPasswords": true,
+  "noGremlins": true,
   "noNestedMacros": true,
   "noSingleAsteriskComments": false,
-  "noGremlins": true,
   "noSpacesInFileNames": true,
   "noTabs": true,
   "noTrailingSpaces": true,
   "noUndeclaredMacros": true,
   "noUnusedMacros": true,
-  "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/"
+  "requiredMacroOptions": [],
+  "severityLevel": {},
+  "strictMacroDefinition": true
 }
 ```
 

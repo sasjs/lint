@@ -9,26 +9,39 @@ export const getDefaultHeader = () =>
   `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/`
 
 /**
- * Default configuration that is used when a .sasjslint file is not found
+ * Default configuration that is used when a .sasjslint file is not found.
+ *
+ * It lists every setting the linter reads, with its default value, so it
+ * doubles as the reference for the `.sasjslint` file. `getLintConfig.spec.ts`
+ * enumerates the settings the config reads and fails if this object misses one,
+ * and the README mirrors it.
  */
 export const DefaultLintConfiguration = {
-  lineEndings: LineEndings.OFF,
-  noTrailingSpaces: true,
-  noEncodedPasswords: true,
+  allowedGremlins: [],
+  defaultHeader: getDefaultHeader(),
   hasDoxygenHeader: true,
-  noSpacesInFileNames: true,
-  lowerCaseFileNames: true,
-  maxLineLength: 80,
-  maxHeaderLineLength: 80,
-  maxDataLineLength: 80,
-  noTabIndentation: true,
-  indentationMultiple: 2,
   hasMacroNameInMend: true,
-  noNestedMacros: true,
   hasMacroParentheses: true,
-  strictMacroDefinition: true,
+  hasRequiredMacroOptions: false,
+  ignoreList: [],
+  indentationMultiple: 2,
+  lineEndings: LineEndings.OFF,
+  lowerCaseFileNames: true,
+  maxDataLineLength: 80,
+  maxHeaderLineLength: 80,
+  maxLineLength: 80,
+  noEncodedPasswords: true,
   noGremlins: true,
-  defaultHeader: getDefaultHeader()
+  noNestedMacros: true,
+  noSingleAsteriskComments: false,
+  noSpacesInFileNames: true,
+  noTabs: true,
+  noTrailingSpaces: true,
+  noUndeclaredMacros: true,
+  noUnusedMacros: true,
+  requiredMacroOptions: [],
+  severityLevel: {},
+  strictMacroDefinition: true
 }
 
 /**
