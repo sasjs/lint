@@ -2,8 +2,14 @@ import type { LintConfig } from '../types/LintConfig'
 import { getHeaderLinesCount } from './getHeaderLinesCount'
 import { splitText } from './splitText'
 
-/** The tag that introduces a per-file override, matching `.sasjslint`. */
-const marker = '@sasjslint'
+/**
+ * The tag that introduces a per-file override, with the object that must follow
+ * it. The tag has to start a header line, and the `{` has to come immediately
+ * after it, so a `@brief` that mentions the syntax in prose, a longer tag such
+ * as `@sasjslintFoo`, and a tag with something else after it are all left alone
+ * rather than read as an override.
+ */
+const marker = /^[^\w]*@sasjslint\s*\{/m
 
 /**
  * Reads a balanced JSON object from `start`, honouring strings and escapes so
@@ -72,11 +78,11 @@ export const getLintOverride = (
 
   const header = splitText(text, config).slice(0, headerLinesCount).join('\n')
 
-  const at = header.indexOf(marker)
-  if (at === -1) return null
+  const match = marker.exec(header)
+  if (!match) return null
 
-  const brace = header.indexOf('{', at + marker.length)
-  if (brace === -1) return null
+  // The match ends with the opening brace.
+  const brace = match.index + match[0].length - 1
 
   const body = readObject(header, brace)
   if (!body) return null

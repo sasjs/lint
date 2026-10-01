@@ -1,17 +1,50 @@
 /**
+ * Deprecated setting names, mapped to the canonical key. An alias is folded onto
+ * the canonical key before the merge, so a project that sets `noTabIndentation`
+ * and a file that sets `noTabs` cannot end up carrying both - which would let
+ * the alias win in the constructor and defeat the file.
+ */
+const aliases: Record<string, string> = {
+  noTabIndentation: 'noTabs'
+}
+
+const normaliseAliases = (json: any): any => {
+  if (!isPlainObject(json)) return json
+
+  const normalised = { ...json }
+
+  for (const [alias, canonical] of Object.entries(aliases)) {
+    if (alias in normalised) {
+      if (!(canonical in normalised)) {
+        normalised[canonical] = normalised[alias]
+      }
+
+      delete normalised[alias]
+    }
+  }
+
+  return normalised
+}
+
+/**
  * Merges a per-file configuration override over the project configuration.
  *
  * Scalars replace, arrays are additive, and objects merge key by key. A file
  * therefore adds an allowed gremlin, a required macro option or a severity
  * level without having to restate the rest of the project configuration, and
- * it can still switch a rule off or raise a limit for itself.
+ * it can still switch a rule off or raise a limit for itself. Deprecated
+ * setting names are folded onto their canonical key first.
  */
 export const mergeLintConfig = (base: any, override: any): any => {
-  if (!isPlainObject(base) || !isPlainObject(override)) return override
+  const normalisedOverride = normaliseAliases(override)
 
-  const merged: any = { ...base }
+  if (!isPlainObject(base) || !isPlainObject(normalisedOverride)) {
+    return normalisedOverride
+  }
 
-  for (const [key, value] of Object.entries(override)) {
+  const merged: any = normaliseAliases(base)
+
+  for (const [key, value] of Object.entries(normalisedOverride)) {
     const current = merged[key]
 
     if (Array.isArray(current) && Array.isArray(value)) {

@@ -58,4 +58,20 @@ ${line}
       ).some((d) => /not declared/.test(d.message))
     ).toBe(false)
   })
+
+  it('should let a file override a project that uses the deprecated alias', async () => {
+    const project = new LintConfig({ noTabIndentation: false })
+
+    const text = `/**
+  @file
+  @sasjslint {"noTabs": true}
+**/
+\t%mf_trim()`
+
+    expect(
+      (await lintText(text, project)).some((d) =>
+        /tab character/.test(d.message)
+      )
+    ).toBe(true)
+  })
 })

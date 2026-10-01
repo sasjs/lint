@@ -47,4 +47,22 @@ describe('mergeLintConfig', () => {
       noTabs: false
     })
   })
+
+  it('should fold the deprecated alias onto the canonical key', () => {
+    expect(
+      mergeLintConfig({ noTabIndentation: false }, { noTabs: true })
+    ).toEqual({ noTabs: true })
+  })
+
+  it('should fold the alias when the override carries it', () => {
+    expect(
+      mergeLintConfig({ noTabs: true }, { noTabIndentation: false })
+    ).toEqual({ noTabs: false })
+  })
+
+  it('should let the canonical key win over the alias', () => {
+    expect(
+      mergeLintConfig({}, { noTabIndentation: false, noTabs: true })
+    ).toEqual({ noTabs: true })
+  })
 })

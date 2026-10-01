@@ -114,3 +114,35 @@ describe('applyLintOverride', () => {
     expect(applyLintOverride('%mf_trim()', config)).toBe(config)
   })
 })
+
+describe('getLintOverride tag matching', () => {
+  it('should ignore a tag mentioned in prose, even with a valid object', () => {
+    const text = withHeader(
+      '  @brief write @sasjslint {"noTabs": false} to keep tabs'
+    )
+
+    expect(getLintOverride(text, new LintConfig())).toBeNull()
+  })
+
+  it('should ignore a longer tag', () => {
+    const text = withHeader('  @sasjslintFoo {"noTabs": false}')
+
+    expect(getLintOverride(text, new LintConfig())).toBeNull()
+  })
+
+  it('should ignore a tag whose object does not follow it', () => {
+    const text = withHeader('  @sasjslint (see the docs) {not the object}')
+
+    expect(getLintOverride(text, new LintConfig())).toBeNull()
+  })
+
+  it('should read a tag on an asterisk-prefixed line', () => {
+    const text = `/**
+ * @file
+ * @sasjslint {"noTabs": false}
+ **/
+%mf_trim()`
+
+    expect(getLintOverride(text, new LintConfig())).toEqual({ noTabs: false })
+  })
+})
