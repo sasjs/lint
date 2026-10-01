@@ -35,6 +35,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "maxLineLength": 80,
   "noEncodedPasswords": true,
   "noNestedMacros": true,
+  "noSingleAsteriskComments": false,
   "noGremlins": true,
   "noSpacesInFileNames": true,
   "noTabs": true,
@@ -237,6 +238,23 @@ Where macros are defined inside other macros, they are recompiled every time the
 - Default: true
 - Severity: WARNING
 
+### noSingleAsteriskComments
+
+SAS supports a comment statement that begins with a single asterisk and runs to the next semicolon, for example `* some text;`. This style is easy to mistype - a missing terminating semicolon turns the rest of the program into a comment - and it cannot be nested, so the SASjs framework recommends block comments (`/* ... */`) instead.
+
+This rule reports a warning for each comment statement that begins with a single asterisk. It ignores asterisks inside quoted strings, `%str()` / `%nrstr()` arguments, macro comments (`%* ... ;`), data sections (`datalines` / `cards`), `proc lua` / `proc groovy` submit blocks and arithmetic expressions (`a * b`, `b ** a`, `select * from`), so it only fires on genuine comment statements.
+
+- Default: false
+- Severity: WARNING
+
+Example:
+
+```json
+{
+  "noSingleAsteriskComments": true
+}
+```
+
 ### noSpacesInFileNames
 
 The 'beef' we have with spaces in filenames is twofold:
@@ -307,6 +325,7 @@ We're looking to implement the following rules:
 - Change tabs to spaces
 - zap gremlins
 - fix line endings
+- convert single asterisk comments to block comments
 
 We are also investigating some harder stuff, such as automatic indentation and code layout
 

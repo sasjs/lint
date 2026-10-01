@@ -17,6 +17,7 @@
     "maxDataLineLength": 80,
     "noGremlins": true,
     "noNestedMacros": true,
+    "noSingleAsteriskComments": false,
     "noSpacesInFileNames": true,
     "noTabs": true,
     "noTrailingSpaces": true,
@@ -42,6 +43,7 @@
       "indentationMultiple": 4,
       "hasMacroNameInMend": true,
       "noNestedMacros": true,
+      "noSingleAsteriskComments": false,
       "hasMacroParentheses": true,
       "lineEndings": "crlf",
       "strictMacroDefinition": true,
@@ -157,6 +159,14 @@
       "title": "noNestedMacros",
       "description": "Enforces the absence of nested macro definitions. Shows a warning for each nested macro definition.",
       "default": true,
+      "examples": [true, false]
+    },
+    "noSingleAsteriskComments": {
+      "$id": "#/properties/noSingleAsteriskComments",
+      "type": "boolean",
+      "title": "noSingleAsteriskComments",
+      "description": "Enforces the absence of SAS comment statements that begin with a single asterisk, such as `* some text;`. Shows a warning for each such comment. Defaults to off.",
+      "default": false,
       "examples": [true, false]
     },
     "noSpacesInFileNames": {
@@ -302,6 +312,13 @@
         "noNestedMacros": {
           "$id": "#/properties/severityLevel/noNestedMacros",
           "title": "noNestedMacros",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noSingleAsteriskComments": {
+          "$id": "#/properties/severityLevel/noSingleAsteriskComments",
+          "title": "noSingleAsteriskComments",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

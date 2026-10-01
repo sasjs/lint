@@ -5,7 +5,8 @@ import {
   hasMacroParentheses,
   lineEndings,
   strictMacroDefinition,
-  hasRequiredMacroOptions
+  hasRequiredMacroOptions,
+  noSingleAsteriskComments
 } from '../rules/file'
 import {
   indentationMultiple,
@@ -157,6 +158,10 @@ export class LintConfig {
           )
         }
       }
+    }
+
+    if (json?.noSingleAsteriskComments) {
+      this.fileLintRules.push(noSingleAsteriskComments)
     }
 
     if (json?.noGremlins !== false) {
