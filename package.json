@@ -1,11 +1,13 @@
 {
   "name": "@sasjs/lint",
   "description": "Linting and formatting for SAS code",
+  "engines": {
+    "node": ">=14"
+  },
   "scripts": {
     "test": "jest --coverage",
     "build": "rimraf build && tsc",
     "generate:macros": "node ./scripts/generate-macro-names.mjs",
-    "preinstall": "node checkNodeVersion",
     "prebuild": "node checkNodeVersion",
     "publishInit": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
     "package:lib": "npm run build && cp ./package.json ./checkNodeVersion.js build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
