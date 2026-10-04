@@ -70,7 +70,7 @@
     "typescript": "6.0.3"
   },
   "dependencies": {
-    "@sasjs/utils": "3.6.3",
+    "@sasjs/utils": "3.6.4",
     "ignore": "7.0.11"
   },
   "version": "4.1.1"
