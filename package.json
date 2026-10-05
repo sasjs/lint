@@ -2,7 +2,7 @@
   "name": "@sasjs/lint",
   "description": "Linting and formatting for SAS code",
   "engines": {
-    "node": "^14.18.0 || >=16.10.0"
+    "node": ">=22"
   },
   "scripts": {
     "test": "jest --coverage",
