@@ -13,7 +13,10 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [lts/*]
+        # The floor is what the manifest declares; lts/* tracks the newest LTS.
+        # Testing only lts/* would let a change that breaks node 22 ship, since
+        # lts/* already resolves to 24.
+        node-version: [22, lts/*]
 
     steps:
       - uses: actions/checkout@v4
