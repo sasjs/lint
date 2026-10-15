@@ -1,4 +1,4 @@
-import { fileExists, readFile } from '@sasjs/utils'
+import { fileExists, readFile } from '@sasjs/utils/file'
 import path from 'path'
 import ignore from 'ignore'
 import { getLintConfig, getProjectRoot } from '.'
