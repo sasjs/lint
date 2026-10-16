@@ -56,4 +56,13 @@ jobs:
             exit 0
           fi
 
-          gh issue create --title "$title" --body-file "$REPORT"
+          if [ -f "$REPORT" ]; then
+            gh issue create --title "$title" --body-file "$REPORT"
+          else
+            # The script writes a report even when the watch itself breaks, so
+            # this means it never started. File the issue anyway rather than
+            # failing on a missing path and filing nothing.
+            gh issue create --title "$title" --body \
+              "The audit watch step failed before producing a report. Check the run:
+          $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          fi

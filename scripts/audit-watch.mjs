@@ -108,12 +108,14 @@ const latestPublished = (name) => {
 }
 
 /**
- * Numeric dotted comparison, so `1.1.10` sorts above `1.1.9`. A non-numeric
- * segment (a prerelease tag) falls back to a string compare of that segment.
+ * Numeric dotted comparison, so `1.1.10` sorts above `1.1.9`. A prerelease
+ * suffix is dropped from both sides first: `1.1.3-beta.1` is not newer than
+ * `1.1.3`, and a prerelease that happens to be tagged `latest` must not raise
+ * the alarm by itself.
  */
 const isNewer = (candidate, baseline) => {
-  const a = candidate.split('.')
-  const b = baseline.split('.')
+  const a = candidate.split('-')[0].split('.')
+  const b = baseline.split('-')[0].split('.')
   for (let i = 0; i < Math.max(a.length, b.length); i++) {
     const left = a[i] ?? '0'
     const right = b[i] ?? '0'
@@ -126,6 +128,25 @@ const isNewer = (candidate, baseline) => {
     return leftNumber > rightNumber
   }
   return false
+}
+
+/**
+ * Write the report to the step summary and to the file the workflow reads.
+ * Wrapped so a failure to report cannot mask the failure being reported - and
+ * so the workflow's `gh issue create --body-file` always has a file, including
+ * on the path below where the watch itself broke.
+ */
+const writeReport = (summary) => {
+  try {
+    if (process.env.GITHUB_STEP_SUMMARY) {
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary)
+    }
+    if (process.env.AUDIT_WATCH_REPORT) {
+      writeFileSync(process.env.AUDIT_WATCH_REPORT, summary)
+    }
+  } catch (error) {
+    console.error(`could not write the report: ${error.message}`)
+  }
 }
 
 const main = () => {
@@ -198,12 +219,7 @@ const main = () => {
   ].join('\n')
 
   console.log(summary)
-  if (process.env.GITHUB_STEP_SUMMARY) {
-    appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary)
-  }
-  if (process.env.AUDIT_WATCH_REPORT) {
-    writeFileSync(process.env.AUDIT_WATCH_REPORT, summary)
-  }
+  writeReport(summary)
 
   process.exitCode = problems.length ? 1 : 0
 }
@@ -211,6 +227,23 @@ const main = () => {
 try {
   main()
 } catch (error) {
+  // The watch itself broke, so the exemption went unchecked. Say so in the
+  // report rather than leaving the workflow to fail on a missing file.
+  const summary = [
+    '## Dev-tree audit watch',
+    '',
+    'The watch did not complete, so the dev-tree audit exemption was **not**',
+    'checked against the tree. Nothing is known about the advisories right now.',
+    '',
+    '```',
+    error.message,
+    '```',
+    '',
+    'Investigate the failing step, then re-run the workflow.',
+    ''
+  ].join('\n')
+
   console.error(`audit watch failed: ${error.message}`)
+  writeReport(summary)
   process.exit(1)
 }
