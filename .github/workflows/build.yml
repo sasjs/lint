@@ -49,6 +49,12 @@ jobs:
         # still in range), so gating on it would mean a permanently red build.
         # `npm audit fix --force` does not fix it either - it downgrades jest
         # 30 -> 25 and takes the tree from 21 advisories to 45.
+        #
+        # The exemption is not open-ended: audit-watch.yml runs the full audit
+        # weekly and fails when this comment stops matching the tree - a new
+        # dev-tree advisory, this one disappearing, or sprintf-js publishing a
+        # newer release. Keep the GHSA id named here and in the EXEMPTIONS list
+        # of scripts/audit-watch.mjs.
         run: npm audit --omit=dev --audit-level=low
       - name: Check Code Style
         run: npm run lint

@@ -1,0 +1,59 @@
+name: Audit Watch
+
+# The build gate runs `npm audit --omit=dev`, because the dev tree carries one
+# advisory that cannot be fixed from here (GHSA-hp3w-g68c-fv3c, sprintf-js - see
+# the Security Audit step in build.yml). Nothing in build.yml re-checks the dev
+# tree, so that exemption would otherwise be open-ended. This runs the full audit
+# weekly and fails when the exemption stops matching reality: a new dev-tree
+# advisory appears, an exempted one disappears, or a package named in the
+# exemption publishes a newer release. Any of those files an issue - and only
+# those, because a scheduled job that is red every week trains people to ignore
+# red.
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Mondays, 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Re-check the dev-tree audit exemption
+        id: watch
+        env:
+          AUDIT_WATCH_REPORT: ${{ runner.temp }}/audit-watch-report.md
+        run: node scripts/audit-watch.mjs
+
+      - name: File an issue
+        # `always()` because the watched step has already failed, which would
+        # otherwise skip this one.
+        if: always() && steps.watch.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT: ${{ runner.temp }}/audit-watch-report.md
+        run: |
+          title='Audit watch: the dev-tree exemption needs re-evaluating'
+          existing=$(gh issue list --state open --search "\"$title\" in:title" \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "already tracked in #$existing"
+            exit 0
+          fi
+
+          gh issue create --title "$title" --body-file "$REPORT"
