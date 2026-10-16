@@ -2,7 +2,12 @@ import { lintProject } from './lintProject'
 import { Severity } from '../types/Severity'
 import * as getProjectRootModule from '../utils/getProjectRoot'
 import path from 'path'
-import { createFolder, createFile, readFile, deleteFolder } from '@sasjs/utils'
+import {
+  createFolder,
+  createFile,
+  readFile,
+  deleteFolder
+} from '@sasjs/utils/file'
 import { DefaultLintConfiguration } from '../utils'
 jest.mock('../utils/getProjectRoot')
 
