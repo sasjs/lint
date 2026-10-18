@@ -9,6 +9,18 @@ on:
       - main
   workflow_dispatch:
 
+# One release at a time. Both triggers publish, and the push trigger fires on
+# every release commit @semantic-release/git pushes back to main, so a
+# dispatched recovery run can interleave with a push-triggered one. Two
+# semantic-release processes racing the same tag and the same npm publish is a
+# new way to strand a release - the state the retry below exists to recover.
+# `cancel-in-progress: false` queues the second run rather than cancelling the
+# first, because cancelling a run midway through a release is itself a way to
+# leave a tag pushed and the release missing.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -70,12 +82,66 @@ jobs:
         # - and that bundled npm carries advisories nothing here can fix.
         # Installing it here, pinned, keeps the dependency tree clean. Keep
         # these versions in step with `release.plugins` in package.json.
+        #
+        # semantic-release pushes twice: @semantic-release/git pushes the release
+        # commit to the branch, then core pushes the tag in a second, tags-only
+        # push. When that second push is rejected the branch keeps the release
+        # commit - package.json at the new version - with no tag: no GitHub
+        # release, no npm publish, and every later run dying in the exec plugin's
+        # `npm version` with "Version not changed", a state only a hand repair
+        # clears. sasjs/adapter hit exactly that on 2026-10-17.
+        #
+        # The tag push runs after the tag exists locally and after the branch is
+        # updated, so one more attempt has only the tag to push. Retry exactly
+        # that case: a local tag alone does not identify it, because the tag is
+        # also there when the failure came later (the GitHub release), and
+        # retrying that finds the tag restored by semantic-release's own fetch,
+        # decides there is nothing to release, exits 0 and leaves the step green
+        # with the release still missing - so require the tag to be absent from
+        # the remote as well.
+        #
+        # Only a definitive answer counts. `git ls-remote --exit-code` exits 2 for
+        # an absent ref but 128 when the query itself fails (network, auth,
+        # unreachable remote), and treating every non-zero exit as "absent" would
+        # retry on the transient GitHub-side failures that are the very class of
+        # incident this retry repairs. So 2 retries, 0 and anything else fail the
+        # step.
         run: |
-          npx --yes \
-            --package semantic-release@25.0.9 \
-            --package @semantic-release/exec@7.1.0 \
-            --package @semantic-release/git@11.0.1 \
-            semantic-release
+          run_release() {
+            npx --yes \
+              --package semantic-release@25.0.9 \
+              --package @semantic-release/exec@7.1.0 \
+              --package @semantic-release/git@11.0.1 \
+              semantic-release
+          }
+
+          if run_release; then
+            exit 0
+          fi
+
+          version=$(node -p "require('./package.json').version")
+
+          if ! git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "No local v$version tag, so the failure came before the tag was created - not retrying." >&2
+            exit 1
+          fi
+
+          ls_rc=0
+          git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null 2>&1 || ls_rc=$?
+
+          if [ "$ls_rc" -eq 0 ]; then
+            echo "v$version is already on the remote, so the failure came after the tag push - not retrying." >&2
+            exit 1
+          fi
+
+          if [ "$ls_rc" -ne 2 ]; then
+            echo "Could not establish whether v$version is on the remote (git ls-remote exited $ls_rc) - not retrying." >&2
+            exit 1
+          fi
+
+          echo "Retrying: v$version exists locally but not on the remote, so the tag push is what failed."
+          git tag -d "v$version"
+          run_release
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}   # <-- app token, not secrets.GITHUB_TOKEN
 
