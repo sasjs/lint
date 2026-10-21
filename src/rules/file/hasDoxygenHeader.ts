@@ -13,7 +13,6 @@ const messageForSingleAsterisk =
   'File not following Doxygen header style, use double asterisks'
 
 const test = (value: string, config?: LintConfig) => {
-  const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
   const severity = config?.severityLevel[name] || Severity.Warning
 
   try {
@@ -26,8 +25,7 @@ const test = (value: string, config?: LintConfig) => {
         {
           message: messageForSingleAsterisk,
           lineNumber:
-            (value.split('/*')![0]!.match(new RegExp(lineEnding, 'g')) ?? [])
-              .length + 1,
+            (value.split('/*')![0]!.match(/\r\n|\n/g) ?? []).length + 1,
           startColumnNumber: 1,
           endColumnNumber: 1,
           severity

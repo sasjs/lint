@@ -1,10 +1,9 @@
 import { LintConfig, Macro } from '../types'
-import { LineEndings } from '../types/LineEndings'
 import { trimComments } from './trimComments'
+import { splitLines } from './splitLines'
 
 export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
-  const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
-  const lines: string[] = text ? text.split(lineEnding) : []
+  const lines = splitLines(text)
   const macros: Macro[] = []
 
   let isCommentStarted = false

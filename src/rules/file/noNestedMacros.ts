@@ -4,16 +4,15 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getColumnNumber } from '../../utils/getColumnNumber'
 import { parseMacros } from '../../utils/parseMacros'
+import { splitLines } from '../../utils/splitLines'
 import { LintConfig } from '../../types'
-import { LineEndings } from '../../types/LineEndings'
 
 const name = 'noNestedMacros'
 const description = 'Enfoces the absence of nested macro definitions.'
 const message = `Macro definition for '{macro}' present in macro '{parent}'`
 
 const test = (value: string, config?: LintConfig) => {
-  const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
-  const lines: string[] = value ? value.split(lineEnding) : []
+  const lines = splitLines(value)
   const diagnostics: Diagnostic[] = []
   const macros = parseMacros(value, config)
   const severity = config?.severityLevel[name] || Severity.Warning
