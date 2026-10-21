@@ -451,27 +451,23 @@ We've already implemented the following rules:
 - Add undeclared macros to the `<h4> SAS Macros </h4>` section
 - Remove unused macros from the `<h4> SAS Macros </h4>` section
 - Remove trailing spaces
+- Fix line endings, including adding a missing final newline when [`lineEndings`](#lineendings) is configured
 
-We're looking to implement the following rules:
+The formatter only fixes rules that are in your configuration, so a rule that is off neither warns nor is repaired.
 
-- Change tabs to spaces
-- zap gremlins
-- fix line endings
-- convert single asterisk comments to block comments
+# Contributing
 
-We are also investigating some harder stuff, such as automatic indentation and code layout
+Development instructions, the checklist for adding a rule, and the formatter fixes still to be built live in [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+
+SASjs is an open source framework! Contributions are welcomed. If you would like to see a feature, because it would be useful in your project, but you don't have the requisite (Typescript) experience - then how about you engage us on a short project and we build it for you?
+
+Contact [Allan Bowe](https://www.linkedin.com/in/allanbowe/) for further details.
 
 # Further resources
 
 * Using the linter on terminal: https://vid.4gl.io/w/vmJspCjcBoc5QtzwZkZRvi
 * Longer intro to sasjs lint: https://vid.4gl.io/w/nDtkQFV1E8rtaa2BuM6U5s
 * CLI docs:  https://cli.sasjs.io/lint
-
-# Sponsorship & Contributions
-
-SASjs is an open source framework! Contributions are welcomed. If you would like to see a feature, because it would be useful in your project, but you don't have the requisite (Typescript) experience - then how about you engage us on a short project and we build it for you?
-
-Contact [Allan Bowe](https://www.linkedin.com/in/allanbowe/) for further details.
 
 # Contributors ✨
 
