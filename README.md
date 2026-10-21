@@ -191,7 +191,9 @@ This will check each line to ensure that the count of leading spaces can be divi
 
 ### lineEndings
 
-This setting ensures the line endings in a file to conform the configured type. Possible values are `lf`, `crlf` and `off` (off means rule is set to be off). If the value is missing, null or undefined then the check would also be switched off (no default applied).
+This setting ensures the line endings in a file conform to the configured type. Possible values are `lf`, `crlf` and `off` (off means rule is set to be off). If the value is missing, null or undefined then the check would also be switched off (no default applied).
+
+The last line is a line like any other: when this setting is `lf` or `crlf`, a file whose final line has no terminator is reported, and the formatter appends the missing terminator (`\r\n` when the setting is `crlf`, `\n` when it is `lf`). A project that wants the file end checked therefore sets this setting to `lf` or `crlf`; leaving it `off` means no line ending checks at all.
 
 - Default: "off"
 - Severity: WARNING

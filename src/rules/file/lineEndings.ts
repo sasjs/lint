@@ -5,8 +5,10 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 
 const name = 'lineEndings'
-const description = 'Ensures line endings conform to the configured type.'
+const description =
+  'Ensures every line, including the last, ends with the configured line ending.'
 const message = 'Incorrect line ending - {actual} instead of {expected}'
+const missingMessage = 'File does not end with a {expected} line ending'
 
 const test = (value: string, config?: LintConfig) => {
   const lineEndingConfig = config?.lineEndings || LineEndings.LF
@@ -60,21 +62,52 @@ const test = (value: string, config?: LintConfig) => {
       })
     }
   })
+
+  // The end of the file is a line boundary too, so a last line with no
+  // terminator at all is a violation of this rule, not a separate concern.
+  // Gate on ANY terminator being present: a wrong-style terminator at the end
+  // is already reported by the loop above, and reporting it here as well would
+  // give one byte two diagnostics, at a line past the end of the file.
+  if (value.length > 0 && !value.endsWith('\n')) {
+    const lastLines = value.split(/\r\n|\n/)
+    const lastLine = lastLines[lastLines.length - 1]
+
+    diagnostics.push({
+      message: missingMessage.replace(
+        '{expected}',
+        expectedLineEnding === '{lf}' ? 'LF' : 'CRLF'
+      ),
+      lineNumber: lastLines.length,
+      startColumnNumber: lastLine.length + 1,
+      endColumnNumber: lastLine.length + 2,
+      severity
+    })
+  }
+
   return diagnostics
 }
 
 const fix = (value: string, config?: LintConfig): string => {
   const lineEndingConfig = config?.lineEndings || LineEndings.LF
 
-  return value
+  const converted = value
     .replace(/\r\n/g, '{crlf}')
     .replace(/\n/g, '{lf}')
     .replace(/{crlf}/g, lineEndingConfig === LineEndings.LF ? '\n' : '\r\n')
     .replace(/{lf}/g, lineEndingConfig === LineEndings.LF ? '\n' : '\r\n')
+
+  const expectedCharacter = lineEndingConfig === LineEndings.LF ? '\n' : '\r\n'
+
+  if (converted.length === 0 || converted.endsWith(expectedCharacter)) {
+    return converted
+  }
+
+  return converted + expectedCharacter
 }
 
 /**
- * Lint rule that checks if line endings in a file match the configured type.
+ * Lint rule that checks if line endings in a file match the configured type,
+ * including the line ending at the end of the file.
  */
 export const lineEndings: FileLintRule = {
   type: LintRuleType.File,

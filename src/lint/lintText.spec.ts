@@ -75,7 +75,7 @@ describe('lintText', () => {
       hasDoxygenHeader: false,
       noEncodedPasswords: true
     })
-    const text = `%put 'hello'; \n%put 'world';  `
+    const text = `%put 'hello'; \n%put 'world';  \n`
 
     const results = await lintText(text, configuration)
 
