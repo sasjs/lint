@@ -463,3 +463,45 @@ describe('hasMacroNameInMend - fix', () => {
     expect(formattedContent).toEqual(expectedContent)
   })
 })
+
+describe('hasMacroNameInMend - file endings that differ from the config', () => {
+  // Readers split on either terminator. Splitting on the CONFIGURED one used to
+  // yield a single string holding the whole file, so the %mend line was never
+  // found and the column lookup threw instead of reporting.
+  it('should report an LF file under lineEndings crlf', () => {
+    const content = "%macro foo();\n  %put 'x';\n%mend;"
+    const config = new LintConfig({ lineEndings: 'crlf' })
+
+    expect(hasMacroNameInMend.test(content, config)).toEqual([
+      {
+        message: '%mend statement is missing macro name - foo',
+        lineNumber: 3,
+        startColumnNumber: 1,
+        endColumnNumber: 7,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
+  it('should report a CRLF file under lineEndings lf', () => {
+    const content = "%macro foo();\r\n  %put 'x';\r\n%mend;"
+    const config = new LintConfig({ lineEndings: 'lf' })
+
+    expect(hasMacroNameInMend.test(content, config)).toEqual([
+      {
+        message: '%mend statement is missing macro name - foo',
+        lineNumber: 3,
+        startColumnNumber: 1,
+        endColumnNumber: 7,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
+  it('should fix an LF file under lineEndings crlf', () => {
+    const content = "%macro foo();\n  %put 'x';\n%mend;"
+    const config = new LintConfig({ lineEndings: 'crlf' })
+
+    expect(hasMacroNameInMend.fix!(content, config)).toContain('%mend foo;')
+  })
+})

@@ -75,11 +75,38 @@ describe('lintText', () => {
       hasDoxygenHeader: false,
       noEncodedPasswords: true
     })
-    const text = `%put 'hello'; \n%put 'world';  `
+    const text = `%put 'hello'; \n%put 'world';  \n`
 
     const results = await lintText(text, configuration)
 
     // The configuration turns off the rules the text would otherwise trip.
     expect(results.length).toEqual(0)
+  })
+})
+
+describe('lintText - file endings that differ from the config', () => {
+  // Regression: this threw from getColumnNumber instead of reporting, because
+  // the readers split on the configured ending rather than on either one.
+  it('should report rather than throw for an LF file under lineEndings crlf', async () => {
+    const text = '/** @file @brief x **/\n%macro foo();\n%mend;'
+    const configuration = new LintConfig({ lineEndings: 'crlf' })
+
+    const results = await lintText(text, configuration)
+
+    expect(results.some((d) => d.message.includes('missing macro name'))).toBe(
+      true
+    )
+  })
+
+  it('should report rather than throw for a CRLF file under lineEndings lf', async () => {
+    const text =
+      '/** @file @brief x **/\r\n%macro foo();\r\n%mend;\r\n/* trailing */'
+    const configuration = new LintConfig({ lineEndings: 'lf' })
+
+    const results = await lintText(text, configuration)
+
+    expect(results.some((d) => d.message.includes('missing macro name'))).toBe(
+      true
+    )
   })
 })

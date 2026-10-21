@@ -277,3 +277,25 @@ describe('parseMacros', () => {
     })
   })
 })
+
+describe('parseMacros - file endings that differ from the config', () => {
+  it('should parse an LF file under lineEndings crlf', () => {
+    const text = "%macro foo();\n  %put 'x';\n%mend;"
+    const macros = parseMacros(text, new LintConfig({ lineEndings: 'crlf' }))
+
+    expect(macros.length).toEqual(1)
+    expect(macros[0].name).toEqual('foo')
+    expect(macros[0].startLineNumbers).toEqual([1])
+    expect(macros[0].endLineNumber).toEqual(3)
+    expect(macros[0].declarationLines![0].includes('\r')).toBe(false)
+  })
+
+  it('should parse a CRLF file under lineEndings lf', () => {
+    const text = "%macro foo();\r\n  %put 'x';\r\n%mend;"
+    const macros = parseMacros(text, new LintConfig({ lineEndings: 'lf' }))
+
+    expect(macros[0].startLineNumbers).toEqual([1])
+    expect(macros[0].endLineNumber).toEqual(3)
+    expect(macros[0].declarationLines![0].includes('\r')).toBe(false)
+  })
+})

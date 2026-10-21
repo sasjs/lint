@@ -6,6 +6,7 @@ import { getColumnNumber } from '../../utils/getColumnNumber'
 import { LintConfig } from '../../types'
 import { LineEndings } from '../../types/LineEndings'
 import { parseMacros } from '../../utils/parseMacros'
+import { splitLines } from '../../utils/splitLines'
 
 const name = 'hasMacroNameInMend'
 const description =
@@ -13,8 +14,7 @@ const description =
 const message = '%mend statement has missing or incorrect macro name'
 
 const test = (value: string, config?: LintConfig) => {
-  const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
-  const lines: string[] = value ? value.split(lineEnding) : []
+  const lines = splitLines(value)
   const macros = parseMacros(value, config)
   const severity = config?.severityLevel[name] || Severity.Warning
   const diagnostics: Diagnostic[] = []
@@ -75,7 +75,7 @@ const test = (value: string, config?: LintConfig) => {
 
 const fix = (value: string, config?: LintConfig): string => {
   const lineEnding = config?.lineEndings === LineEndings.CRLF ? '\r\n' : '\n'
-  const lines: string[] = value ? value.split(lineEnding) : []
+  const lines = splitLines(value)
   const macros = parseMacros(value, config)
 
   macros.forEach((macro) => {

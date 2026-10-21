@@ -230,7 +230,7 @@
       "type": "string",
       "enum": ["lf", "crlf", "off"],
       "title": "lineEndings",
-      "description": "Enforces the configured terminating character for each line. Shows a warning when incorrect line endings are present.",
+      "description": "Enforces the configured terminating character for each line, including the last one. Shows a warning when incorrect line endings are present, and a warning for a file whose final line has no terminator; the formatter appends the missing terminator.",
       "default": "off",
       "examples": ["lf", "crlf"]
     },

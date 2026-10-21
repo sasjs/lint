@@ -29,10 +29,10 @@ describe('formatFile', () => {
 
   it('should use the provided config if available', async () => {
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
-    const expectedContent = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n\r\n  <h4> SAS Macros </h4>\r\n\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend;`
+    const expectedContent = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n\r\n  <h4> SAS Macros </h4>\r\n\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend;\r\n`
     const expectedResult = {
       updatedFilePaths: [path.join(__dirname, 'format-file-config.sas')],
-      fixedDiagnosticsCount: 4,
+      fixedDiagnosticsCount: 5,
       unfixedDiagnostics: []
     }
     await createFile(path.join(__dirname, 'format-file-config.sas'), content)
@@ -57,7 +57,7 @@ describe('formatFile', () => {
   })
 
   it('should not update any files if there are no formatting violations', async () => {
-    const content = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend somemacro;`
+    const content = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n  <h4> SAS Macros </h4>\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend somemacro;\r\n`
     const expectedResult = {
       updatedFilePaths: [],
       fixedDiagnosticsCount: 0,
