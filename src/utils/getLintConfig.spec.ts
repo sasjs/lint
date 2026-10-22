@@ -47,6 +47,7 @@ describe('DefaultLintConfiguration', () => {
           switch (key) {
             case 'allowedGremlins':
             case 'ignoredLibnames':
+            case 'ignoredMacros':
             case 'ignoreList':
               return []
             case 'requiredMacroOptions':

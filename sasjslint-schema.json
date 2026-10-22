@@ -13,6 +13,7 @@
     "hasRequiredMacroOptions": false,
     "ignoreList": [],
     "ignoredLibnames": [],
+    "ignoredMacros": ["webout"],
     "indentationMultiple": 2,
     "lineEndings": "off",
     "lowerCaseFileNames": true,
@@ -57,7 +58,8 @@
       "strictMacroDefinition": true,
       "ignoreList": ["sajsbuild", "sasjsresults"],
       "hasRequiredMacroOptions": false,
-      "requiredMacroOptions": []
+      "requiredMacroOptions": [],
+      "ignoredMacros": ["webout"]
     }
   ],
   "properties": {
@@ -205,7 +207,7 @@
       "$id": "#/properties/noUndeclaredMacros",
       "type": "boolean",
       "title": "noUndeclaredMacros",
-      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>` section of the header. Macros that ship with SAS are always considered declared. The formatter resolves the warning by adding the macro names to the header, sorted alphabetically.",
+      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>` section of the header. Macros that ship with SAS are always considered declared, and so are the macros listed in `ignoredMacros` (`webout` by default). The formatter resolves the warning by adding the macro names to the header, sorted alphabetically.",
       "default": true,
       "examples": [true, false]
     },
@@ -257,6 +259,14 @@
       "description": "An array of librefs that `noUnusedLibnames` leaves alone. A single file can add to this list with the `ignoredLibnames` key of its `@sasjslint` header block.",
       "default": [],
       "examples": [["outData", "TESTWORK"]]
+    },
+    "ignoredMacros": {
+      "$id": "#/properties/ignoredMacros",
+      "type": "array",
+      "title": "ignoredMacros",
+      "description": "An array of macros that `noUndeclaredMacros` treats as declared: an entry is neither reported nor added to the header by the formatter. Use it for macros that no file in the project provides - the default entry, `webout`, is injected by `sasjs compile`. An explicit list replaces the default. A single file can add to this list with the `ignoredMacros` key of its `@sasjslint` header block.",
+      "default": ["webout"],
+      "examples": [["webout", "mpeinit"]]
     },
     "hasRequiredMacroOptions": {
       "$id": "#/properties/hasRequiredMacroOptions",

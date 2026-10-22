@@ -29,6 +29,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "hasRequiredMacroOptions": false,
   "ignoreList": [],
   "ignoredLibnames": [],
+  "ignoredMacros": ["webout"],
   "indentationMultiple": 2,
   "lineEndings": "off",
   "lowerCaseFileNames": true,
@@ -181,6 +182,23 @@ A single file can add to this list with the `ignoredLibnames` key of its [`@sasj
 
 - Default: []
 - Used by: `noUnusedLibnames`
+
+### ignoredMacros
+
+The macros that `noUndeclaredMacros` treats as declared. `%webout` is the common entry: `sasjs compile` injects it into every service and no macro file provides it - `sasjs/core` carries `mv_webout` / `ms_webout` / `mm_webout`, never `webout` - so there is nothing to declare, and `sasjs lint fix` would write an `@li webout.sas` the compiler cannot find. That is why `webout` is the default entry:
+
+```json
+{
+  "ignoredMacros": ["webout"]
+}
+```
+
+The names are matched case-insensitively. A macro listed here is not reported, and `sasjs lint fix` does not add it to a header. An explicit list replaces the default, so `"ignoredMacros": []` reports `webout` like any other undeclared name.
+
+A single file can add to this list with the `ignoredMacros` key of its [`@sasjslint`](#per-file-overrides) header block.
+
+- Default: ["webout"]
+- Used by: `noUndeclaredMacros`
 
 ### indentationMultiple
 
@@ -346,7 +364,7 @@ This will highlight lines with trailing spaces. Trailing spaces serve no useful 
 
 SASjs programs declare the macros they use in the `<h4> SAS Macros </h4>` section of the header, so that the compiler can assemble the job before it runs. This rule reports a warning for each macro that a file invokes without declaring it - either by defining it in the file, or by listing it under `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>`.
 
-The macros that ship with SAS (`%scan`, `%index`, `%sysfunc` and the other macro functions, along with the macro language keywords such as `%if`, `%then` and `%do`) are always considered declared, so they are never reported. That list is generated from the `macroStatements` and `macroFunctions` groups of `@sasjs/sas-language` (`npm run generate:macros`), so it tracks the SAS language data rather than being maintained here. Macros made available through the `SASAUTOS` system option are not visible to the linter and will be reported.
+The macros that ship with SAS (`%scan`, `%index`, `%sysfunc` and the other macro functions, along with the macro language keywords such as `%if`, `%then` and `%do`) are always considered declared, so they are never reported. That list is generated from the `macroStatements` and `macroFunctions` groups of `@sasjs/sas-language` (`npm run generate:macros`), so it tracks the SAS language data rather than being maintained here. Macros made available through the `SASAUTOS` system option are not visible to the linter and will be reported - list them in [`ignoredMacros`](#ignoredmacros), which carries `webout` by default.
 
 The warning is resolved by adding the macro name to the header. Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) adds the missing macros automatically, as a unique list sorted alphabetically.
 

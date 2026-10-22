@@ -343,6 +343,30 @@ describe('LintConfig', () => {
       `Property "ignoredLibnames" has invalid type of values. It can only contain strings.`
     )
   })
+
+  it('should read the ignoredMacros list', () => {
+    const config = new LintConfig({ ignoredMacros: ['webout', 'MPEINIT'] })
+
+    expect(config.ignoredMacros).toEqual(['webout', 'MPEINIT'])
+  })
+
+  it('should default ignoredMacros to webout', () => {
+    expect(new LintConfig().ignoredMacros).toEqual(['webout'])
+    expect(new LintConfig({}).ignoredMacros).toEqual(['webout'])
+  })
+
+  it('should use an explicit ignoredMacros list as given', () => {
+    expect(new LintConfig({ ignoredMacros: [] }).ignoredMacros).toEqual([])
+  })
+
+  it('should throw an error with an invalid value for ignoredMacros', () => {
+    expect(() => new LintConfig({ ignoredMacros: 'webout' })).toThrow(
+      `Property "ignoredMacros" can only be an array of strings.`
+    )
+    expect(() => new LintConfig({ ignoredMacros: ['webout', 2] })).toThrow(
+      `Property "ignoredMacros" has invalid type of values. It can only contain strings.`
+    )
+  })
 })
 
 describe('LintConfig.override', () => {
@@ -394,5 +418,13 @@ describe('LintConfig.override', () => {
         .override({ noSingleAsteriskComments: true })
         .fileLintRules.find((rule) => rule.name === 'noSingleAsteriskComments')
     ).toBeTruthy()
+  })
+
+  it('should keep the default ignoredMacros when a file adds an entry', () => {
+    const config = new LintConfig({})
+
+    expect(
+      config.override({ ignoredMacros: ['mf_internal'] }).ignoredMacros
+    ).toEqual(['webout', 'mf_internal'])
   })
 })
