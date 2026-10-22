@@ -4,6 +4,7 @@ import { LintConfig } from '../types/LintConfig'
 import { readFile } from '@sasjs/utils/file'
 import { getProjectRoot } from './getProjectRoot'
 import { LineEndings } from '../types/LineEndings'
+import { defaultIgnoredMacros } from './defaultIgnoredMacros'
 
 export const getDefaultHeader = () =>
   `/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/`
@@ -25,6 +26,7 @@ export const DefaultLintConfiguration = {
   hasRequiredMacroOptions: false,
   ignoreList: [],
   ignoredLibnames: [],
+  ignoredMacros: [...defaultIgnoredMacros],
   indentationMultiple: 2,
   lineEndings: LineEndings.OFF,
   lowerCaseFileNames: true,

@@ -43,6 +43,44 @@ describe('noUndeclaredMacros - test', () => {
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should not report webout with the default configuration', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)`
+
+    // `webout` is injected by `sasjs compile`; no macro file provides it, so a
+    // header entry for it would be a dependency the compiler cannot resolve.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should report webout when ignoredMacros is empty', () => {
+    const config = new LintConfig({ ignoredMacros: [] })
+
+    expect(noUndeclaredMacros.test(`%webout(OBJ,x)`, config).length).toEqual(1)
+  })
+
+  it('should not report a macro listed in ignoredMacros', () => {
+    const config = new LintConfig({ ignoredMacros: ['webout'] })
+
+    expect(noUndeclaredMacros.test(`%webout(OBJ,x)`, config)).toEqual([])
+  })
+
+  it('should match ignoredMacros case-insensitively', () => {
+    const config = new LintConfig({ ignoredMacros: ['WEBout'] })
+
+    expect(noUndeclaredMacros.test(`%webout(OBJ,x)`, config)).toEqual([])
+  })
+
+  it('should still report the other undeclared macros when one is ignored', () => {
+    const config = new LintConfig({ ignoredMacros: ['webout'] })
+
+    expect(
+      noUndeclaredMacros.test(`%webout(OBJ,x)\n%mf_foo()`, config).length
+    ).toEqual(1)
+  })
+
   it('should report a macro that is used but not declared', () => {
     const text = `/**
   @file
@@ -53,7 +91,7 @@ describe('noUndeclaredMacros - test', () => {
 
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([
       {
-        message: `Macro 'mf_foo' is not declared - add it to the <h4> SAS Macros </h4> or <h4> Other Macros </h4> section of the header`,
+        message: `Macro 'mf_foo' is not declared - add it to the <h4> SAS Macros </h4> or <h4> Other Macros </h4> section of the header, or list the macro in 'ignoredMacros'`,
         lineNumber: 6,
         startColumnNumber: 1,
         endColumnNumber: 8,
@@ -126,6 +164,51 @@ describe('noUndeclaredMacros - fix', () => {
     const fixed = noUndeclaredMacros.fix!(text, new LintConfig())
 
     expect(noUndeclaredMacros.test(fixed, new LintConfig())).toEqual([])
+  })
+
+  it('should not add a macro listed in ignoredMacros to the header', () => {
+    const config = new LintConfig({ ignoredMacros: ['webout'] })
+
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)`
+
+    expect(noUndeclaredMacros.fix!(text, config)).toEqual(text)
+  })
+
+  it('should not add webout with the default configuration', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)`
+
+    expect(noUndeclaredMacros.fix!(text, new LintConfig())).toEqual(text)
+  })
+
+  it('should add a genuine macro without adding an ignored one', () => {
+    const text = `/**
+  @file
+  @brief test
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)
+%mf_foo()`
+
+    const expected = `/**
+  @file
+  @brief test
+
+  <h4> SAS Macros </h4>
+  @li mf_foo.sas
+
+**/
+%webout(OBJ,x)
+%mf_foo()`
+
+    expect(noUndeclaredMacros.fix!(text, new LintConfig())).toEqual(expected)
   })
 
   it('should not change a file whose macros are all declared', () => {

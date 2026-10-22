@@ -9,13 +9,15 @@ import { isSasMacro } from '../../utils/sasMacros'
 
 const name = 'noUndeclaredMacros'
 const description = 'Enforce that every macro used in a file is declared.'
-const message = `Macro '{macro}' is not declared - add it to the <h4> SAS Macros </h4> or <h4> Other Macros </h4> section of the header`
+const message = `Macro '{macro}' is not declared - add it to the <h4> SAS Macros </h4> or <h4> Other Macros </h4> section of the header, or list the macro in 'ignoredMacros'`
 
 /**
  * Collects the first invocation of each macro that the file uses but does not
  * declare. A macro is declared when it is defined in the file, or listed in the
  * `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>` section of its header.
- * Macros that ship with SAS are always considered declared.
+ * Macros that ship with SAS are always considered declared, and so are the
+ * names the configuration lists in `ignoredMacros` - a macro such as `%webout`
+ * has no file to point at.
  */
 const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
   if (!value) return []
@@ -30,6 +32,10 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
     declared.add(macro.name.toLowerCase())
   })
 
+  const ignored = new Set<string>(
+    config.ignoredMacros.map((macro) => macro.trim().toLowerCase())
+  )
+
   const undeclared: MacroCall[] = []
   const seen = new Set<string>()
 
@@ -39,6 +45,7 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
     seen.add(key)
 
     if (isSasMacro(call.name)) return
+    if (ignored.has(key)) return
     if (declared.has(key)) return
 
     undeclared.push(call)

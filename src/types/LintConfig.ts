@@ -22,7 +22,7 @@ import {
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
-import { getDefaultHeader } from '../utils'
+import { getDefaultHeader, defaultIgnoredMacros } from '../utils'
 import { mergeLintConfig } from '../utils/mergeLintConfig'
 import { Severity } from './Severity'
 
@@ -50,6 +50,7 @@ export class LintConfig {
   readonly severityLevel: { [key: string]: Severity } = {}
   readonly requiredMacroOptions: string[] = []
   readonly ignoredLibnames: string[] = []
+  readonly ignoredMacros: string[] = []
 
   constructor(json?: any) {
     this.source = json ?? {}
@@ -66,6 +67,26 @@ export class LintConfig {
       } else {
         throw new Error(`Property "ignoreList" can only be an array of strings`)
       }
+    }
+
+    // An absent setting falls back to the documented default. An explicit list
+    // replaces it, so `[]` reports `webout` like any other undeclared name.
+    if (json?.ignoredMacros === undefined) {
+      this.ignoredMacros.push(...defaultIgnoredMacros)
+    } else if (!Array.isArray(json.ignoredMacros)) {
+      throw new Error(
+        `Property "ignoredMacros" can only be an array of strings.`
+      )
+    } else {
+      json.ignoredMacros.forEach((item: any) => {
+        if (typeof item === 'string') {
+          this.ignoredMacros.push(item)
+        } else {
+          throw new Error(
+            `Property "ignoredMacros" has invalid type of values. It can only contain strings.`
+          )
+        }
+      })
     }
 
     if (json?.noTrailingSpaces !== false) {
@@ -246,6 +267,16 @@ export class LintConfig {
    * @returns {LintConfig} a new configuration; this one is unchanged.
    */
   override(json: any): LintConfig {
-    return new LintConfig(mergeLintConfig(this.source, json))
+    const source = { ...this.source }
+
+    // Arrays whose documented default is not empty are seeded into the base
+    // before the merge. A per-file override is additive, and the project json
+    // usually leaves such a key out rather than restating the default - without
+    // the seed, an override that adds one entry would drop the rest.
+    if (source.ignoredMacros === undefined) {
+      source.ignoredMacros = [...this.ignoredMacros]
+    }
+
+    return new LintConfig(mergeLintConfig(source, json))
   }
 }

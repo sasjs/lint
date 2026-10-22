@@ -102,4 +102,21 @@ libname outData "x";`
       (await lintText(text, config)).some((d) => /never used/.test(d.message))
     ).toBe(false)
   })
+
+  it('should let a file ignore its own macros', async () => {
+    const config = new LintConfig({})
+
+    const text = `/**
+  @file
+  @sasjslint {"ignoredMacros": ["mf_internal"]}
+**/
+%webout(OBJ,x)
+%mf_internal()`
+
+    // The file adds `mf_internal`, and `webout` stays ignored because the
+    // project json never restated the default.
+    expect(
+      (await lintText(text, config)).some((d) => /not declared/.test(d.message))
+    ).toBe(false)
+  })
 })
