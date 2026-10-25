@@ -9,15 +9,22 @@ import { isSasMacro } from '../../utils/sasMacros'
 
 const name = 'noUndeclaredMacros'
 const description = 'Enforce that every macro used in a file is declared.'
-const message = `Macro '{macro}' is not declared - add it to the <h4> SAS Macros </h4> or <h4> Other Macros </h4> section of the header, or list the macro in 'ignoredMacros'`
+const message = `Macro '{macro}' is not declared - add it to the <h4> SAS Macros </h4> section of the header, or list the macro in 'ignoredMacros'`
 
 /**
  * Collects the first invocation of each macro that the file uses but does not
  * declare. A macro is declared when it is defined in the file, or listed in the
- * `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>` section of its header.
+ * `<h4> SAS Macros </h4>` section of its header - the only header list that
+ * `sasjs compile` reads.
  * Macros that ship with SAS are always considered declared, and so are the
  * names the configuration lists in `ignoredMacros` - a macro such as `%webout`
  * has no file to point at.
+ *
+ * The scan leaves out the argument of `%str` / `%nrstr`: a file that masks a
+ * trigger usually does so to print it, and reporting it would be a new warning
+ * on text that never runs at that point. `noUnusedMacros` counts those names,
+ * which is the conservative direction - a deferred invocation satisfies a
+ * declaration without ever demanding one.
  */
 const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
   if (!value) return []

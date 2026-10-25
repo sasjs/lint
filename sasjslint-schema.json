@@ -207,7 +207,7 @@
       "$id": "#/properties/noUndeclaredMacros",
       "type": "boolean",
       "title": "noUndeclaredMacros",
-      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>` section of the header. Macros that ship with SAS are always considered declared, and so are the macros listed in `ignoredMacros` (`webout` by default). The formatter resolves the warning by adding the macro names to the header, sorted alphabetically.",
+      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` section of the header - the only header list `sasjs compile` reads. Macros that ship with SAS are always considered declared, and so are the macros listed in `ignoredMacros` (`webout` by default). The formatter resolves the warning by adding the macro names to the header, sorted alphabetically.",
       "default": true,
       "examples": [true, false]
     },
