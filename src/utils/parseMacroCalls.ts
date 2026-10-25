@@ -10,6 +10,24 @@ export interface MacroCall {
   endColumnNumber: number
 }
 
+/**
+ * Options for the scan.
+ */
+export interface MacroCallScanOptions {
+  /**
+   * Reports the invocations written inside the argument of a masking function
+   * (`%str` / `%nrstr`).
+   *
+   * The argument is text while the masking function runs, but the caller
+   * normally unquotes it later: `%mp_assert(iftrue=%str(%mf_existds(work.x)=1))`
+   * resolves `%mf_existds` when `%mp_assert` evaluates the condition. A caller
+   * that asks which macros a file uses - the `noUnusedMacros` side - sets this.
+   * A caller that asks which macros a file invokes in open code leaves it off,
+   * so text a file masks only in order to print it is not reported.
+   */
+  includeMasked?: boolean
+}
+
 /** Matches a macro invocation at the start of the supplied text. */
 const macroNameStart = /^%([a-z_][a-z0-9_]*)/i
 
@@ -27,13 +45,57 @@ const embeddedLanguageEnd = /^endsubmit\s*;/i
 const embeddedLanguageEndSearch = /endsubmit/i
 
 /**
+ * Finds the `%name` tokens inside the argument of a masking function.
+ *
+ * The argument is masked text rather than code, so a quote or a comment marker
+ * in it opens nothing. The scan therefore recognises only the escapes
+ * `%(` / `%)` and a `%name` token, and it does not report a `%name:` label.
+ *
+ * @param {string} text - the whole file.
+ * @param {number} from - the offset at which the argument starts.
+ * @param {number} to - the offset at which it ends.
+ * @returns {{ name: string; offset: number }[]} the tokens, in order.
+ */
+const findMaskedCalls = (
+  text: string,
+  from: number,
+  to: number
+): { name: string; offset: number }[] => {
+  const tokens: { name: string; offset: number }[] = []
+  let index = from
+
+  while (index < to) {
+    if (text[index] === '%') {
+      if (text[index + 1] === '(' || text[index + 1] === ')') {
+        index += 2
+        continue
+      }
+
+      const macroName = macroNameStart.exec(text.slice(index, to))
+      if (macroName) {
+        if (text[index + macroName[0].length] !== ':') {
+          tokens.push({ name: macroName[1], offset: index })
+        }
+        index += macroName[0].length
+        continue
+      }
+    }
+
+    index++
+  }
+
+  return tokens
+}
+
+/**
  * Finds the macro invocations in a file.
  *
  * SAS resolves macro triggers inside double-quoted strings but not inside
  * single-quoted strings, so a double-quoted string is scanned as code while a
  * single-quoted string is opaque. Invocations inside block comments, macro
- * comments, comment statements, masking functions (`%str` / `%nrstr`), data
- * sections and embedded-language `submit` blocks are excluded.
+ * comments, comment statements, data sections and embedded-language `submit`
+ * blocks are excluded. The argument of a masking function (`%str` / `%nrstr`)
+ * is excluded unless the caller asks for it with `includeMasked`.
  *
  * Every `%name` token is reported, including the macro language keywords and
  * the macros that ship with SAS. Callers decide which names are interesting.
@@ -41,11 +103,15 @@ const embeddedLanguageEndSearch = /endsubmit/i
  * @param {string} text - the text content to scan.
  * @param {LintConfig} config - the lint configuration. It is accepted for
  * symmetry with the other utilities and is not used by the scan.
+ * @param {MacroCallScanOptions} options - how much of the masked text to scan.
+ * The default skips the argument of a masking function; `includeMasked` scans
+ * it for invocations.
  * @returns {MacroCall[]} the invocations, in the order they appear.
  */
 export const parseMacroCalls = (
   text: string,
-  config?: LintConfig
+  config?: LintConfig,
+  options?: MacroCallScanOptions
 ): MacroCall[] => {
   const calls: MacroCall[] = []
   if (!text) return calls
@@ -156,9 +222,13 @@ export const parseMacroCalls = (
 
       // Masking functions - the argument is data, not code. `%(` and `%)` are
       // the escapes for literal parentheses inside the argument, so they do
-      // not affect the nesting depth.
+      // not affect the nesting depth. When the caller asks for masked text,
+      // the function name is skipped and the argument is scanned in place, so
+      // an invocation the file defers is still reported at its own position.
       const maskingFunction = maskingFunctionStart.exec(text.slice(index))
       if (maskingFunction) {
+        // The extent of the argument comes from the parenthesis depth, with
+        // `%(` and `%)` treated as escapes rather than as delimiters.
         let depth = 0
         let end = index + maskingFunction[0].length - 1
         while (end < length) {
@@ -179,6 +249,27 @@ export const parseMacroCalls = (
           }
           end++
         }
+
+        if (options?.includeMasked) {
+          // The argument is scanned for `%name` tokens only, never as code: a
+          // quote or a comment marker in it is data to SAS, and letting one
+          // open a string or a comment here would swallow the invocations that
+          // follow - which under-counts uses, the direction that makes the
+          // formatter delete a declaration the file needs.
+          const argumentStart = index + maskingFunction[0].length
+
+          advanceTo(argumentStart)
+          findMaskedCalls(text, argumentStart, end).forEach((token) => {
+            advanceTo(token.offset)
+            calls.push({
+              name: token.name,
+              lineNumber,
+              startColumnNumber: columnNumber,
+              endColumnNumber: columnNumber + 1 + token.name.length
+            })
+          })
+        }
+
         advanceTo(end)
         atStatementStart = false
         continue

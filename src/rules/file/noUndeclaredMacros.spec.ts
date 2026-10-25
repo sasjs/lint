@@ -15,7 +15,7 @@ describe('noUndeclaredMacros - test', () => {
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
-  it('should not report a macro that is declared in the Other Macros section', () => {
+  it('should report a macro listed under a section compile does not read', () => {
     const text = `/**
   @file
   <h4> Other Macros </h4>
@@ -23,7 +23,12 @@ describe('noUndeclaredMacros - test', () => {
 **/
 %my_custom()`
 
-    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+    // `sasjs compile` reads `<h4> SAS Macros </h4>` only, so an entry anywhere
+    // else does not make the macro available to the job.
+    const diagnostics = noUndeclaredMacros.test(text, new LintConfig())
+
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0].message).toContain('my_custom')
   })
 
   it('should not report a macro that is defined in the file', () => {
@@ -31,6 +36,20 @@ describe('noUndeclaredMacros - test', () => {
 %mend;
 %mf_trim()`
 
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should not report a macro that appears only inside a masking function', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%put %str(%mf_foo(work.a));`
+
+    // The masked text is data while %str runs, and a file masks a trigger to
+    // print it as often as to defer it. Reporting it would be a new warning on
+    // code that may never run, so this rule stays strict and noUnusedMacros
+    // does the conservative half: a name there counts as a use.
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
@@ -91,7 +110,7 @@ describe('noUndeclaredMacros - test', () => {
 
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([
       {
-        message: `Macro 'mf_foo' is not declared - add it to the <h4> SAS Macros </h4> or <h4> Other Macros </h4> section of the header, or list the macro in 'ignoredMacros'`,
+        message: `Macro 'mf_foo' is not declared - add it to the <h4> SAS Macros </h4> section of the header, or list the macro in 'ignoredMacros'`,
         lineNumber: 6,
         startColumnNumber: 1,
         endColumnNumber: 8,
@@ -128,6 +147,24 @@ describe('noUndeclaredMacros - test', () => {
 })
 
 describe('noUndeclaredMacros - fix', () => {
+  it('should report an annotated entry, and leave the header alone', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li mf_trim.sas - trims a value
+**/
+%mf_trim()`
+
+    // An entry is the tag and one file token, so this line declares nothing.
+    // The section cannot be rewritten around a line that is not an entry, so
+    // the warning stands and the fix declines rather than deleting the line.
+    const diagnostics = noUndeclaredMacros.test(text, new LintConfig())
+
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0].message).toContain('mf_trim')
+    expect(noUndeclaredMacros.fix!(text, new LintConfig())).toEqual(text)
+  })
+
   it('should add the undeclared macros to the header, sorted', () => {
     const text = `/**
   @file

@@ -118,7 +118,15 @@ The default header is as follows:
 **/
 ```
 
-A blank line separates the `<h4> SAS Macros </h4>` section from the header content before it and from whatever follows the list. The same blank-line convention applies to the `<h4> Other Macros </h4>` section.
+A blank line separates the `<h4> SAS Macros </h4>` section from the header content before it and from whatever follows the list.
+
+`<h4> SAS Macros </h4>` is the compile dependency list: `sasjs compile` reads it and inlines each macro as precode, so an entry is a file the build resolves. It is the only header list this linter reads, and every other `<h4>` list in the header (`SAS Includes`, `Binary Files`, `SAS Programs`, `Service Inputs`, `Service Outputs`, ...) is left entirely alone.
+
+Each entry is the tag and one file token - `@li mf_trim.sas` - indented to the same width as the section tag; nothing may follow the token. The extension is dropped to give the macro name, so `@li mp_as` is read as `mp_as` too. A line carrying anything after the file token is not an entry: prose belongs on its own line, and a section that carries such a line is left as its author wrote it rather than being rewritten or having the line removed. The section is machine-maintained, so text after the token would be lost on the next rewrite anyway.
+
+A tag one slip away from `@li` (`@il`, `@l1`, `@1i`) is read as an entry, so a typo cannot hide the declarations below it - and because such a line is read, nothing reports it, so the formatter writes every entry back as `@li <file>` at the section's indentation. The repair edits the entry lines in place, so it adds no blank lines and moves nothing else in the header.
+
+A line that opens with any other tag - `@example`, `@param` - ends the list rather than being read or converted. The entries above it are still readable and still rewritable, so the formatter keeps adding and removing entries above that line and leaves the rest of the header alone.
 
 If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
 
@@ -362,9 +370,11 @@ This will highlight lines with trailing spaces. Trailing spaces serve no useful 
 
 ### noUndeclaredMacros
 
-SASjs programs declare the macros they use in the `<h4> SAS Macros </h4>` section of the header, so that the compiler can assemble the job before it runs. This rule reports a warning for each macro that a file invokes without declaring it - either by defining it in the file, or by listing it under `<h4> SAS Macros </h4>` or `<h4> Other Macros </h4>`.
+SASjs programs declare the macros they use in the `<h4> SAS Macros </h4>` section of the header, so that the compiler can assemble the job before it runs. This rule reports a warning for each macro that a file invokes without declaring it - either by defining it in the file, or by listing it in the `<h4> SAS Macros </h4>` section. That is the only header list `sasjs compile` reads, so it is the only one that makes a macro available to the job; entries anywhere else in the header do not count.
 
 The macros that ship with SAS (`%scan`, `%index`, `%sysfunc` and the other macro functions, along with the macro language keywords such as `%if`, `%then` and `%do`) are always considered declared, so they are never reported. That list is generated from the `macroStatements` and `macroFunctions` groups of `@sasjs/sas-language` (`npm run generate:macros`), so it tracks the SAS language data rather than being maintained here. Macros made available through the `SASAUTOS` system option are not visible to the linter and will be reported - list them in [`ignoredMacros`](#ignoredmacros), which carries `webout` by default.
+
+An invocation written inside the argument of `%str` / `%nrstr` is not reported. A file masks a trigger to print it as often as to defer it, and nothing runs at that point, so a warning there would land on text that may never be code. [`noUnusedMacros`](#nounusedmacros) counts such a name as a use, so the deferred form - `%mp_abort(iftrue=%str(%mf_existds(work.x)=1))` - satisfies the declaration it depends on without demanding one.
 
 The warning is resolved by adding the macro name to the header. Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) adds the missing macros automatically, as a unique list sorted alphabetically.
 
@@ -421,7 +431,9 @@ The counterpart of `noUndeclaredMacros`. This rule reports a warning for each ma
 
 A macro can be referenced indirectly - for example by another macro in the dependency chain, or through a dynamic `%&macro` call - without appearing as a direct invocation in the file, so the warning is advisory.
 
-Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) removes the unused entries from the header. Together with `noUndeclaredMacros`, this leaves the `<h4> SAS Macros </h4>` section listing exactly the macros the file uses.
+An invocation written inside the argument of `%str` / `%nrstr` counts as a use. That text is data while the masking function runs, but its caller normally unquotes it - `%mp_abort(iftrue=%str(%mf_existds(work.x)=1))` resolves `%mf_existds` when `%mp_abort` evaluates the condition - so the declaration is a dependency of the file, and treating it as unused would have the formatter delete it.
+
+Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) removes the unused entries from the header. Together with `noUndeclaredMacros`, this leaves the `<h4> SAS Macros </h4>` section listing exactly the macros the file uses. The pass that reads the list also writes each entry back as `@li <macro>.sas` at the section's indentation, in place and without re-spacing the header, so a mistyped tag (`@il`) is repaired even when no entry is removed.
 
 - Default: true
 - Severity: WARNING
