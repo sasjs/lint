@@ -1,0 +1,92 @@
+name: Mutation Watch
+
+# The per-PR mutation gate compares a branch's changed files with a baseline, so
+# the baseline is the thing that has to stay honest: if it is never refreshed,
+# files that improve keep their old count and the gate stops asking for more.
+#
+# This runs the whole source tree weekly, prints the new baseline, and fails when
+# any file carries MORE surviving mutants than the recorded one - which means a
+# PR was merged without the gate seeing it (a push to main, a config change, a
+# file the gate skipped). Failure files an issue, as audit-watch.yml does, and
+# only a genuine regression does so.
+
+on:
+  schedule:
+    - cron: '0 7 * * 1' # Mondays, 07:00 UTC
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    # the whole tree takes ~20-30 minutes; bounded so a hang cannot hold a runner
+    # for the six-hour default
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Mutate the whole source tree
+        id: watch
+        env:
+          MUTATION_WATCH_REPORT: ${{ runner.temp }}/mutation-watch-report.md
+        run: node scripts/mutation-gate.mjs weekly
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-watch-report
+          path: |
+            reports/mutation/mutation.json
+            ${{ runner.temp }}/mutation-watch-report.md
+          if-no-files-found: ignore
+
+  report:
+    needs: watch
+    # a failure files an issue; a cancelled run does so only when the schedule
+    # cancelled it (the 90-minute timeout), so cancelling a manual run by hand
+    # does not claim a regression that never happened
+    if: >-
+      always() &&
+      (needs.watch.result == 'failure' ||
+       (needs.watch.result == 'cancelled' && github.event_name == 'schedule'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: File an issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title='Mutation watch: a file carries more surviving mutants than the baseline'
+          existing=$(gh issue list --state open --search "\"$title\" in:title" \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "already tracked in #$existing"
+            exit 0
+          fi
+
+          gh issue create --title "$title" --body \
+            "The weekly mutation run found a file carrying more surviving mutants than mutation-baseline.json records, so behaviour was merged without a test that fails on it.
+
+          The run names the file and each surviving mutant (file:line:column, mutator, replacement), and prints the refreshed baseline:
+
+          $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          Close this once a spec kills them and mutation-baseline.json is updated from that run."

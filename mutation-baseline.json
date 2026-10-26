@@ -1,0 +1,30 @@
+{
+  "_comment": "Surviving-mutant counts per file, used by scripts/mutation-gate.mjs. Refresh from the output of npm run mutation:watch; raise a count only with a reason in the PR that raises it.",
+  "generatedAt": "2026-10-25T20:06:38Z",
+  "files": {
+    "src/rules/file/noUnusedMacros.ts": {
+      "score": 100.0,
+      "survived": 0,
+      "killed": 37,
+      "timeout": 0
+    },
+    "src/utils/getIndicesOf.ts": {
+      "score": 100.0,
+      "survived": 0,
+      "killed": 15,
+      "timeout": 6
+    },
+    "src/utils/isIgnored.ts": {
+      "score": 100.0,
+      "survived": 0,
+      "killed": 25,
+      "timeout": 0
+    },
+    "src/utils/parseMacroCalls.ts": {
+      "score": 92.98,
+      "survived": 25,
+      "killed": 293,
+      "timeout": 38
+    }
+  }
+}
