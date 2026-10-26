@@ -78,7 +78,7 @@
     "@sasjs/utils": "4.0.0",
     "ignore": "7.0.11"
   },
-  "version": "4.3.1",
+  "version": "4.3.2",
   "devEngines": {
     "runtime": {
       "name": "node",
