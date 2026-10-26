@@ -549,6 +549,25 @@ datalines;
     ).toEqual(['put@1', 'mf_a@17'])
   })
 
+  it('should end the masked argument on the paired escape', () => {
+    // the extent scan must treat `%(` and `%)` as escapes rather than as
+    // delimiters, or the argument ends early and the text after it is read as
+    // code - here `%mf_a` sits inside the masked argument and is not a call
+    expect(
+      parseMacroCalls('%put %str(a%(b%)%mf_a)', new LintConfig()).map(
+        (call) => call.name
+      )
+    ).toEqual(['put'])
+
+    // and with the masked argument scanned, the same token is reported once,
+    // from inside the mask
+    expect(
+      parseMacroCalls('%put %str(a%(b%)%mf_a)', new LintConfig(), {
+        includeMasked: true
+      }).map((call) => `${call.name}@${call.startColumnNumber}`)
+    ).toEqual(['put@1', 'mf_a@17'])
+  })
+
   it('should step over a bare percent sign inside masked text', () => {
     // a percent that is not the start of a name is ordinary text, and the scan
     // has to move past it rather than run the name branch
