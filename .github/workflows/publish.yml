@@ -75,6 +75,13 @@ jobs:
       - name: Clean up ready for publishing
         run: npm run publishInit
 
+      # `files` names build outputs, which do not exist in a checkout, and npm
+      # does not fail on an entry that matches nothing - so a renamed path
+      # publishes a package quietly missing that surface. This fails before the
+      # release is cut rather than in a consumer.
+      - name: Check the tarball carries the public API
+        run: npm run check:package
+
       - name: Semantic Release
         # The release toolchain is deliberately not a project dependency: every
         # @semantic-release plugin declares a `semantic-release` peer, which npm
