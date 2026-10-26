@@ -21,9 +21,9 @@
       "timeout": 0
     },
     "src/utils/parseMacroCalls.ts": {
-      "score": 92.98,
-      "survived": 25,
-      "killed": 293,
+      "score": 94.1,
+      "survived": 21,
+      "killed": 297,
       "timeout": 38
     }
   }
