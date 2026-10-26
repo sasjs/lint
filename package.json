@@ -15,7 +15,8 @@
     "lint": "npx prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
     "mutation": "stryker run",
     "mutation:changed": "node scripts/mutation-gate.mjs pr",
-    "mutation:watch": "node scripts/mutation-gate.mjs weekly"
+    "mutation:watch": "node scripts/mutation-gate.mjs weekly",
+    "check:package": "node scripts/checkPackageContents.mjs"
   },
   "publishConfig": {
     "access": "public"
