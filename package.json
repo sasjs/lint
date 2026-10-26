@@ -74,8 +74,26 @@
     "ts-jest": "29.4.14",
     "typescript": "6.0.3"
   },
+  "files": [
+    "index.js",
+    "index.js.map",
+    "index.d.ts",
+    "checkNodeVersion.js",
+    "formatExample.js",
+    "formatExample.js.map",
+    "formatExample.d.ts",
+    "lintExample.js",
+    "lintExample.js.map",
+    "lintExample.d.ts",
+    "format",
+    "lint",
+    "rules",
+    "types",
+    "utils",
+    "sasjslint-schema.json"
+  ],
   "dependencies": {
-    "@sasjs/utils": "4.0.0",
+    "@sasjs/utils": "^4.0.0",
     "ignore": "7.0.11"
   },
   "version": "4.3.2",
