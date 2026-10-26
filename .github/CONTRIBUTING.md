@@ -92,6 +92,51 @@ Two habits catch the failures that plain coverage does not:
 - **Mutation-check your assertions.** Revert the behaviour one piece at a time and confirm a test fails. An assertion that passes on the broken code is documenting nothing. Watch for vacuous cases: for example, a "does not throw" test over a mis-split file passes while the mis-split still contains the string being searched for, so the fixture has to be shaped to fail.
 - **A negative test must fail for the reason it names.** Assert on the specific message or error, never a bare `toThrow()`.
 
+### Mutation testing
+
+The habit above is automated, because the mutant you think to try is rarely the
+one that matters. Stryker rewrites the source in small ways (an operator, a
+string, a branch) and runs the tests; a mutant that survives is behaviour no
+test asserts.
+
+```bash
+npm run mutation:changed     # only the files this branch changed, vs the baseline
+MUTATION_FILES=src/utils/parseMacroCalls.ts npm run mutation:changed   # one file
+npm run mutation             # whatever stryker.conf.json selects
+npm run mutation:watch       # the whole tree; prints a refreshed baseline
+```
+
+The gate compares each file with `mutation-baseline.json` and fails when a file
+carries MORE surviving mutants than the baseline records, so it asks "did this
+branch add an untested behaviour?", not "is the repo perfect yet". A file with no
+baseline must reach 80%. `mutation-pr.yml` runs the changed-file gate on every
+pull request; `mutation-weekly.yml` runs the whole tree and fails if anything
+regressed, which is how the baseline is refreshed (the run prints the new JSON to
+paste in).
+
+Two things to know before running it:
+
+- the dev tree needs Node 22.18 or newer: `@stryker-mutator/core` pulls `@babel/*` 8,
+  whose `engines` start at 22.18. `package.json` records that in `devEngines` (dev installs
+  warn, published installs are unaffected - the tarball carries no devDependencies).
+
+
+- `jest.stryker.config.js` differs from `jest.config.js` in switching coverage
+  off, and in nothing else: a skipped spec records the mutants it covers as
+  legitimate survivors, and the weekly refresh writes them into the baseline.
+  `isIgnored` therefore derives its path with `path.relative(root, file)` and
+  returns false for a path outside the root, and `isIgnored.spec.ts` pins
+  `getProjectRoot()` with a jest mock - the `ignore` package rejects an absolute
+  or `..`-prefixed path, which is what a sandbox run produced before.
+- a run mutates the file(s) in a sandbox under `.stryker-tmp`, and `jest.config.js`
+  ignores that directory by a `<rootDir>`-anchored pattern - an unanchored one
+  makes Stryker's own dry run collect nothing.
+
+A surviving mutant is either a missing test or an EQUIVALENT mutant (a change
+that cannot alter behaviour, such as dropping a check the following regular
+expression repeats). Add the spec that fails on it, or say in the PR body why it
+is equivalent - do not lower the baseline.
+
 ## Regenerating the shipped macro list
 
 The macros SAS ships are language data, owned by `@sasjs/sas-language`. Do not hand-write them here. `npm run generate:macros` reads its `macroStatements` and `macroFunctions` groups and writes `src/utils/sasMacros.generated.ts`, which is committed so the published package carries no runtime dependency. `sasMacros.spec.ts` reads the same data independently and fails when the committed list differs, which is the drift guard. Extending that vocabulary is a PR to `@sasjs/sas-language`.

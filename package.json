@@ -12,7 +12,10 @@
     "publishInit": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
     "package:lib": "npm run build && cp ./package.json ./checkNodeVersion.js build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
     "lint:fix": "npx prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
-    "lint": "npx prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\""
+    "lint": "npx prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
+    "mutation": "stryker run",
+    "mutation:changed": "node scripts/mutation-gate.mjs pr",
+    "mutation:watch": "node scripts/mutation-gate.mjs weekly"
   },
   "publishConfig": {
     "access": "public"
@@ -62,6 +65,8 @@
   "devDependencies": {
     "@nogoo9/gitleaks": "8.30.1-post.2",
     "@sasjs/sas-language": "0.3.0",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/jest-runner": "10.1.1",
     "@types/jest": "30.0.0",
     "@types/node": "26.6.3",
     "jest": "30.5.2",
@@ -73,5 +78,12 @@
     "@sasjs/utils": "4.0.0",
     "ignore": "7.0.11"
   },
-  "version": "4.3.1"
+  "version": "4.3.1",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22.18",
+      "onFail": "warn"
+    }
+  }
 }

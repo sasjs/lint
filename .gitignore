@@ -105,3 +105,6 @@ dist
 
 # Build output
 build
+# Stryker
+.stryker-tmp/
+reports/

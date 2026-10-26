@@ -1,0 +1,69 @@
+name: Mutation (changed files)
+
+# Mutation testing answers a question coverage cannot: does any test FAIL when
+# the code is wrong? Stryker flips an operator or a string in the source and runs
+# the tests; a mutant that survives is behaviour nothing asserts.
+#
+# This job mutates only the source files the PR changed, and compares them with
+# mutation-baseline.json - so it asks "did this branch add an untested
+# behaviour?", not "is the repo perfect yet". The baseline is refreshed by
+# mutation-weekly.yml.
+#
+# Cost control: Stryker runs the tests that cover the mutated file
+# (`enableFindRelatedTests`), and only the mutated file is instrumented. A
+# two-file run takes minutes, not the hours a whole-suite run per mutant would.
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'jest.config.js'
+      - 'jest.stryker.config.js'
+      - 'stryker.conf.json'
+      - 'mutation-baseline.json'
+      - 'scripts/mutation-gate.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+
+# a second push supersedes the first run rather than queueing behind it
+concurrency:
+  group: mutation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    # checkout needs read, and the job writes nothing else
+    permissions:
+      contents: read
+    # a changed-file run takes minutes; the default cap is six hours, which would
+    # hold a runner on a stuck mutation run
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the diff against the base commit needs the base commit
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Mutate the changed files
+        env:
+          MUTATION_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/mutation-gate.mjs pr
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/mutation/mutation.json
+          if-no-files-found: ignore
