@@ -17,10 +17,27 @@ export const isIgnored = async (
   const config = configuration || (await getLintConfig())
   const projectRoot = await getProjectRoot()
   const gitIgnoreFilePath = path.join(projectRoot, '.gitignore')
-  const rootPath = projectRoot + path.sep
-  const relativePath = fPath.replace(rootPath, '')
 
-  if (fPath === projectRoot) return false
+  // path.relative rather than stripping `projectRoot + sep` from the string: a
+  // separator or a normalisation the caller did not apply leaves the strip with
+  // nothing to remove, and the `ignore` package then receives an absolute path
+  // and rejects it with a RangeError. path.relative is lexical - a symlinked root
+  // still yields a `..`-prefixed path, which the guard below catches.
+  const relativePath = path.relative(projectRoot, fPath)
+
+  if (relativePath === '') return false
+
+  // On Windows, `path.relative` returns an absolute path when the two paths sit
+  // on different drives, which the two guards below cannot see; passing that on
+  // reaches `ignore` and throws the RangeError this function exists to avoid.
+  if (path.isAbsolute(relativePath)) return false
+
+  // Nothing in a project's .gitignore can match a path outside it, and the
+  // `ignore` package rejects a path that escapes the root ("path should be a
+  // path.relative()d string"), so a caller passing one gets `false` rather than
+  // a RangeError.
+  if (relativePath === '..' || relativePath.startsWith(`..${path.sep}`))
+    return false
 
   let gitIgnoreFileContent = ''
 
