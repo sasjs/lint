@@ -35,6 +35,7 @@ export const DefaultLintConfiguration = {
   maxLineLength: 80,
   noEncodedPasswords: true,
   noGremlins: true,
+  noNestedCommentsInHeader: true,
   noNestedMacros: true,
   noSingleAsteriskComments: false,
   noSpacesInFileNames: true,

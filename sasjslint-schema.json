@@ -22,6 +22,7 @@
     "maxLineLength": 80,
     "noEncodedPasswords": true,
     "noGremlins": true,
+    "noNestedCommentsInHeader": true,
     "noNestedMacros": true,
     "noSingleAsteriskComments": false,
     "noSpacesInFileNames": true,
@@ -49,6 +50,7 @@
       "noTabs": true,
       "indentationMultiple": 4,
       "hasMacroNameInMend": true,
+      "noNestedCommentsInHeader": true,
       "noNestedMacros": true,
       "noSingleAsteriskComments": false,
       "noUndeclaredMacros": true,
@@ -162,6 +164,14 @@
       "description": "Enforces a configurable maximum line length for data section. Shows a warning for lines exceeding this length.",
       "default": 80,
       "examples": [60, 80, 120]
+    },
+    "noNestedCommentsInHeader": {
+      "$id": "#/properties/noNestedCommentsInHeader",
+      "type": "boolean",
+      "title": "noNestedCommentsInHeader",
+      "description": "Disallows a close marker inside the Doxygen header, which SAS reads as the end of the header - the rest of it is then compiled as SAS. Covers a nested block comment, a literal sequence in header text and a bare close marker. Shows a warning for such a header.",
+      "default": true,
+      "examples": [true, false]
     },
     "noNestedMacros": {
       "$id": "#/properties/noNestedMacros",
@@ -355,6 +365,13 @@
         "maxLineLength": {
           "$id": "#/properties/severityLevel/maxLineLength",
           "title": "maxLineLength",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noNestedCommentsInHeader": {
+          "$id": "#/properties/severityLevel/noNestedCommentsInHeader",
+          "title": "noNestedCommentsInHeader",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

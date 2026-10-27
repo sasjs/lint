@@ -4,7 +4,7 @@ import { join } from 'path'
 import { LintConfig } from '../types/LintConfig'
 import { DefaultLintConfiguration, getLintConfig } from './getLintConfig'
 
-const expectedFileLintRulesCount = 7
+const expectedFileLintRulesCount = 8
 const expectedLineLintRulesCount = 6
 const expectedPathLintRulesCount = 2
 

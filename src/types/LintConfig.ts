@@ -1,6 +1,7 @@
 import {
   hasDoxygenHeader,
   hasMacroNameInMend,
+  noNestedCommentsInHeader,
   noNestedMacros,
   hasMacroParentheses,
   lineEndings,
@@ -156,6 +157,10 @@ export class LintConfig {
 
     if (json?.hasMacroNameInMend !== false) {
       this.fileLintRules.push(hasMacroNameInMend)
+    }
+
+    if (json?.noNestedCommentsInHeader !== false) {
+      this.fileLintRules.push(noNestedCommentsInHeader)
     }
 
     if (json?.noNestedMacros !== false) {

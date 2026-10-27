@@ -36,9 +36,11 @@ jobs:
     # checkout needs read, and the job writes nothing else
     permissions:
       contents: read
-    # a changed-file run takes minutes; the default cap is six hours, which would
-    # hold a runner on a stuck mutation run
-    timeout-minutes: 20
+    # A changed-file run takes minutes; the cap exists so a stuck run cannot hold
+    # a runner for the six-hour default. It has to clear the slowest legitimate
+    # PR: registering a rule touches LintConfig.ts, and mutating that file on a
+    # two-core runner takes the run past twenty minutes.
+    timeout-minutes: 35
 
     steps:
       - uses: actions/checkout@v4

@@ -43,6 +43,50 @@ describe('hasDoxygenHeader - test', () => {
     ])
   })
 
+  it('should report a header that closes with a single asterisk', () => {
+    const content = `/**
+   @file
+   @brief Returns an unused libref
+ */
+
+ %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);`
+
+    expect(hasDoxygenHeader.test(content)).toEqual([
+      {
+        message:
+          'File not following Doxygen header style, close with double asterisks',
+        lineNumber: 4,
+        startColumnNumber: 2,
+        endColumnNumber: 4,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
+  it('should leave a header alone when it is never closed', () => {
+    const content = `/**
+   @file
+   @brief <Your brief here>
+
+ %put hello;`
+
+    expect(hasDoxygenHeader.test(content)).toEqual([])
+    expect(hasDoxygenHeader.fix!(content)).toEqual(content)
+  })
+
+  it('should leave a header alone when its body holds a comment opener', () => {
+    // The first close marker may belong to that comment rather than to the
+    // header, so its extent is the author's to decide.
+    const content = `/**
+   @file
+   @details use /* to open a comment
+ */
+
+ %put hello;`
+
+    expect(hasDoxygenHeader.test(content)).toEqual([])
+  })
+
   it('should return an array with a single diagnostic when the file has no header', () => {
     const content = `
  %macro mf_getuniquelibref(prefix=mclib,maxtries=1000);
@@ -136,6 +180,27 @@ describe('hasDoxygenHeader - fix', () => {
    %do x=0 %to &maxtries;`
 
     expect(hasDoxygenHeader.fix!(contentOriginal)).toEqual(contentExpected)
+  })
+
+  it('should widen a single-asterisk close to double asterisks', () => {
+    const content = `/**
+   @file
+   @brief Returns an unused libref
+ */
+
+ %put hello;`
+
+    const fixed = hasDoxygenHeader.fix!(content)
+
+    expect(fixed).toEqual(`/**
+   @file
+   @brief Returns an unused libref
+ **/
+
+ %put hello;`)
+    // already in the Doxygen form: a second pass changes nothing
+    expect(hasDoxygenHeader.fix!(fixed)).toEqual(fixed)
+    expect(hasDoxygenHeader.test(fixed)).toEqual([])
   })
 
   it('should add a doxygen header if not present', () => {
