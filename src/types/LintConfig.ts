@@ -15,6 +15,7 @@ import {
 import {
   indentationMultiple,
   maxLineLength,
+  noBannedStrings,
   noEncodedPasswords,
   noTabs,
   noTrailingSpaces,
@@ -23,7 +24,11 @@ import {
 import { lowerCaseFileNames, noSpacesInFileNames } from '../rules/path'
 import { LineEndings } from './LineEndings'
 import { FileLintRule, LineLintRule, PathLintRule } from './LintRule'
-import { getDefaultHeader, defaultIgnoredMacros } from '../utils'
+import {
+  getDefaultHeader,
+  defaultBannedStrings,
+  defaultIgnoredMacros
+} from '../utils'
 import { mergeLintConfig } from '../utils/mergeLintConfig'
 import { Severity } from './Severity'
 
@@ -52,6 +57,7 @@ export class LintConfig {
   readonly requiredMacroOptions: string[] = []
   readonly ignoredLibnames: string[] = []
   readonly ignoredMacros: string[] = []
+  readonly bannedStrings: string[] = []
 
   constructor(json?: any) {
     this.source = json ?? {}
@@ -96,6 +102,31 @@ export class LintConfig {
 
     if (json?.noEncodedPasswords !== false) {
       this.lineLintRules.push(noEncodedPasswords)
+    }
+
+    // The default list is seeded only when the setting is absent, so an empty
+    // array is an explicit "report nothing" rather than a fallback to the
+    // defaults - the same contract `ignoredMacros` follows.
+    if (json?.bannedStrings === undefined) {
+      this.bannedStrings.push(...defaultBannedStrings)
+    } else if (!Array.isArray(json.bannedStrings)) {
+      throw new Error(
+        `Property "bannedStrings" can only be an array of strings.`
+      )
+    } else {
+      json.bannedStrings.forEach((item: any) => {
+        if (typeof item === 'string' && item.length) {
+          this.bannedStrings.push(item)
+        } else {
+          throw new Error(
+            `Property "bannedStrings" has invalid type of values. It can contain only non-empty strings.`
+          )
+        }
+      })
+    }
+
+    if (json?.noBannedStrings !== false) {
+      this.lineLintRules.push(noBannedStrings)
     }
 
     this.lineLintRules.push(noTabs)
@@ -280,6 +311,10 @@ export class LintConfig {
     // the seed, an override that adds one entry would drop the rest.
     if (source.ignoredMacros === undefined) {
       source.ignoredMacros = [...this.ignoredMacros]
+    }
+
+    if (source.bannedStrings === undefined) {
+      source.bannedStrings = [...this.bannedStrings]
     }
 
     return new LintConfig(mergeLintConfig(source, json))
