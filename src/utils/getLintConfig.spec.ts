@@ -5,7 +5,7 @@ import { LintConfig } from '../types/LintConfig'
 import { DefaultLintConfiguration, getLintConfig } from './getLintConfig'
 
 const expectedFileLintRulesCount = 8
-const expectedLineLintRulesCount = 6
+const expectedLineLintRulesCount = 7
 const expectedPathLintRulesCount = 2
 
 describe('getLintConfig', () => {
@@ -46,6 +46,7 @@ describe('DefaultLintConfiguration', () => {
           // also sees the settings that are only read conditionally.
           switch (key) {
             case 'allowedGremlins':
+            case 'bannedStrings':
             case 'ignoredLibnames':
             case 'ignoredMacros':
             case 'ignoreList':

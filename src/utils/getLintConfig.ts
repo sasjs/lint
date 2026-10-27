@@ -4,6 +4,7 @@ import { LintConfig } from '../types/LintConfig'
 import { readFile } from '@sasjs/utils/file'
 import { getProjectRoot } from './getProjectRoot'
 import { LineEndings } from '../types/LineEndings'
+import { defaultBannedStrings } from './defaultBannedStrings'
 import { defaultIgnoredMacros } from './defaultIgnoredMacros'
 
 export const getDefaultHeader = () =>
@@ -19,6 +20,7 @@ export const getDefaultHeader = () =>
  */
 export const DefaultLintConfiguration = {
   allowedGremlins: [],
+  bannedStrings: [...defaultBannedStrings],
   defaultHeader: getDefaultHeader(),
   hasDoxygenHeader: true,
   hasMacroNameInMend: true,
@@ -33,6 +35,7 @@ export const DefaultLintConfiguration = {
   maxDataLineLength: 80,
   maxHeaderLineLength: 80,
   maxLineLength: 80,
+  noBannedStrings: true,
   noEncodedPasswords: true,
   noGremlins: true,
   noNestedCommentsInHeader: true,

@@ -6,6 +6,7 @@
   "description": "The SASjs Lint Config file provides the settings for customising SAS code style in your project. A SAS file can override these settings for itself with a `@sasjslint` block in its Doxygen header.",
   "default": {
     "allowedGremlins": [],
+    "bannedStrings": ["error ", "error:", "warning ", "warning:"],
     "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/",
     "hasDoxygenHeader": true,
     "hasMacroNameInMend": true,
@@ -20,6 +21,7 @@
     "maxDataLineLength": 80,
     "maxHeaderLineLength": 80,
     "maxLineLength": 80,
+    "noBannedStrings": true,
     "noEncodedPasswords": true,
     "noGremlins": true,
     "noNestedCommentsInHeader": true,
@@ -65,6 +67,14 @@
     }
   ],
   "properties": {
+    "noBannedStrings": {
+      "$id": "#/properties/noBannedStrings",
+      "type": "boolean",
+      "title": "noBannedStrings",
+      "description": "Reports lines that contain a string listed in bannedStrings, such as a word that looks like a log message. Matching is case insensitive. Shows a warning when one is present.",
+      "default": true,
+      "examples": [true, false]
+    },
     "noEncodedPasswords": {
       "$id": "#/properties/noEncodedPasswords",
       "type": "boolean",
@@ -96,6 +106,21 @@
       "description": "Captures problematic characters such as zero-width whitespace and others that look valid but usually are not (such as the en dash)",
       "default": [true],
       "examples": [true, false]
+    },
+    "bannedStrings": {
+      "$id": "#/properties/bannedStrings",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "title": "bannedStrings",
+      "description": "An array of strings for the noBannedStrings rule to report. Matching is case insensitive, and each entry is matched literally, so a trailing space means what it says.",
+      "default": ["error ", "error:", "warning ", "warning:"],
+      "examples": [
+        ["error ", "error:", "warning ", "warning:"],
+        ["{sas001}", "TODO"]
+      ]
     },
     "allowedGremlins": {
       "$id": "#/properties/allowedGremlins",
@@ -260,7 +285,10 @@
       "title": "ignoreList",
       "description": "An array of paths or path patterns to ignore when linting. Any files or matching patterns in the .gitignore file will also be ignored.",
       "default": [],
-      "examples": [["sasjsbuild/", "sasjsresults/"], ["sasjs/tests", "tmp/scratch.sas"]]
+      "examples": [
+        ["sasjsbuild/", "sasjsresults/"],
+        ["sasjs/tests", "tmp/scratch.sas"]
+      ]
     },
     "ignoredLibnames": {
       "$id": "#/properties/ignoredLibnames",
@@ -313,6 +341,13 @@
         }
       ],
       "properties": {
+        "noBannedStrings": {
+          "$id": "#/properties/severityLevel/noBannedStrings",
+          "title": "noBannedStrings",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
         "noEncodedPasswords": {
           "$id": "#/properties/severityLevel/noEncodedPasswords",
           "title": "noEncodedPasswords",

@@ -253,19 +253,21 @@ describe('LintConfig', () => {
     })
 
     expect(config).toBeTruthy()
-    expect(config.lineLintRules.length).toEqual(6)
+    expect(config.lineLintRules.length).toEqual(7)
     expect(config.lineLintRules[0].name).toEqual('noTrailingSpaces')
     expect(config.lineLintRules[0].type).toEqual(LintRuleType.Line)
     expect(config.lineLintRules[1].name).toEqual('noEncodedPasswords')
     expect(config.lineLintRules[1].type).toEqual(LintRuleType.Line)
-    expect(config.lineLintRules[2].name).toEqual('noTabs')
+    expect(config.lineLintRules[2].name).toEqual('noBannedStrings')
     expect(config.lineLintRules[2].type).toEqual(LintRuleType.Line)
-    expect(config.lineLintRules[3].name).toEqual('maxLineLength')
+    expect(config.lineLintRules[3].name).toEqual('noTabs')
     expect(config.lineLintRules[3].type).toEqual(LintRuleType.Line)
-    expect(config.lineLintRules[4].name).toEqual('indentationMultiple')
+    expect(config.lineLintRules[4].name).toEqual('maxLineLength')
     expect(config.lineLintRules[4].type).toEqual(LintRuleType.Line)
-    expect(config.lineLintRules[5].name).toEqual('noGremlins')
+    expect(config.lineLintRules[5].name).toEqual('indentationMultiple')
     expect(config.lineLintRules[5].type).toEqual(LintRuleType.Line)
+    expect(config.lineLintRules[6].name).toEqual('noGremlins')
+    expect(config.lineLintRules[6].type).toEqual(LintRuleType.Line)
 
     expect(config.fileLintRules.length).toEqual(11)
     expect(config.fileLintRules[0].name).toEqual('lineEndings')
@@ -377,6 +379,53 @@ describe('LintConfig', () => {
       `Property "ignoredMacros" has invalid type of values. It can only contain strings.`
     )
   })
+
+  it('should default bannedStrings to the log lookalikes', () => {
+    expect(new LintConfig().bannedStrings).toEqual([
+      'error ',
+      'error:',
+      'warning ',
+      'warning:'
+    ])
+    expect(new LintConfig({}).bannedStrings).toEqual([
+      'error ',
+      'error:',
+      'warning ',
+      'warning:'
+    ])
+  })
+
+  it('should use an explicit bannedStrings list as given', () => {
+    expect(new LintConfig({ bannedStrings: ['todo'] }).bannedStrings).toEqual([
+      'todo'
+    ])
+    expect(new LintConfig({ bannedStrings: [] }).bannedStrings).toEqual([])
+  })
+
+  it('should switch noBannedStrings off', () => {
+    expect(
+      new LintConfig({ noBannedStrings: true }).lineLintRules.find(
+        (rule) => rule.name === 'noBannedStrings'
+      )
+    ).toBeTruthy()
+    expect(
+      new LintConfig({ noBannedStrings: false }).lineLintRules.find(
+        (rule) => rule.name === 'noBannedStrings'
+      )
+    ).toBeUndefined()
+  })
+
+  it('should throw an error with an invalid value for bannedStrings', () => {
+    expect(() => new LintConfig({ bannedStrings: 'error ' })).toThrow(
+      `Property "bannedStrings" can only be an array of strings.`
+    )
+    expect(() => new LintConfig({ bannedStrings: ['error ', 2] })).toThrow(
+      `Property "bannedStrings" has invalid type of values. It can contain only non-empty strings.`
+    )
+    expect(() => new LintConfig({ bannedStrings: [''] })).toThrow(
+      `Property "bannedStrings" has invalid type of values. It can contain only non-empty strings.`
+    )
+  })
 })
 
 describe('LintConfig.override', () => {
@@ -436,5 +485,36 @@ describe('LintConfig.override', () => {
     expect(
       config.override({ ignoredMacros: ['mf_internal'] }).ignoredMacros
     ).toEqual(['webout', 'mf_internal'])
+  })
+
+  it('should switch noBannedStrings off for one file', () => {
+    const config = new LintConfig({})
+
+    expect(
+      config
+        .override({ noBannedStrings: false })
+        .lineLintRules.find((rule) => rule.name === 'noBannedStrings')
+    ).toBeUndefined()
+  })
+
+  it('should keep the default bannedStrings when a file adds an entry', () => {
+    const config = new LintConfig({})
+
+    expect(config.override({ bannedStrings: ['todo'] }).bannedStrings).toEqual([
+      'error ',
+      'error:',
+      'warning ',
+      'warning:',
+      'todo'
+    ])
+  })
+
+  it('should add a banned string without restating the project list', () => {
+    const config = new LintConfig({ bannedStrings: ['error '] })
+
+    expect(config.override({ bannedStrings: ['todo'] }).bannedStrings).toEqual([
+      'error ',
+      'todo'
+    ])
   })
 })

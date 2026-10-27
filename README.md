@@ -8,7 +8,7 @@
 
 Our goal is to help SAS developers everywhere spend less time on code reviews, bug fixing and arguing about standards - and more time delivering extraordinary business value.
 
-*Note:* The SASjs project and its repositories are not affiliated with SAS Institute.
+_Note:_ The SASjs project and its repositories are not affiliated with SAS Institute.
 
 # Linting
 
@@ -22,6 +22,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 ```json
 {
   "allowedGremlins": [],
+  "bannedStrings": ["error ", "error:", "warning ", "warning:"],
   "defaultHeader": "/**{lineEnding}  @file{lineEnding}  @brief <Your brief here>{lineEnding}{lineEnding}  <h4> SAS Macros </h4>{lineEnding}{lineEnding}**/",
   "hasDoxygenHeader": true,
   "hasMacroNameInMend": true,
@@ -36,6 +37,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "maxDataLineLength": 80,
   "maxHeaderLineLength": 80,
   "maxLineLength": 80,
+  "noBannedStrings": true,
   "noEncodedPasswords": true,
   "noGremlins": true,
   "noNestedCommentsInHeader": true,
@@ -65,7 +67,7 @@ Each setting can have three states:
 
 For more details, and the default state, see the description of each rule below. It is also possible to change whether a rule returns ERROR or WARN using the `severityLevel` object.
 
-Configuring a non-zero return code (ERROR) is helpful when running `sasjs lint` as part of a git pre-commit hook.  An example is available [here](https://github.com/sasjs/template_jobs/blob/main/.git-hooks/pre-commit).
+Configuring a non-zero return code (ERROR) is helpful when running `sasjs lint` as part of a git pre-commit hook. An example is available [here](https://github.com/sasjs/template_jobs/blob/main/.git-hooks/pre-commit).
 
 ## Per-file overrides
 
@@ -92,7 +94,7 @@ One exception: `ignoreList` is evaluated before a file is read, so an entry a he
 
 ### allowedGremlins
 
-An array of hex codes that represents allowed gremlins (invisible / undesirable characters). To allow all gremlins, you can also set the `noGremlins` rule to `false`.  The full gremlin list is [here](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts).
+An array of hex codes that represents allowed gremlins (invisible / undesirable characters). To allow all gremlins, you can also set the `noGremlins` rule to `false`. The full gremlin list is [here](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts).
 
 Example:
 
@@ -100,6 +102,21 @@ Example:
 {
   "noGremlins": true,
   "allowedGremlins": ["0x0080", "0x3000"]
+}
+```
+
+### bannedStrings
+
+An array of strings for the [`noBannedStrings`](#nobannedstrings) rule to report. Matching is case insensitive, and each entry is matched literally rather than as a regular expression, so a trailing space means what it says: `"error "` matches `error ` but not `errors`, `error_flag` or `error:`. Each default entry ends the word with the space or the colon that follows it in a log line.
+
+The default list is `["error ", "error:", "warning ", "warning:"]`. An explicit list replaces it, so `"bannedStrings": []` reports nothing.
+
+Example:
+
+```json
+{
+  "noBannedStrings": true,
+  "bannedStrings": ["error ", "error:", "warning ", "warning:", "{sas001}"]
 }
 ```
 
@@ -168,6 +185,7 @@ This will require macros to have the options listed as "requiredMacroOptions." T
 - severity: WARNING
 
 Example
+
 ```json
 {
   "hasRequiredMacroOptions": true,
@@ -296,6 +314,29 @@ See also:
 
 - [maxDataLineLength](#maxdatalinelength)
 - [maxHeaderLineLength](#maxheaderlinelength)
+
+### noBannedStrings
+
+Reports every line that contains one of the strings in [`bannedStrings`](#bannedstrings), anywhere in the line - in a comment, in a string literal, or in code, because the text is read the way a person or a log scanner reads it rather than as SAS tokens.
+
+The point is the log. A comment such as `/* returns the error message as text */` contains `error `, and so does a real `ERROR:` line, so a grep of the SAS log - and any log scanner built on one, including the checks people run before they look at a job - returns the comment along with the failure. The same applies to a `%put` that copies a sentence out of the documentation. Keeping those words out of the source means a match in the log is a message that came from somewhere real.
+
+Three boundaries are deliberate. The line that carries a `@sasjslint` override is configuration rather than prose, so a file that adds a banned string does not report its own setting. Source data is left alone: a `datalines` payload may hold the text `error ` in a value, and that is data rather than something a developer can reword. And matching is case insensitive, so `Error`, `ERROR` and `error` are the same banned string; the diagnostic quotes the text as written. There is no setting to make it case sensitive: the words being caught are log lookalikes, and the log does not preserve the case an author typed either.
+
+The entry is matched as text, so it is not anchored to a word boundary. `saserror = 1` therefore satisfies `"error "`, because the identifier ends with the word and the space before the `=` is the trailing space the entry asks for. Listing `"error "` is what keeps `errors` and `error_flag` out, and every default entry is written the same way for that reason.
+
+The rule is a warning by default. A single file can switch it off or downgrade it with a `@sasjslint` block in its header, which is the usual way to keep a legacy program out of scope:
+
+```sas
+/**
+  @file
+  @brief Legacy job, comments left as written
+  @sasjslint {"noBannedStrings": false}
+**/
+```
+
+- Default: true
+- Severity: WARNING
 
 ### noEncodedPasswords
 
@@ -509,13 +550,14 @@ Contact [Allan Bowe](https://www.linkedin.com/in/allanbowe/) for further details
 
 # Further resources
 
-* Using the linter on terminal: https://vid.4gl.io/w/vmJspCjcBoc5QtzwZkZRvi
-* Longer intro to sasjs lint: https://vid.4gl.io/w/nDtkQFV1E8rtaa2BuM6U5s
-* CLI docs:  https://cli.sasjs.io/lint
+- Using the linter on terminal: https://vid.4gl.io/w/vmJspCjcBoc5QtzwZkZRvi
+- Longer intro to sasjs lint: https://vid.4gl.io/w/nDtkQFV1E8rtaa2BuM6U5s
+- CLI docs: https://cli.sasjs.io/lint
 
 # Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
