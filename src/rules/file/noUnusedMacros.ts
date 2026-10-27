@@ -29,6 +29,9 @@ const message = `Macro '{macro}' is declared in the <h4> SAS Macros </h4> sectio
 const getUnusedMacros = (value: string, config: LintConfig): HeaderMacro[] => {
   if (!value) return []
 
+  // Every parsed name counts as a use, including one shorter than
+  // `minMacroNameLength`: over-counting a use keeps a declaration, and
+  // under-counting one has the formatter delete it.
   const used = new Set(
     parseMacroCalls(value, config, { includeMasked: true }).map((call) =>
       call.name.toLowerCase()

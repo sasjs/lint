@@ -37,6 +37,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "maxDataLineLength": 80,
   "maxHeaderLineLength": 80,
   "maxLineLength": 80,
+  "minMacroNameLength": 3,
   "noBannedStrings": true,
   "noEncodedPasswords": true,
   "noGremlins": true,
@@ -315,6 +316,21 @@ See also:
 - [maxDataLineLength](#maxdatalinelength)
 - [maxHeaderLineLength](#maxheaderlinelength)
 
+### minMacroNameLength
+
+The shortest macro name the linter will treat as a macro name, and the shortest a file may define.
+
+It exists because other languages write a percentage sign that reads as a macro call. The default of three is set by what those look like: a conversion is one character (`%s(`, `%d(`, `%x(`), a length modifier makes it two (`%ld(`, `%lu(`, `%Lf(`), and a macro name that anyone documents is longer than either - so three clears the specifiers a format string actually contains and still admits every real name. [`noUndeclaredMacros`](#noundeclaredmacros) applies the floor when it reads invocations, so a short "call" is not reported, and this rule reports a definition that short - so a macro the scanner could not see is caught where it is written rather than silently ignored. [`noUnusedMacros`](#nounusedmacros) deliberately does not apply it: over-counting a use keeps a declaration, while under-counting one has the formatter delete it, so every parsed name counts as a use.
+
+The default covers `%s(` and the length-modifier forms such as `%ld(`. A longer conversion - `%lld(` - still reads as a name, and a file that formats numbers that way raises the floor for itself (`@sasjslint {"minMacroNameLength": 4}`), lists those names in [`ignoredMacros`](#ignoredmacros), or switches the rule off for itself. The linter does not try to parse a format string: the residue is a handful of names in a handful of files, and a specifier table would have to track every dialect that writes one.
+
+A definition that lives inside a multi-line double-quoted string - a template the file writes out rather than code it runs - is read as a definition, because the macro parser reads lines rather than tracking quotes. A single-quoted template cannot span lines in SAS and is not read that way. That file raises the floor for itself or switches the rule off.
+
+Short macro names are legal SAS, but they are not documentable: `%macro s();` reads as a format specifier in every context a reader meets it. To turn the floor off, set the value to 1, which also returns `noUndeclaredMacros` to reading single-character names.
+
+- Default: 3
+- Severity: WARNING
+
 ### noBannedStrings
 
 Reports every line that contains one of the strings in [`bannedStrings`](#bannedstrings), anywhere in the line - in a comment, in a string literal, or in code, because the text is read the way a person or a log scanner reads it rather than as SAS tokens.
@@ -431,6 +447,8 @@ The macros that ship with SAS (`%scan`, `%index`, `%sysfunc` and the other macro
 
 An invocation written inside the argument of `%str` / `%nrstr` is not reported. A file masks a trigger to print it as often as to defer it, and nothing runs at that point, so a warning there would land on text that may never be code. [`noUnusedMacros`](#nounusedmacros) counts such a name as a use, so the deferred form - `%mp_abort(iftrue=%str(%mf_existds(work.x)=1))` - satisfies the declaration it depends on without demanding one.
 
+A name written inside a single-quoted string is reported too, for the same reason as the masking case in reverse: the string is usually a program the file submits, so the macro has to be available when it runs. Text in a string is not always code, though, so two tests keep the noise down. A name shorter than [`minMacroNameLength`](#minmacronamelength) is never reported (`%s(`, `%d(`, `%x(`), and a name inside a string counts only when an opening parenthesis follows it - a generated program calls a macro that way, while a SQL LIKE pattern (`'%abc%'`) or a conversion specifier has nothing after the name. The parenthesis test sits with [`hasMacroParentheses`](#hasmacroparentheses), which requires every definition in the codebase to declare one. A template carrying the macros that its generated program declares for itself goes in [`ignoredMacros`](#ignoredmacros) or has the rule switched off for that file with a `@sasjslint` block.
+
 The warning is resolved by adding the macro name to the header. Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) adds the missing macros automatically, as a unique list sorted alphabetically.
 
 - Default: true
@@ -487,6 +505,8 @@ The counterpart of `noUndeclaredMacros`. This rule reports a warning for each ma
 A macro can be referenced indirectly - for example by another macro in the dependency chain, or through a dynamic `%&macro` call - without appearing as a direct invocation in the file, so the warning is advisory.
 
 An invocation written inside the argument of `%str` / `%nrstr` counts as a use. That text is data while the masking function runs, but its caller normally unquotes it - `%mp_abort(iftrue=%str(%mf_existds(work.x)=1))` resolves `%mf_existds` when `%mp_abort` evaluates the condition - so the declaration is a dependency of the file, and treating it as unused would have the formatter delete it.
+
+An invocation written inside a single-quoted string counts as a use as well. SAS resolves no macro trigger there, so the text is data while the string is built - but code that generates code submits it later: `call execute('%mf_mkdir('!!path!!')')` runs the macro when the DATA step executes, and a program written to a fileref and `%inc`ed runs it then. Counting it as unused would report a declaration the file needs, and the formatter would delete it.
 
 Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) removes the unused entries from the header. Together with `noUndeclaredMacros`, this leaves the `<h4> SAS Macros </h4>` section listing exactly the macros the file uses. The pass that reads the list also writes each entry back as `@li <macro>.sas` at the section's indentation, in place and without re-spacing the header, so a mistyped tag (`@il`) is repaired even when no entry is removed.
 

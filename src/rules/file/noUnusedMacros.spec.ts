@@ -14,6 +14,53 @@ describe('noUnusedMacros - test', () => {
     expect(noUnusedMacros.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should count a macro invoked inside a single-quoted string as used', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li mf_mkdir.sas
+**/
+data _null_;
+  call execute('%mf_mkdir(work.x)');
+run;`
+
+    // The string is submitted later, so the invocation runs then. Counting it
+    // as unused would report a declaration the file depends on - and the
+    // formatter would then delete it.
+    expect(noUnusedMacros.test(text, new LintConfig())).toEqual([])
+    expect(noUnusedMacros.fix!(text, new LintConfig())).toEqual(text)
+  })
+
+  it('should count an invocation without arguments inside a string as used', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li mf_foo.sas
+**/
+data _null_;
+  call execute('%mf_foo');
+run;`
+
+    // Legal SAS, and the generated program needs the macro. A parser that
+    // required a parenthesis before reporting a quoted name would lose this
+    // use, and the fix would delete the declaration.
+    expect(noUnusedMacros.test(text, new LintConfig())).toEqual([])
+    expect(noUnusedMacros.fix!(text, new LintConfig())).toEqual(text)
+  })
+
+  it('should count a one-character macro as used, whatever the floor', () => {
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+  @li s.sas
+**/
+%s()`
+
+    // Over-counting a use keeps a declaration; the name floor belongs to the
+    // reporting side, not to the side whose fix deletes entries.
+    expect(noUnusedMacros.test(text, new LintConfig())).toEqual([])
+  })
+
   it('should report a macro that the file does not use', () => {
     const text = `/**
   @file

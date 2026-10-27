@@ -21,6 +21,7 @@
     "maxDataLineLength": 80,
     "maxHeaderLineLength": 80,
     "maxLineLength": 80,
+    "minMacroNameLength": 3,
     "noBannedStrings": true,
     "noEncodedPasswords": true,
     "noGremlins": true,
@@ -45,6 +46,7 @@
       "noSpacesInFileNames": true,
       "lowerCaseFileNames": true,
       "maxLineLength": 80,
+      "minMacroNameLength": 3,
       "maxHeaderLineLength": 80,
       "maxDataLineLength": 80,
       "noGremlins": true,
@@ -189,6 +191,15 @@
       "description": "Enforces a configurable maximum line length for data section. Shows a warning for lines exceeding this length.",
       "default": 80,
       "examples": [60, 80, 120]
+    },
+    "minMacroNameLength": {
+      "$id": "#/properties/minMacroNameLength",
+      "type": "integer",
+      "minimum": 1,
+      "title": "minMacroNameLength",
+      "description": "Sets the shortest macro name the linter treats as a macro name, and the shortest a file may define. A short name cannot be told apart from a format specifier inside a string - %s( is one character, %ld( is two. Shows a warning for a definition shorter than this. Set to 1 to switch the rule off.",
+      "default": 3,
+      "examples": [3, 4]
     },
     "noNestedCommentsInHeader": {
       "$id": "#/properties/noNestedCommentsInHeader",
@@ -400,6 +411,13 @@
         "maxLineLength": {
           "$id": "#/properties/severityLevel/maxLineLength",
           "title": "maxLineLength",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "minMacroNameLength": {
+          "$id": "#/properties/severityLevel/minMacroNameLength",
+          "title": "minMacroNameLength",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

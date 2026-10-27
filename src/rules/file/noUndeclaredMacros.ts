@@ -51,6 +51,18 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
     if (seen.has(key)) return
     seen.add(key)
 
+    // A name shorter than the floor is not a macro name: Lua and printf put
+    // `%s(` and friends inside strings. The `minMacroNameLength` rule reports
+    // a definition that short, so the two agree about what a name is.
+    if (call.name.length < (config.minMacroNameLength ?? 3)) return
+
+    // In a string a name is a call when an opening parenthesis follows it: a
+    // generated program calls a macro that way, while a SQL LIKE pattern or a
+    // conversion specifier has nothing after the name. The test lives here and
+    // not in the parser because noUnusedMacros counts every name - a use it
+    // misses is a declaration the formatter deletes.
+    if (call.quoted && !call.hasParen) return
+
     if (isSasMacro(call.name)) return
     if (ignored.has(key)) return
     if (declared.has(key)) return
