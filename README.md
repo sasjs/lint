@@ -38,6 +38,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "maxLineLength": 80,
   "noEncodedPasswords": true,
   "noGremlins": true,
+  "noNestedCommentsInHeader": true,
   "noNestedMacros": true,
   "noSingleAsteriskComments": false,
   "noSpacesInFileNames": true,
@@ -138,7 +139,9 @@ If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
 
 ### hasDoxygenHeader
 
-The SASjs framework recommends the use of Doxygen headers for describing all types of SAS program. This check will identify files where a doxygen header does not begin in the first line.
+The SASjs framework recommends the use of Doxygen headers for describing all types of SAS program. This check identifies files where a Doxygen header does not begin on the first line, where it opens with a single asterisk, and where it closes with one.
+
+The closing half matters beyond style. This rule set and `sasjs compile` both locate the header's end by its `**/` terminator, so a header closed with a plain `*/` has no end they can find - a comment inside such a header can truncate it without being reported by [`noNestedCommentsInHeader`](#nonestedcommentsinheader). The fix widens the close marker to `**/`, which puts the header back where that check can see it. A header whose body already holds a comment opener is left alone: the first close marker may belong to that comment, and that decision belongs to the author.
 
 - Default: true
 - Severity: WARNING
@@ -306,6 +309,17 @@ This rule will highlight any rows that contain a `{sas00X}` type password, or `{
 Capture zero-width whitespace and other non-standard characters. The logic is borrowed from the [VSCode Gremlins Extension](https://github.com/nhoizey/vscode-gremlins) - if you are looking for more advanced gremlin zapping capabilities, we highly recommend to use their extension instead.
 
 The list of characters can be found in this file: [https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts)
+
+- Default: true
+- Severity: WARNING
+
+### noNestedCommentsInHeader
+
+A doxygen header is a SAS block comment, and SAS block comments do not nest: the first close marker ends the comment. A `/* ... */` inside the header therefore closes the header early, and the rest of it - `@param` lines, and any code in a usage example - is compiled as SAS. Header text that holds `/*/`, such as a glob like `src/*/file.sas`, ends the header the same way.
+
+This rule reports such a header as a warning. `sasjs compile` fails on the truncation (sasjs/utils#288), so the rule surfaces it in the editor rather than in the build; set `severityLevel` to `error` to make `sasjs lint` fail on it as well.
+
+Two boundaries are deliberate. Only the header a file opens with is inspected, which is the one `sasjs compile` reads - a file that opens with code has no header to truncate, and `hasDoxygenHeader` covers that shape. And the header's end is identified by its `**/` terminator standing alone on its line, so a header closed with a plain `*/` is not inspected: nothing there says the header was meant to continue. [`hasDoxygenHeader`](#hasdoxygenheader) reports that closing style and its fix writes the `**/` form, which is what puts the header back in view here. The same bound has one cost worth knowing: a truncated header whose own text holds a line-leading `/**` is not reported, because that opener is indistinguishable from a second header in the same file.
 
 - Default: true
 - Severity: WARNING

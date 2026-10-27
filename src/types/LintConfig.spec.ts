@@ -267,33 +267,43 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[5].name).toEqual('noGremlins')
     expect(config.lineLintRules[5].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(10)
+    expect(config.fileLintRules.length).toEqual(11)
     expect(config.fileLintRules[0].name).toEqual('lineEndings')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[1].name).toEqual('hasDoxygenHeader')
     expect(config.fileLintRules[1].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[2].name).toEqual('hasMacroNameInMend')
     expect(config.fileLintRules[2].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[3].name).toEqual('noNestedMacros')
+    expect(config.fileLintRules[3].name).toEqual('noNestedCommentsInHeader')
     expect(config.fileLintRules[3].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[4].name).toEqual('hasMacroParentheses')
+    expect(config.fileLintRules[4].name).toEqual('noNestedMacros')
     expect(config.fileLintRules[4].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[5].name).toEqual('strictMacroDefinition')
+    expect(config.fileLintRules[5].name).toEqual('hasMacroParentheses')
     expect(config.fileLintRules[5].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[6].name).toEqual('hasRequiredMacroOptions')
+    expect(config.fileLintRules[6].name).toEqual('strictMacroDefinition')
     expect(config.fileLintRules[6].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[7].name).toEqual('noSingleAsteriskComments')
+    expect(config.fileLintRules[7].name).toEqual('hasRequiredMacroOptions')
     expect(config.fileLintRules[7].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[8].name).toEqual('noUndeclaredMacros')
+    expect(config.fileLintRules[8].name).toEqual('noSingleAsteriskComments')
     expect(config.fileLintRules[8].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[9].name).toEqual('noUnusedMacros')
+    expect(config.fileLintRules[9].name).toEqual('noUndeclaredMacros')
     expect(config.fileLintRules[9].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[10].name).toEqual('noUnusedMacros')
+    expect(config.fileLintRules[10].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')
     expect(config.pathLintRules[0].type).toEqual(LintRuleType.Path)
     expect(config.pathLintRules[1].name).toEqual('lowerCaseFileNames')
     expect(config.pathLintRules[1].type).toEqual(LintRuleType.Path)
+  })
+
+  it('should leave out a rule that is switched off', () => {
+    const config = new LintConfig({ noNestedCommentsInHeader: false })
+
+    expect(config.fileLintRules.map((rule) => rule.name)).not.toContain(
+      'noNestedCommentsInHeader'
+    )
   })
 
   it('should throw an error with an invalid value for requiredMacroOptions', () => {

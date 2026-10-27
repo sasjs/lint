@@ -25,6 +25,24 @@
       "survived": 21,
       "killed": 297,
       "timeout": 38
+    },
+    "src/rules/file/noNestedCommentsInHeader.ts": {
+      "score": 96.7,
+      "survived": 3,
+      "killed": 84,
+      "timeout": 4
+    },
+    "src/rules/file/hasDoxygenHeader.ts": {
+      "score": 96.77,
+      "survived": 3,
+      "killed": 90,
+      "timeout": 0
+    },
+    "src/utils/getPosition.ts": {
+      "score": 100.0,
+      "survived": 0,
+      "killed": 10,
+      "timeout": 0
     }
   }
 }
