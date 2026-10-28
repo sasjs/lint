@@ -54,10 +54,15 @@ jobs:
         # request body - which is why the risk is small, and not a reason to
         # keep the advisory out of the report.
         #
-        # audit-watch.yml runs the same script weekly without `--gate`,
-        # including the check that says when deepmerge publishes a fix. Keep the
-        # GHSA id named here and in EXEMPTIONS in scripts/audit-watch.mjs: the
-        # script fails when the two disagree.
+        # This step checks the tree: the advisory is present, at a path the entry
+        # covers, and named in this comment. It does not decide whether the
+        # exemption is still justified - `--gate` skips the registry check on
+        # purpose, so a package publishing a fix cannot turn a PR red.
+        # audit-watch.yml runs the same script weekly without `--gate`, and that
+        # run is what re-validates the exemption and raises an issue when
+        # deepmerge publishes a patched release. Keep the GHSA id named here and
+        # in EXEMPTIONS in scripts/audit-watch.mjs: the script fails when the two
+        # disagree.
         run: node scripts/audit-watch.mjs --gate
       - name: Check Code Style
         run: npm run lint

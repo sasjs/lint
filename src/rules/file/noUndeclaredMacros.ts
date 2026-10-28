@@ -99,13 +99,16 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
  * definition inside `%str`-masked text counts as one, a quoted example in a doc
  * comment counts as one, and so does a definition emitted without a parameter
  * list (`put '%macro mf_bar;'`), which is why the pattern accepts `;` after the
- * name as well as the parenthesis. A missed report is recoverable - the macro is
+ * name as well as the parenthesis, and `/`, which introduces macro options
+ * (`put '%macro mf_foo / parmbuff;'`). A missed report is recoverable - the macro is
  * still there - whereas a false report has the fix add a dependency that does
  * not exist.
  */
 const getTemplateDefinitions = (value: string): string[] =>
   [
-    ...value.matchAll(/(?:^|['";\n])[ \t]*%macro\s+([a-z_][a-z0-9_]*)\s*[;(]/gi)
+    ...value.matchAll(
+      /(?:^|['";\n])[ \t]*%macro\s+([a-z_][a-z0-9_]*)\s*[;(/]/gi
+    )
   ].map((match) => match[1])
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {

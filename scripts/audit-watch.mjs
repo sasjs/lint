@@ -66,9 +66,13 @@ const WATCHED_FOR_RELEASE = [{ name: 'deepmerge', newestKnown: '4.3.1' }]
 const runAudit = () => {
   // A fixture report lets the gate be exercised against shapes the installed
   // tree does not have - a nested copy of an exempted package, an unlisted
-  // advisory - without installing one.
-  if (process.env.AUDIT_WATCH_AUDIT_JSON) {
-    return JSON.parse(readFileSync(process.env.AUDIT_WATCH_AUDIT_JSON, 'utf8'))
+  // advisory - without installing one. An argument rather than an environment
+  // variable on purpose: the environment of the step that decides the build
+  // outcome is inherited from the workflow, so a variable would let a stray `env:`
+  // in CI replace the report the gate reads.
+  const fixture = process.argv.find((arg) => arg.startsWith('--audit-json='))
+  if (fixture) {
+    return JSON.parse(readFileSync(fixture.slice('--audit-json='.length), 'utf8'))
   }
 
   let stdout

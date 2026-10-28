@@ -9,8 +9,10 @@ import path from 'path'
  * exempted package that npm resolves nested rather than hoisted, and an advisory
  * nobody has listed.
  *
- * The script takes the report from AUDIT_WATCH_AUDIT_JSON, which is the seam
- * that lets a case describe a tree without installing one.
+ * The script takes the report from `--audit-json=<path>`, which is the seam that
+ * lets a case describe a tree without installing one - an argument rather than
+ * an environment variable, so the step that decides the build cannot have its
+ * input replaced by a workflow `env:` entry.
  */
 const script = path.resolve(__dirname, 'audit-watch.mjs')
 
@@ -38,11 +40,14 @@ const run = (report: unknown) => {
   writeFileSync(fixture, JSON.stringify(report))
 
   try {
-    const stdout = execFileSync('node', [script, '--gate'], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, AUDIT_WATCH_AUDIT_JSON: fixture }
-    })
+    const stdout = execFileSync(
+      'node',
+      [script, '--gate', `--audit-json=${fixture}`],
+      {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe']
+      }
+    )
     return { code: 0, output: stdout }
   } catch (error: any) {
     return {

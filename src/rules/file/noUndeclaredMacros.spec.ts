@@ -117,6 +117,22 @@ run;`
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should count a definition emitted with macro options and no parameter list', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  file f;
+  put '%macro mf_qux / parmbuff;';
+  put '%mend mf_qux;';
+  put '%mf_qux(a,b)';
+run;`
+
+    // `/` introduces macro options, so the name is not followed by `;` or `(`.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
   it('should count a definition that begins a line inside a block comment', () => {
     const text = `/**
   @file
