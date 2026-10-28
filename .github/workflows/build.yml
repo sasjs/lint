@@ -59,9 +59,9 @@ jobs:
         # to EXEMPTIONS and name it here in the same commit. Nothing in the repo
         # can prevent that: a second copy of the list in workflow YAML is one
         # more file in the same tree, and the weekly run executes the same
-        # in-tree script. The control is review, which is why CODEOWNERS routes
-        # these files to the maintainer - that only bites where branch protection
-        # requires a code-owner approval.
+        # in-tree script. What makes an exemption trustworthy is that a reviewer
+        # read the argument next to it, so a change to those files needs review
+        # on its own terms rather than as part of a larger diff.
         #
         # This step checks the tree: the advisory is present, at a path the entry
         # covers, and named in this comment. It does not decide whether the
