@@ -64,6 +64,13 @@ const WATCHED_FOR_RELEASE = [{ name: 'deepmerge', newestKnown: '4.3.1' }]
  * nothing about whether the command worked - parse the report instead.
  */
 const runAudit = () => {
+  // A fixture report lets the gate be exercised against shapes the installed
+  // tree does not have - a nested copy of an exempted package, an unlisted
+  // advisory - without installing one.
+  if (process.env.AUDIT_WATCH_AUDIT_JSON) {
+    return JSON.parse(readFileSync(process.env.AUDIT_WATCH_AUDIT_JSON, 'utf8'))
+  }
+
   let stdout
   try {
     stdout = execFileSync('npm', ['audit', '--json'], {
@@ -108,6 +115,12 @@ const collectAdvisories = (report) => {
 
   return advisories
 }
+
+/** True when an entry covers the path npm reported for a copy of its package. */
+const coversPath = (entry, nodePath) =>
+  entry.paths.some(
+    (covered) => nodePath === covered || nodePath.endsWith('/' + covered)
+  )
 
 /** The version the registry currently resolves `latest` to, or null if offline. */
 const latestPublished = (name) => {
@@ -185,8 +198,12 @@ const main = () => {
     // Keyed on the path, not the id: an id alone cannot tell the copy an entry
     // was written about from a second one that arrived through another
     // dependency, and the second would pass under the first one's argument.
+    // Matched on the tail, because npm reports where it resolved the copy -
+    // `node_modules/jest-config/node_modules/deepmerge` once it stops being
+    // hoisted - and an exact comparison would fail the gate for a tree the
+    // entry was written to allow.
     const strays = [...new Set(advisory.paths)].filter(
-      (nodePath) => !exemption.paths.includes(nodePath)
+      (nodePath) => !coversPath(exemption, nodePath)
     )
     if (strays.length) {
       problems.push(
