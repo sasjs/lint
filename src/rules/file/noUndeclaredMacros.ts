@@ -35,6 +35,14 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
     if (macro.name) declared.add(macro.name.toLowerCase())
   })
 
+  // A macro the file emits is defined here even though `parseMacros` cannot see
+  // it: the definition sits inside a string, which the parser reads as part of a
+  // statement. Reporting it would have the fix add a dependency the file does
+  // not have.
+  getTemplateDefinitions(value).forEach((macro) => {
+    declared.add(macro.toLowerCase())
+  })
+
   getHeaderMacros(value, config).forEach((macro) => {
     declared.add(macro.name.toLowerCase())
   })
@@ -72,6 +80,38 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
 
   return undeclared
 }
+
+/**
+ * Names the file defines, counting a definition written into a template string.
+ * A macro that emits a program writes it with `put '...'` lines, so the macro
+ * its program calls is defined in the same file, in a string that `parseMacros`
+ * cannot read as a definition.
+ *
+ * The pattern is anchor matching, not quote tracking. A definition starts a line
+ * or follows a `;` or the quote that opens a string, and the name is followed by
+ * whatever a macro header continues with: `(`, `;`, or `/` for macro options
+ * (`%macro mf_foo / parmbuff;`). `hasMacroParentheses` asks for the parenthesis
+ * form from code this repo writes; text a file emits is not held to it here,
+ * because a definition it cannot parse would otherwise re-open the false report
+ * this function exists to close.
+ *
+ * Quote state would be the obvious way to tell code from text, and it is
+ * unusable here: straight matching desynchronises on an apostrophe in a comment,
+ * and files in `sasjs/core` carry an odd number of quotes.
+ *
+ * Four consequences of matching text rather than syntax, all of which err toward
+ * silence: a definition commented out on its own line counts as one, a
+ * definition inside `%str`-masked text counts as one, a quoted example in a doc
+ * comment counts as one, and so does a definition emitted without a parameter
+ * list. A missed report is recoverable - the macro is declared anyway - whereas a
+ * false report has the fix add a dependency that does not exist.
+ */
+const getTemplateDefinitions = (value: string): string[] =>
+  [
+    ...value.matchAll(
+      /(?:^|['";\n])[ \t]*%macro\s+([a-z_][a-z0-9_]*)\s*[;(/]/gi
+    )
+  ].map((match) => match[1])
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
   const cfg = config || new LintConfig()

@@ -63,6 +63,110 @@ run;`
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should count a definition written into a template string', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  file f;
+  put '%macro mf_foo(a);';
+  put '%mend mf_foo;';
+  put '%mf_foo(x)';
+run;`
+
+    // The string is the program being emitted, so the macro it calls is defined
+    // in this file - in a `put` line the statement parser cannot read as a
+    // definition. Reporting it would have the fix add a dependency the file does
+    // not have.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should count a definition emitted with a double-quoted string', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  file f;
+  put "%macro mf_foo(a);";
+  put "%mend mf_foo;";
+  put "%mf_foo(x)";
+run;`
+
+    // SAS opens a string with either quote, and a template written with double
+    // quotes is the same construct as one written with single quotes.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should count a definition emitted without a parameter list', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  file f;
+  put '%macro mf_bar;';
+  put '%mend mf_bar;';
+  put '%mf_bar()';
+run;`
+
+    // The pattern accepts `;` after the name as well as the parenthesis, so a
+    // generated definition without parameters counts. `hasMacroParentheses`
+    // reports the definition itself when it is written as code.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should count a definition emitted with macro options and no parameter list', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  file f;
+  put '%macro mf_qux / parmbuff;';
+  put '%mend mf_qux;';
+  put '%mf_qux(a,b)';
+run;`
+
+    // `/` introduces macro options, so the name is not followed by `;` or `(`.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should count a definition that begins a line inside a block comment', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+/*
+%macro mf_baz(a);
+*/
+data _null_;
+  call execute('%mf_baz(x)');
+run;`
+
+    // Documented consequence of matching text rather than syntax: it errs toward
+    // silence, so the call is not reported. A missed report leaves the macro
+    // declared anyway; a false report has the fix add a dependency that does not
+    // exist.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should not count a definition that only a comment mentions', () => {
+    const text = `/**
+  @file
+  @brief test
+  @details replaces the old %macro mf_foo() helper
+**/
+data _null_;
+  call execute('%mf_foo(x)');
+run;`
+
+    // The pattern requires the parenthesis, so prose reads as prose - and the
+    // call in the string is still undeclared.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toHaveLength(1)
+  })
+
   it('should not report a one-character name, which a format specifier looks like', () => {
     const text = `/**
   @file
