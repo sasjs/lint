@@ -8,6 +8,10 @@ export interface MacroCall {
   lineNumber: number
   startColumnNumber: number
   endColumnNumber: number
+  /** True when the token sits inside a single-quoted string. */
+  quoted?: boolean
+  /** True when an opening parenthesis follows the name. */
+  hasParen?: boolean
 }
 
 /**
@@ -45,23 +49,24 @@ const embeddedLanguageEnd = /^endsubmit\s*;/i
 const embeddedLanguageEndSearch = /endsubmit/i
 
 /**
- * Finds the `%name` tokens inside the argument of a masking function.
+ * Finds the `%name` tokens inside a region that is text rather than code - the
+ * argument of a masking function, or the body of a single-quoted string.
  *
- * The argument is masked text rather than code, so a quote or a comment marker
- * in it opens nothing. The scan therefore recognises only the escapes
- * `%(` / `%)` and a `%name` token, and it does not report a `%name:` label.
+ * Since the region is text, a quote or a comment marker in it opens nothing.
+ * The scan therefore recognises only the escapes `%(` / `%)` and a `%name`
+ * token, and it does not report a `%name:` label.
  *
  * @param {string} text - the whole file.
- * @param {number} from - the offset at which the argument starts.
+ * @param {number} from - the offset at which the region starts.
  * @param {number} to - the offset at which it ends.
  * @returns {{ name: string; offset: number }[]} the tokens, in order.
  */
-const findMaskedCalls = (
+const findNameTokens = (
   text: string,
   from: number,
   to: number
-): { name: string; offset: number }[] => {
-  const tokens: { name: string; offset: number }[] = []
+): { name: string; offset: number; hasParen: boolean }[] => {
+  const tokens: { name: string; offset: number; hasParen: boolean }[] = []
   let index = from
 
   while (index < to) {
@@ -73,8 +78,18 @@ const findMaskedCalls = (
 
       const macroName = macroNameStart.exec(text.slice(index, to))
       if (macroName) {
-        if (text[index + macroName[0].length] !== ':') {
-          tokens.push({ name: macroName[1], offset: index })
+        const after = text.slice(index + macroName[0].length, to)
+        const isLabel = after.startsWith(':')
+
+        if (!isLabel) {
+          // Reported, not filtered: whether a bare name in a string is a call
+          // is the reporting rule's decision, and a use that goes unseen costs
+          // a declaration.
+          tokens.push({
+            name: macroName[1],
+            offset: index,
+            hasParen: /^\s*\(/.test(after)
+          })
         }
         index += macroName[0].length
         continue
@@ -158,8 +173,15 @@ export const parseMacroCalls = (
       continue
     }
 
-    // Single-quoted string - opaque. `''` is an escaped quote character. An
-    // apostrophe inside a double-quoted string is ordinary text.
+    // Single-quoted string - SAS resolves no macro trigger in it, so it is
+    // data. The scan matches straight to the next quote: SAS also treats a
+    // doubled quote as an escaped character, but a pair either closes and
+    // reopens the string or is skipped, and both leave every character after
+    // it in the same state, so modelling the escape changes nothing that can
+    // be observed here. An apostrophe inside a double-quoted string is
+    // ordinary text. A caller that asks which macros the file uses still wants
+    // the invocations in it, because code that generates code submits this
+    // text later, so its invocations are reported.
     if (char === "'") {
       if (inDoubleQuote) {
         columnNumber++
@@ -169,16 +191,23 @@ export const parseMacroCalls = (
       let end = index + 1
       while (end < length) {
         if (text[end] === "'") {
-          if (text[end + 1] === "'") {
-            end += 2
-            continue
-          }
           end++
           break
         }
         if (text[end] === '\n') break
         end++
       }
+      findNameTokens(text, index + 1, end).forEach((token) => {
+        advanceTo(token.offset)
+        calls.push({
+          name: token.name,
+          lineNumber,
+          startColumnNumber: columnNumber,
+          endColumnNumber: columnNumber + 1 + token.name.length,
+          quoted: true,
+          hasParen: token.hasParen
+        })
+      })
       advanceTo(end)
       continue
     }
@@ -259,7 +288,7 @@ export const parseMacroCalls = (
           const argumentStart = index + maskingFunction[0].length
 
           advanceTo(argumentStart)
-          findMaskedCalls(text, argumentStart, end).forEach((token) => {
+          findNameTokens(text, argumentStart, end).forEach((token) => {
             advanceTo(token.offset)
             calls.push({
               name: token.name,

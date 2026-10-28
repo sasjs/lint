@@ -35,6 +35,7 @@ export const DefaultLintConfiguration = {
   maxDataLineLength: 80,
   maxHeaderLineLength: 80,
   maxLineLength: 80,
+  minMacroNameLength: 3,
   noBannedStrings: true,
   noEncodedPasswords: true,
   noGremlins: true,

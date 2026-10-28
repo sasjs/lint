@@ -231,6 +231,20 @@ describe('LintConfig', () => {
     )
   })
 
+  it('should throw an error with a minMacroNameLength that is not a whole number of at least one', () => {
+    const message = `Property "minMacroNameLength" must be an integer of 1 or more.`
+
+    // `isNaN` alone would coerce the first two; the rest are numbers that a
+    // name length cannot be.
+    expect(() => new LintConfig({ minMacroNameLength: 'two' })).toThrow(message)
+    expect(() => new LintConfig({ minMacroNameLength: '3' })).toThrow(message)
+    expect(() => new LintConfig({ minMacroNameLength: true })).toThrow(message)
+    expect(() => new LintConfig({ minMacroNameLength: NaN })).toThrow(message)
+    expect(() => new LintConfig({ minMacroNameLength: 2.5 })).toThrow(message)
+    expect(() => new LintConfig({ minMacroNameLength: 0 })).toThrow(message)
+    expect(() => new LintConfig({ minMacroNameLength: -2 })).toThrow(message)
+  })
+
   it('should create an instance with all flags set', () => {
     const config = new LintConfig({
       noTrailingSpaces: true,
@@ -241,6 +255,7 @@ describe('LintConfig', () => {
       maxLineLength: 80,
       noTabIndentation: true,
       indentationMultiple: 2,
+      minMacroNameLength: 2,
       hasMacroNameInMend: true,
       noNestedMacros: true,
       hasMacroParentheses: true,
@@ -269,7 +284,7 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[6].name).toEqual('noGremlins')
     expect(config.lineLintRules[6].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(11)
+    expect(config.fileLintRules.length).toEqual(12)
     expect(config.fileLintRules[0].name).toEqual('lineEndings')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[1].name).toEqual('hasDoxygenHeader')
@@ -280,18 +295,20 @@ describe('LintConfig', () => {
     expect(config.fileLintRules[3].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[4].name).toEqual('noNestedMacros')
     expect(config.fileLintRules[4].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[5].name).toEqual('hasMacroParentheses')
+    expect(config.fileLintRules[5].name).toEqual('minMacroNameLength')
     expect(config.fileLintRules[5].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[6].name).toEqual('strictMacroDefinition')
+    expect(config.fileLintRules[6].name).toEqual('hasMacroParentheses')
     expect(config.fileLintRules[6].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[7].name).toEqual('hasRequiredMacroOptions')
+    expect(config.fileLintRules[7].name).toEqual('strictMacroDefinition')
     expect(config.fileLintRules[7].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[8].name).toEqual('noSingleAsteriskComments')
+    expect(config.fileLintRules[8].name).toEqual('hasRequiredMacroOptions')
     expect(config.fileLintRules[8].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[9].name).toEqual('noUndeclaredMacros')
+    expect(config.fileLintRules[9].name).toEqual('noSingleAsteriskComments')
     expect(config.fileLintRules[9].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[10].name).toEqual('noUnusedMacros')
+    expect(config.fileLintRules[10].name).toEqual('noUndeclaredMacros')
     expect(config.fileLintRules[10].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[11].name).toEqual('noUnusedMacros')
+    expect(config.fileLintRules[11].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')

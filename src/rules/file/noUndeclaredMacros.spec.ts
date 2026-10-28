@@ -15,6 +15,84 @@ describe('noUndeclaredMacros - test', () => {
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should report a macro that is only invoked inside a single-quoted string', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  call execute('%mf_mkdir(work.x)');
+run;`
+
+    // The string is submitted later, so the invocation runs then and the macro
+    // has to be in the header. A name in a string that is not code - a Lua or
+    // printf specifier such as '%s(%d)' - is silenced with ignoredMacros, or by
+    // switching this rule off for the file.
+    const diagnostics = noUndeclaredMacros.test(text, new LintConfig())
+
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0].message).toContain('mf_mkdir')
+  })
+
+  it('should not report a name inside a string that looks like a pattern', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data want;
+  set have;
+  where name like '%abc%';
+run;`
+
+    // A string becomes a submitted program, so its names are read - but a call
+    // carries an opening parenthesis, and a pattern has none.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should not report a name in a string when no parenthesis follows it', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  call execute('%mf_foo');
+run;`
+
+    // A call without arguments is legal SAS but reads like a bare name, so this
+    // rule stays silent and noUnusedMacros counts it as a use.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should not report a one-character name, which a format specifier looks like', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  format='%s(%d) %x( %z(';
+  put format;
+run;`
+
+    // Lua and printf put `%s(` and friends in strings. A single-letter macro
+    // name is legal SAS and vanishingly rare, so the floor is worth the miss.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should report a name at the floor, and honour ignoredMacros for it', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  call execute('%mfx(work.x)');
+run;`
+
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toHaveLength(1)
+    expect(
+      noUndeclaredMacros.test(text, new LintConfig({ ignoredMacros: ['mfx'] }))
+    ).toEqual([])
+  })
+
   it('should report a macro listed under a section compile does not read', () => {
     const text = `/**
   @file

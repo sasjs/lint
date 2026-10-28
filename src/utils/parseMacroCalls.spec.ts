@@ -64,20 +64,43 @@ describe('parseMacroCalls', () => {
     ).toEqual(['bar'])
   })
 
-  it('should ignore invocations inside single-quoted strings', () => {
+  it('should report a bare name inside a single-quoted string', () => {
     const text = `%put 'abc%def';`
 
+    // A name in a string is reported like any other: the rules that read these
+    // tokens cannot tell a generated program from a pattern, and a miss costs
+    // more than a false alarm - a use that goes unseen deletes a declaration,
+    // while a name that is wrong is listed or the rule switched off.
     expect(
       parseMacroCalls(text, new LintConfig()).map((call) => call.name)
-    ).toEqual(['put'])
+    ).toEqual(['put', 'def'])
   })
 
-  it('should handle an escaped quote inside a single-quoted string', () => {
-    const text = `%put 'it''s %foo';`
+  it('should report a name inside a single-quoted string when it looks like a call', () => {
+    const text = `put 'x'; call execute('%mf_mkdir(work.x)');`
 
     expect(
       parseMacroCalls(text, new LintConfig()).map((call) => call.name)
-    ).toEqual(['put'])
+    ).toEqual(['mf_mkdir'])
+  })
+
+  it('should allow whitespace between the name and the parenthesis', () => {
+    const text = `call execute('%mf_mkdir (work.x)');`
+
+    expect(
+      parseMacroCalls(text, new LintConfig()).map((call) => call.name)
+    ).toEqual(['mf_mkdir'])
+  })
+
+  it('should report a name after a doubled quote', () => {
+    const text = `%put 'it''s %foo';`
+
+    // Reading to the next quote leaves `%foo` inside the second segment, and
+    // the parser says so - the escape changes nothing observable here, which
+    // is why it is not modelled.
+    expect(
+      parseMacroCalls(text, new LintConfig()).map((call) => call.name)
+    ).toEqual(['put', 'foo'])
   })
 
   it('should end an unterminated single-quoted string at the line break', () => {
@@ -149,6 +172,56 @@ describe('parseMacroCalls', () => {
         includeMasked: true
       }).map((call) => call.name)
     ).toEqual(['put', 'mf_foo'])
+  })
+
+  it('should report a macro call inside a single-quoted string', () => {
+    const text = `str=cats('%mm_getdetails(uri=',id,')')`
+
+    expect(parseMacroCalls(text, new LintConfig())).toEqual([
+      {
+        name: 'mm_getdetails',
+        lineNumber: 1,
+        startColumnNumber: 11,
+        endColumnNumber: 25,
+        quoted: true,
+        hasParen: true
+      }
+    ])
+  })
+
+  it('should report a macro call in a quoted string that holds an apostrophe', () => {
+    const text = `%put 'it''s %mf_a() and %lbl: x';`
+
+    // Straight matching on the quote delimiter: `%mf_a` sits between two of
+    // them, so it is read only because the caller asked for quoted text, and
+    // `%lbl:` is a label rather than a call.
+    expect(
+      parseMacroCalls(text, new LintConfig()).map((call) => call.name)
+    ).toEqual(['put', 'mf_a'])
+  })
+
+  it('should report a name that a SQL LIKE pattern contains', () => {
+    const text = `data want;
+  set have;
+  where name like '%abc%';
+run;`
+
+    expect(
+      parseMacroCalls(text, new LintConfig()).map((call) => call.name)
+    ).toEqual(['abc'])
+  })
+
+  it('should still skip a quoted string inside a data section', () => {
+    const text = `data _null_;
+  input;
+  datalines;
+'%mf_a()'
+;
+run;`
+
+    expect(
+      parseMacroCalls(text, new LintConfig()).map((call) => call.name)
+    ).toEqual([])
   })
 
   it('should still ignore the escapes of a masking function when asked to scan it', () => {
@@ -361,8 +434,8 @@ describe('parseMacroCalls', () => {
   it('should keep the column in step across an escaped quote', () => {
     const text = `%put 'it''s' %mf_a()`
 
-    // `''` is one quote character; a scan that ends the string at the first
-    // apostrophe reports %mf_a from the wrong place, or not at all
+    // The string ends at the first apostrophe of the pair, so `%mf_a` is
+    // ordinary code after the second - at its own column.
     expect(
       parseMacroCalls(text, new LintConfig()).map(
         (call) => call.startColumnNumber
@@ -527,16 +600,52 @@ datalines;
     ).toEqual(['put@1', 'mf_a@13'])
   })
 
-  it('should keep an escaped quote inside a single-quoted string', () => {
+  it('should keep a name inside the string across a run of doubled quotes', () => {
+    const cases: [string, number][] = [
+      [`%put 'a''b %mf_x()';`, 12],
+      [`%put 'a''''b %mf_x()';`, 14],
+      [`%put 'a''''''b %mf_x()';`, 16]
+    ]
+
+    // Each pair is a literal quote that leaves the state as it found it, so a
+    // run of pairs is a no-op for inside/outside and the name after it stays
+    // quoted. A pair's two quotes are adjacent, so the region where the two
+    // readings could differ holds no characters and therefore no name.
+    cases.forEach(([text, column]) => {
+      const calls = parseMacroCalls(text, new LintConfig())
+
+      expect(calls.map((call) => call.name)).toEqual(['put', 'mf_x'])
+      expect(calls[1]).toMatchObject({
+        quoted: true,
+        startColumnNumber: column
+      })
+    })
+  })
+
+  it('should read past an odd run of quotes, where the string ends', () => {
+    // Three quotes close the string, open one for the empty string, and close
+    // it - so the name after them is code in either reading.
+    expect(
+      parseMacroCalls(`%put 'a'''%mf_x()';`, new LintConfig()).map((call) => [
+        call.name,
+        call.quoted
+      ])
+    ).toEqual([
+      ['put', undefined],
+      ['mf_x', undefined]
+    ])
+  })
+
+  it('should report a name inside a quoted segment and the invocation after it', () => {
     const text = `%put 'it''s %mf_a' %mf_b()`
 
-    // `''` is one quote character, so the string runs to the quote before %mf_b:
-    // %mf_a is masked text, %mf_b is the invocation
+    // Straight matching: `%mf_a` ends up inside a segment, `%mf_b` is code
+    // after it. Both are reported, at their own columns.
     expect(
       parseMacroCalls(text, new LintConfig()).map(
         (call) => `${call.name}@${call.startColumnNumber}`
       )
-    ).toEqual(['put@1', 'mf_b@20'])
+    ).toEqual(['put@1', 'mf_a@13', 'mf_b@20'])
   })
 
   it('should skip both parenthesis escapes inside masked text', () => {

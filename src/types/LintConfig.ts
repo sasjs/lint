@@ -5,6 +5,7 @@ import {
   noNestedMacros,
   hasMacroParentheses,
   lineEndings,
+  minMacroNameLength,
   strictMacroDefinition,
   hasRequiredMacroOptions,
   noSingleAsteriskComments,
@@ -51,6 +52,7 @@ export class LintConfig {
   readonly maxHeaderLineLength: number = 80
   readonly maxDataLineLength: number = 80
   readonly indentationMultiple: number = 2
+  readonly minMacroNameLength: number = 3
   readonly lineEndings: LineEndings = LineEndings.LF
   readonly defaultHeader: string = getDefaultHeader()
   readonly severityLevel: { [key: string]: Severity } = {}
@@ -196,6 +198,31 @@ export class LintConfig {
 
     if (json?.noNestedMacros !== false) {
       this.fileLintRules.push(noNestedMacros)
+    }
+
+    // Absence means the documented default, so a project that omits the key
+    // still gets the floor. A value below two switches the rule off, the way a
+    // zero `maxLineLength` does - and the value is still kept, so the macro
+    // rules read one-character names again.
+    if (json?.minMacroNameLength !== undefined) {
+      // A name length is a whole number of at least one. `isNaN` alone coerces,
+      // so it would accept "3" and true, and a fraction or a value below one
+      // would store a floor no name can be measured against - 1 is the
+      // documented way to switch the rule off.
+      if (
+        typeof json?.minMacroNameLength !== 'number' ||
+        !Number.isInteger(json.minMacroNameLength) ||
+        json.minMacroNameLength < 1
+      ) {
+        throw new Error(
+          `Property "minMacroNameLength" must be an integer of 1 or more.`
+        )
+      }
+      this.minMacroNameLength = json.minMacroNameLength
+    }
+
+    if (json?.minMacroNameLength === undefined || json.minMacroNameLength > 1) {
+      this.fileLintRules.push(minMacroNameLength)
     }
 
     if (json?.hasMacroParentheses !== false) {
