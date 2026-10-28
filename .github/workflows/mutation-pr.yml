@@ -38,9 +38,11 @@ jobs:
       contents: read
     # A changed-file run takes minutes; the cap exists so a stuck run cannot hold
     # a runner for the six-hour default. It has to clear the slowest legitimate
-    # PR: registering a rule touches LintConfig.ts, and mutating that file on a
-    # two-core runner takes the run past twenty minutes.
-    timeout-minutes: 35
+    # PR: registering a rule mutates the rule file and the config that lists it,
+    # and on a two-core runner that runs past half an hour. A run that reaches
+    # the cap is cancelled, which reports no verdict at all - neither survivors
+    # nor a pass - so the cap is set where a legitimate run cannot reach it.
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
