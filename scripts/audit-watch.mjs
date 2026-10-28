@@ -25,6 +25,14 @@
  * The known advisory on its own does NOT exit 1: it is expected, and a job that
  * is red every week trains people to ignore red.
  *
+ * The `qs` override in package.json belongs to the same argument. It pins 6.17.0
+ * to clear GHSA-q8mj-m7cp-5q26, GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g and
+ * GHSA-6pq8-jhm2-2vcw - all four patched at 6.16.1 - on the single copy in the
+ * tree, which arrives through @stryker-mutator/core -> typed-rest-client and is
+ * dev-only. Drop the override once that chain resolves qs at 6.16.1 or later on
+ * its own; until then the full-tree gate below would report the advisories it
+ * closes.
+ *
  * Run with `node scripts/audit-watch.mjs`, or `--gate` from the build, which
  * skips the registry check so a new release of a watched package cannot turn a
  * PR red for a reason the branch cannot fix.
@@ -45,7 +53,16 @@ const BUILD_WORKFLOW = path.join('.github', 'workflows', 'build.yml')
 const EXEMPTIONS = [
   {
     id: 'GHSA-gcqx-w48m-w2h4',
-    paths: ['node_modules/deepmerge'],
+    // Both shapes the one copy this entry is about can take: hoisted to the
+    // root because nothing else wants a different version, or nested under the
+    // package that asks for it. A copy under any other parent is a different
+    // dependency's copy and is not covered - the paths are compared exactly for
+    // that reason, so npm changing its hoisting fails the gate rather than
+    // silently widening the entry.
+    paths: [
+      'node_modules/deepmerge',
+      'node_modules/jest-config/node_modules/deepmerge'
+    ],
     reason:
       'deepmerge 4.3.1 allows prototype poisoning through mergeObject(). It sits in the dev tree only, reached through jest 30.5.2 -> @jest/core -> jest-config, which is the newest jest-config published. 4.3.1 is the newest deepmerge and the advisory names no patched version at any range, so nothing in this repo can move it: an `overrides` entry can only pin a version that does not exist. The input to mergeObject() is the jest configuration in this repository, not package data or a request body - but that is why the risk is small, not a reason to keep the advisory out of the report.'
   }
@@ -120,12 +137,6 @@ const collectAdvisories = (report) => {
   return advisories
 }
 
-/** True when an entry covers the path npm reported for a copy of its package. */
-const coversPath = (entry, nodePath) =>
-  entry.paths.some(
-    (covered) => nodePath === covered || nodePath.endsWith('/' + covered)
-  )
-
 /** The version the registry currently resolves `latest` to, or null if offline. */
 const latestPublished = (name) => {
   try {
@@ -199,15 +210,12 @@ const main = () => {
       continue
     }
 
-    // Keyed on the path, not the id: an id alone cannot tell the copy an entry
-    // was written about from a second one that arrived through another
-    // dependency, and the second would pass under the first one's argument.
-    // Matched on the tail, because npm reports where it resolved the copy -
-    // `node_modules/jest-config/node_modules/deepmerge` once it stops being
-    // hoisted - and an exact comparison would fail the gate for a tree the
-    // entry was written to allow.
+    // Keyed on the resolution path, not the id: an id alone cannot tell the copy
+    // an entry was written about from a second one that arrived through another
+    // dependency, and the second would pass under the first one's argument. The
+    // path includes the parent, so provenance is part of the claim.
     const strays = [...new Set(advisory.paths)].filter(
-      (nodePath) => !coversPath(exemption, nodePath)
+      (nodePath) => !exemption.paths.includes(nodePath)
     )
     if (strays.length) {
       problems.push(

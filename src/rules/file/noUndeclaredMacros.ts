@@ -87,22 +87,24 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
  * its program calls is defined in the same file, in a string that `parseMacros`
  * cannot read as a definition.
  *
- * The pattern is anchor matching, not quote tracking: a definition follows the
- * start of a line, a `;`, or the quote that opens a string, and requires the
- * parenthesis `hasMacroParentheses` also requires. Quote state would be the
- * obvious way to tell code from text, and it is unusable here - straight
- * matching desynchronises on an apostrophe in a comment, and a file in
- * `sasjs/core` carries an odd number of quotes.
+ * The pattern is anchor matching, not quote tracking. A definition starts a line
+ * or follows a `;` or the quote that opens a string, and the name is followed by
+ * whatever a macro header continues with: `(`, `;`, or `/` for macro options
+ * (`%macro mf_foo / parmbuff;`). `hasMacroParentheses` asks for the parenthesis
+ * form from code this repo writes; text a file emits is not held to it here,
+ * because a definition it cannot parse would otherwise re-open the false report
+ * this function exists to close.
  *
- * Three consequences of matching text rather than syntax, all of which err
- * toward silence: a definition commented out on its own line counts as one, a
+ * Quote state would be the obvious way to tell code from text, and it is
+ * unusable here: straight matching desynchronises on an apostrophe in a comment,
+ * and files in `sasjs/core` carry an odd number of quotes.
+ *
+ * Four consequences of matching text rather than syntax, all of which err toward
+ * silence: a definition commented out on its own line counts as one, a
  * definition inside `%str`-masked text counts as one, a quoted example in a doc
  * comment counts as one, and so does a definition emitted without a parameter
- * list (`put '%macro mf_bar;'`), which is why the pattern accepts `;` after the
- * name as well as the parenthesis, and `/`, which introduces macro options
- * (`put '%macro mf_foo / parmbuff;'`). A missed report is recoverable - the macro is
- * still there - whereas a false report has the fix add a dependency that does
- * not exist.
+ * list. A missed report is recoverable - the macro is declared anyway - whereas a
+ * false report has the fix add a dependency that does not exist.
  */
 const getTemplateDefinitions = (value: string): string[] =>
   [

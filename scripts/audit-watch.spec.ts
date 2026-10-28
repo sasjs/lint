@@ -66,10 +66,9 @@ describe('audit-watch gate', () => {
     expect(result.code).toBe(0)
   })
 
-  it('should pass when npm resolves the exempted package nested', () => {
-    // npm reports where it resolved the copy, so an exact-path comparison would
-    // fail the gate for a tree the entry was written to allow - the permanently
-    // red gate the exemption exists to prevent.
+  it('should pass when npm nests the exempted package under the parent that asks for it', () => {
+    // The entry records both shapes the copy can take, so the gate covers the
+    // tree whether npm hoists it or nests it under jest-config.
     const result = run(
       advisory('GHSA-gcqx-w48m-w2h4', 'deepmerge', [
         'node_modules/jest-config/node_modules/deepmerge'
@@ -99,17 +98,21 @@ describe('audit-watch gate', () => {
     expect(result.output).toContain('no longer appears in the tree')
   })
 
-  it('should fail when the advisory sits at a path the entry does not cover', () => {
-    // A copy that arrived through another dependency must not pass under the
-    // argument written about the first one: `@scope/deepmerge` is not
-    // `deepmerge`, and its path does not end with the covered one.
+  it('should fail when the same package arrives through a different dependency', () => {
+    // The name matches and only the parent differs, which is the case a
+    // package-name-only path cannot tell apart from the exempted copy: a second
+    // copy reached through a dependency the entry was not written about must not
+    // pass under the first one's argument.
     const result = run(
       advisory('GHSA-gcqx-w48m-w2h4', 'deepmerge', [
-        'node_modules/@scope/deepmerge'
+        'node_modules/any-new-dep/node_modules/deepmerge'
       ])
     )
 
     expect(result.code).toBe(1)
     expect(result.output).toContain('does not cover')
+    expect(result.output).toContain(
+      'node_modules/any-new-dep/node_modules/deepmerge'
+    )
   })
 })
