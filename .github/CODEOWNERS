@@ -1,0 +1,8 @@
+# The audit gate decides what the build accepts, and its allow-list lives in
+# this tree - so a change to these files is a change to the gate itself, however
+# the PR is titled. Route them to the maintainer so the argument behind an
+# exemption is read by someone other than its author.
+/.github/workflows/build.yml        @allanbowe
+/.github/workflows/audit-watch.yml  @allanbowe
+/scripts/audit-watch.mjs            @allanbowe
+/scripts/audit-watch.spec.ts        @allanbowe

@@ -54,6 +54,15 @@ jobs:
         # request body - which is why the risk is small, and not a reason to
         # keep the advisory out of the report.
         #
+        # The allow-list is in this tree, so a PR that wants a new exemption
+        # edits the gate itself rather than only its code - it can add an entry
+        # to EXEMPTIONS and name it here in the same commit. Nothing in the repo
+        # can prevent that: a second copy of the list in workflow YAML is one
+        # more file in the same tree, and the weekly run executes the same
+        # in-tree script. The control is review, which is why CODEOWNERS routes
+        # these files to the maintainer - that only bites where branch protection
+        # requires a code-owner approval.
+        #
         # This step checks the tree: the advisory is present, at a path the entry
         # covers, and named in this comment. It does not decide whether the
         # exemption is still justified - `--gate` skips the registry check on
