@@ -82,6 +82,23 @@ run;`
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should count a definition emitted with a double-quoted string', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+data _null_;
+  file f;
+  put "%macro mf_foo(a);";
+  put "%mend mf_foo;";
+  put "%mf_foo(x)";
+run;`
+
+    // SAS opens a string with either quote, and a template written with double
+    // quotes is the same construct as one written with single quotes.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
   it('should not count a definition that only a comment mentions', () => {
     const text = `/**
   @file

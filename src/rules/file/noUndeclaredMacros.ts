@@ -26,26 +26,6 @@ const message = `Macro '{macro}' is not declared - add it to the <h4> SAS Macros
  * which is the conservative direction - a deferred invocation satisfies a
  * declaration without ever demanding one.
  */
-/**
- * Names the file defines, counting a definition that sits inside a template
- * string. A macro that emits a program writes it with `put '...'` lines, so the
- * macro its program calls is defined in the same file, in a string that
- * `parseMacros` cannot read as a definition - and a missing declaration there
- * has the fix add a dependency the file does not have.
- *
- * The pattern anchors on the characters a definition follows - the start of a
- * line, a `;`, or the opening quote of a `put` - and requires the parenthesis
- * that `hasMacroParentheses` also requires. A comment that mentions a macro
- * mid-sentence (`@details replaces the old %macro foo() helper`) is therefore
- * not a definition. Scanning depends on quote state to tell the two apart, and
- * an apostrophe in a comment makes that state unreliable, so the anchor does
- * the work instead.
- */
-const getTemplateDefinitions = (value: string): string[] =>
-  [
-    ...value.matchAll(/(?:^|[';\n])[ \t]*%macro\s+([a-z_][a-z0-9_]*)\s*\(/gi)
-  ].map((match) => match[1])
-
 const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
   if (!value) return []
 
@@ -55,11 +35,10 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
     if (macro.name) declared.add(macro.name.toLowerCase())
   })
 
-  // A macro that emits a program builds it out of string literals, so the macro
-  // the emitted program calls is defined inside the same file - in a `put '...'`
-  // line that `parseMacros` reads as part of a statement rather than as a
-  // definition. The name is defined here even though the parser cannot see it,
-  // and reporting it would have the fix add a dependency the file does not have.
+  // A macro the file emits is defined here even though `parseMacros` cannot see
+  // it: the definition sits inside a string, which the parser reads as part of a
+  // statement. Reporting it would have the fix add a dependency the file does
+  // not have.
   getTemplateDefinitions(value).forEach((macro) => {
     declared.add(macro.toLowerCase())
   })
@@ -101,6 +80,31 @@ const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
 
   return undeclared
 }
+
+/**
+ * Names the file defines, counting a definition written into a template string.
+ * A macro that emits a program writes it with `put '...'` lines, so the macro
+ * its program calls is defined in the same file, in a string that `parseMacros`
+ * cannot read as a definition.
+ *
+ * The pattern is anchor matching, not quote tracking: a definition follows the
+ * start of a line, a `;`, or the quote that opens a string, and requires the
+ * parenthesis `hasMacroParentheses` also requires. Quote state would be the
+ * obvious way to tell code from text, and it is unusable here - straight
+ * matching desynchronises on an apostrophe in a comment, and a file in
+ * `sasjs/core` carries an odd number of quotes.
+ *
+ * Three consequences of matching text rather than syntax, all of which err
+ * toward silence: a definition commented out on its own line counts as one, a
+ * definition inside `%str`-masked text counts as one, and a quoted example in a
+ * doc comment counts as one. A missed report is recoverable - the macro is
+ * still there - whereas a false report has the fix add a dependency that does
+ * not exist.
+ */
+const getTemplateDefinitions = (value: string): string[] =>
+  [
+    ...value.matchAll(/(?:^|['";\n])[ \t]*%macro\s+([a-z_][a-z0-9_]*)\s*\(/gi)
+  ].map((match) => match[1])
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
   const cfg = config || new LintConfig()
