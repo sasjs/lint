@@ -4,14 +4,20 @@ name: Mutation (changed files)
 # the code is wrong? Stryker flips an operator or a string in the source and runs
 # the tests; a mutant that survives is behaviour nothing asserts.
 #
-# This job mutates only the source files the PR changed, and compares them with
-# mutation-baseline.json - so it asks "did this branch add an untested
+# This workflow mutates only the source files the PR changed, and compares them
+# with mutation-baseline.json - so it asks "did this branch add an untested
 # behaviour?", not "is the repo perfect yet". The baseline is refreshed by
 # mutation-weekly.yml.
 #
-# Cost control: Stryker runs the tests that cover the mutated file
-# (`enableFindRelatedTests`), and only the mutated file is instrumented. A
-# two-file run takes minutes, not the hours a whole-suite run per mutant would.
+# ONE JOB PER FILE. The gate used to mutate every changed file in a single job,
+# which made wall time the SUM of the files: a PR touching nineteen source files
+# (sasjs/lint#272, which folded four issues) ran for 60.6 minutes and was
+# cancelled by the cap, reporting no verdict at all - neither survivors nor a
+# pass. A matrix makes wall time the slowest single file instead, and the repo is
+# public, so the extra runners cost no minutes.
+#
+# The `mutation` job at the end keeps the name of the old single job, so the
+# required status check for `main` still resolves; it reports the matrix result.
 
 on:
   pull_request:
@@ -31,19 +37,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  mutation:
+  # The files the matrix will run over. `list` mode prints them as a JSON array
+  # and exits; it refuses (non-zero) when no base ref can be resolved, so a
+  # broken checkout cannot turn into an empty matrix that passes.
+  changed-files:
+    name: changed files
     runs-on: ubuntu-latest
-    # checkout needs read, and the job writes nothing else
     permissions:
       contents: read
-    # A changed-file run takes minutes; the cap exists so a stuck run cannot hold
-    # a runner for the six-hour default. It has to clear the slowest legitimate
-    # PR: registering a rule mutates the rule file and the config that lists it,
-    # and on a two-core runner that runs past half an hour. A run that reaches
-    # the cap is cancelled, which reports no verdict at all - neither survivors
-    # nor a pass - so the cap is set where a legitimate run cannot reach it.
-    timeout-minutes: 60
-
+    timeout-minutes: 10
+    outputs:
+      files: ${{ steps.list.outputs.files }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,15 +63,77 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Mutate the changed files
+      - id: list
+        name: List the files to mutate
         env:
           MUTATION_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          files=$(node scripts/mutation-gate.mjs list)
+          printf 'files=%s\n' "$files" >> "$GITHUB_OUTPUT"
+          printf 'files: %s\n' "$files"
+
+  # One file per job. `fail-fast: false` so a single file's survivors do not hide
+  # the others' verdicts - the summary job fails either way.
+  mutate:
+    name: mutate (${{ matrix.file }})
+    needs: changed-files
+    if: needs.changed-files.outputs.files != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # One file takes minutes; the cap clears the slowest legitimate single file by
+    # a wide margin while still stopping a stuck run from holding a runner.
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        file: ${{ fromJson(needs.changed-files.outputs.files) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Mutate ${{ matrix.file }}
+        env:
+          MUTATION_BASE: ${{ github.event.pull_request.base.sha }}
+          MUTATION_FILES: ${{ matrix.file }}
         run: node scripts/mutation-gate.mjs pr
 
       - name: Keep the report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mutation-report
+          # one artifact per file, and the index keeps the names valid whatever
+          # the path separator is
+          name: mutation-report-${{ strategy.job-index }}
           path: reports/mutation/mutation.json
           if-no-files-found: ignore
+
+  # The name of the job this workflow used to have, so a required status check
+  # configured against it keeps working. Green when every file passed (or when
+  # there was nothing to mutate); red when any file carried new survivors.
+  mutation:
+    name: mutation
+    needs: [changed-files, mutate]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Report the matrix result
+        run: |
+          printf 'files: %s\n' "${{ needs.changed-files.outputs.files }}"
+          printf 'matrix: %s\n' "${{ needs.mutate.result }}"
+          case "${{ needs.mutate.result }}" in
+            success|skipped) exit 0 ;;
+            *) exit 1 ;;
+          esac
