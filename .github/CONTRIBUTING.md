@@ -170,6 +170,8 @@ For a squash merge the PR TITLE drives the version, so keep it conventional. Jud
 
 Mark a genuinely breaking change with `BREAKING CHANGE:` in the commit body, and name the config key that restores the old behaviour.
 
+The `version` field in `package.json` is a placeholder (`0.0.0-semantically-released`), not a record of the release. semantic-release computes the version from the tags and commits, and `prepareCmd` writes it into the workspace before the tarball is packed, so the published package and its tag are correct whatever the file says. Do not bump it in a PR, and do not read it to learn what is published - `npm view @sasjs/lint version` and the git tags are the answers.
+
 ## The audit gate
 
 `build.yml` runs `npm audit --omit=dev --audit-level=low`, scoped to production dependencies because the dev tree carries one advisory nothing here can fix (`sprintf-js` through the jest transform chain, with no patched release). A weekly `audit-watch.yml` runs the FULL audit and fails when that exemption stops matching reality - a new dev-tree advisory, the exempted one disappearing, or a watched package publishing a newer version.
