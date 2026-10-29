@@ -100,7 +100,7 @@
   "overrides": {
     "qs": "6.17.0"
   },
-  "version": "4.7.0",
+  "version": "4.8.0",
   "devEngines": {
     "runtime": {
       "name": "node",
