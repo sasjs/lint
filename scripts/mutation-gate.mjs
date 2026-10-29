@@ -136,6 +136,18 @@ const changedFiles = () => {
   return { changed, mutable }
 }
 
+/** Whether a path exists in the base ref's tree. */
+const existsAtBase = (ref, file) => {
+  try {
+    execFileSync('git', ['cat-file', '-e', `${ref}:${file}`], {
+      stdio: ['ignore', 'ignore', 'ignore']
+    })
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
 const runStryker = (mutate) => {
   fs.rmSync('reports/mutation', { recursive: true, force: true })
   execFileSync(
@@ -369,6 +381,24 @@ for (const [name, stats] of Object.entries(files)) {
   const known = baseline[name]
 
   if (!known) {
+    // A file that exists at the base ref but carries no baseline entry has never
+    // been mutated: it enters the gate's scope the first time a PR touches it.
+    // Holding it to the new-file floor would make that first PR answer for the
+    // repository's backlog - sasjs/lint#272 touched
+    // src/rules/file/noSingleAsteriskComments.ts by one column and the file
+    // scored 59.79% against behaviour the PR never touched. It is reported here
+    // as advisory, and the weekly run records the real number. A file ABSENT at
+    // the base ref is genuinely new and still faces the floor.
+    if (existsAtBase(baseRef, name)) {
+      console.log(
+        `${name}: ${stats.score}% (no baseline entry for an existing file; advisory, recorded by the weekly run)`
+      )
+      stats.survivors.forEach((m) =>
+        console.log(`  advisory survivor ${describeSurvivor(name, m)}`)
+      )
+      continue
+    }
+
     if (stats.score < NEW_FILE_FLOOR) {
       failures.push(
         `${name} scores ${stats.score}% and has no baseline: a new file must reach ${NEW_FILE_FLOOR}%`
