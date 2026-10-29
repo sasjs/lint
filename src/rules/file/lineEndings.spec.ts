@@ -16,8 +16,8 @@ describe('lineEndings - test', () => {
       {
         message: 'Incorrect line ending - CRLF instead of LF',
         lineNumber: 2,
-        startColumnNumber: 13,
-        endColumnNumber: 14,
+        startColumnNumber: 14,
+        endColumnNumber: 15,
         severity: Severity.Warning
       }
     ])
@@ -30,7 +30,7 @@ describe('lineEndings - test', () => {
       {
         message: 'Incorrect line ending - LF instead of CRLF',
         lineNumber: 1,
-        startColumnNumber: 13,
+        startColumnNumber: 14,
         endColumnNumber: 14,
         severity: Severity.Warning
       }
@@ -43,14 +43,14 @@ describe('lineEndings - test', () => {
     expect(lineEndings.test(text, config)).toContainEqual({
       message: 'Incorrect line ending - LF instead of CRLF',
       lineNumber: 1,
-      startColumnNumber: 13,
+      startColumnNumber: 14,
       endColumnNumber: 14,
       severity: Severity.Warning
     })
     expect(lineEndings.test(text, config)).toContainEqual({
       message: 'Incorrect line ending - LF instead of CRLF',
       lineNumber: 3,
-      startColumnNumber: 13,
+      startColumnNumber: 14,
       endColumnNumber: 14,
       severity: Severity.Warning
     })
@@ -62,15 +62,15 @@ describe('lineEndings - test', () => {
     expect(lineEndings.test(text, config)).toContainEqual({
       message: 'Incorrect line ending - CRLF instead of LF',
       lineNumber: 1,
-      startColumnNumber: 13,
-      endColumnNumber: 14,
+      startColumnNumber: 14,
+      endColumnNumber: 15,
       severity: Severity.Warning
     })
     expect(lineEndings.test(text, config)).toContainEqual({
       message: 'Incorrect line ending - CRLF instead of LF',
       lineNumber: 3,
-      startColumnNumber: 13,
-      endColumnNumber: 14,
+      startColumnNumber: 14,
+      endColumnNumber: 15,
       severity: Severity.Warning
     })
   })
@@ -82,22 +82,22 @@ describe('lineEndings - test', () => {
     expect(lineEndings.test(text, config)).toContainEqual({
       message: 'Incorrect line ending - CRLF instead of LF',
       lineNumber: 1,
+      startColumnNumber: 14,
+      endColumnNumber: 15,
+      severity: Severity.Warning
+    })
+    expect(lineEndings.test(text, config)).toContainEqual({
+      message: 'Incorrect line ending - CRLF instead of LF',
+      lineNumber: 2,
       startColumnNumber: 13,
       endColumnNumber: 14,
       severity: Severity.Warning
     })
     expect(lineEndings.test(text, config)).toContainEqual({
       message: 'Incorrect line ending - CRLF instead of LF',
-      lineNumber: 2,
-      startColumnNumber: 12,
-      endColumnNumber: 13,
-      severity: Severity.Warning
-    })
-    expect(lineEndings.test(text, config)).toContainEqual({
-      message: 'Incorrect line ending - CRLF instead of LF',
       lineNumber: 5,
-      startColumnNumber: 14,
-      endColumnNumber: 15,
+      startColumnNumber: 15,
+      endColumnNumber: 16,
       severity: Severity.Warning
     })
   })
@@ -110,7 +110,7 @@ describe('lineEndings - test', () => {
         message: 'File does not end with a LF line ending',
         lineNumber: 2,
         startColumnNumber: 14,
-        endColumnNumber: 15,
+        endColumnNumber: 14,
         severity: Severity.Warning
       }
     ])
@@ -124,7 +124,7 @@ describe('lineEndings - test', () => {
         message: 'File does not end with a CRLF line ending',
         lineNumber: 2,
         startColumnNumber: 14,
-        endColumnNumber: 15,
+        endColumnNumber: 14,
         severity: Severity.Warning
       }
     ])
@@ -137,15 +137,15 @@ describe('lineEndings - test', () => {
     expect(diagnostics).toContainEqual({
       message: 'Incorrect line ending - CRLF instead of LF',
       lineNumber: 1,
-      startColumnNumber: 13,
-      endColumnNumber: 14,
+      startColumnNumber: 14,
+      endColumnNumber: 15,
       severity: Severity.Warning
     })
     expect(diagnostics).toContainEqual({
       message: 'File does not end with a LF line ending',
       lineNumber: 2,
       startColumnNumber: 14,
-      endColumnNumber: 15,
+      endColumnNumber: 14,
       severity: Severity.Warning
     })
   })
@@ -165,7 +165,7 @@ describe('lineEndings - test', () => {
       {
         message: 'Incorrect line ending - LF instead of CRLF',
         lineNumber: 2,
-        startColumnNumber: 9,
+        startColumnNumber: 10,
         endColumnNumber: 10,
         severity: Severity.Warning
       }

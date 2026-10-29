@@ -49,14 +49,14 @@ const expectedDiagnostics = [
     message: 'Line contains encoded password',
     lineNumber: 5,
     startColumnNumber: 10,
-    endColumnNumber: 18,
+    endColumnNumber: 17,
     severity: Severity.Error
   },
   {
     message: 'Line contains a tab character (09x)',
     lineNumber: 7,
     startColumnNumber: 1,
-    endColumnNumber: 2,
+    endColumnNumber: 1,
     severity: Severity.Warning
   },
   {
@@ -70,7 +70,7 @@ const expectedDiagnostics = [
     message: '%mend statement is missing macro name - mf_getuniquelibref',
     lineNumber: 17,
     startColumnNumber: 3,
-    endColumnNumber: 9,
+    endColumnNumber: 7,
     severity: Severity.Warning
   }
 ]

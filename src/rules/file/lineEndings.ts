@@ -32,8 +32,10 @@ const test = (value: string, config?: LintConfig) => {
           .replace('{expected}', expectedLineEnding === '{lf}' ? 'LF' : 'CRLF')
           .replace('{actual}', incorrectLineEnding === '{lf}' ? 'LF' : 'CRLF'),
         lineNumber: index + 1 + indexOffset,
-        startColumnNumber: line.indexOf(incorrectLineEnding),
-        endColumnNumber: line.indexOf(incorrectLineEnding) + 1,
+        startColumnNumber: line.indexOf(incorrectLineEnding) + 1,
+        endColumnNumber:
+          line.indexOf(incorrectLineEnding) +
+          (incorrectLineEnding === '{crlf}' ? 2 : 1),
         severity
       })
     } else {
@@ -54,8 +56,10 @@ const test = (value: string, config?: LintConfig) => {
                 incorrectLineEnding === '{lf}' ? 'LF' : 'CRLF'
               ),
             lineNumber: index + i + 1,
-            startColumnNumber: l.indexOf(incorrectLineEnding),
-            endColumnNumber: l.indexOf(incorrectLineEnding) + 1,
+            startColumnNumber: l.indexOf(incorrectLineEnding) + 1,
+            endColumnNumber:
+              l.indexOf(incorrectLineEnding) +
+              (incorrectLineEnding === '{crlf}' ? 2 : 1),
             severity
           })
         }
@@ -79,7 +83,7 @@ const test = (value: string, config?: LintConfig) => {
       ),
       lineNumber: lastLines.length,
       startColumnNumber: lastLine.length + 1,
-      endColumnNumber: lastLine.length + 2,
+      endColumnNumber: lastLine.length + 1,
       severity
     })
   }

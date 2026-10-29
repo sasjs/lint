@@ -40,7 +40,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
       message: `${message}: ${gremlin.description}, hexCode(${gremlin.hexCode})`,
       lineNumber,
       startColumnNumber: match.index + 1,
-      endColumnNumber: match.index + 1 + match[0].length,
+      endColumnNumber: match.index + match[0].length,
       severity
     })
   }

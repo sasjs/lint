@@ -38,7 +38,7 @@ describe('hasMacroParentheses', () => {
         message: 'Macro definition missing name',
         lineNumber: 2,
         startColumnNumber: 3,
-        endColumnNumber: 12,
+        endColumnNumber: 11,
         severity: Severity.Warning
       }
     ])
@@ -53,7 +53,7 @@ describe('hasMacroParentheses', () => {
         message: 'Macro definition missing name',
         lineNumber: 2,
         startColumnNumber: 3,
-        endColumnNumber: 12,
+        endColumnNumber: 11,
         severity: Severity.Warning
       }
     ])
@@ -70,7 +70,7 @@ describe('hasMacroParentheses', () => {
         message: 'Macro definition missing name',
         lineNumber: 2,
         startColumnNumber: 3,
-        endColumnNumber: 9,
+        endColumnNumber: 8,
         severity: Severity.Warning
       }
     ])
@@ -134,6 +134,22 @@ describe('hasMacroParentheses', () => {
           lineNumber: 19,
           startColumnNumber: 12,
           endColumnNumber: 23,
+          severity: Severity.Warning
+        }
+      ])
+    })
+  })
+
+  describe('keyword capitalisation', () => {
+    it('should report an upper case definition without parentheses', () => {
+      const content = `%MACRO somemacro;\n  %put &sysmacroname;\n%MEND somemacro;`
+
+      expect(hasMacroParentheses.test(content)).toEqual([
+        {
+          message: 'Macro definition missing parentheses',
+          lineNumber: 1,
+          startColumnNumber: 8,
+          endColumnNumber: 16,
           severity: Severity.Warning
         }
       ])

@@ -200,6 +200,32 @@ parmcards4;
     expect(minMacroNameLength.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should read a quoted string before the declaration as code, not as a comment', () => {
+    const text = `/**
+  @file
+**/
+%put 'x';  %macro s();`
+
+    // A quote toggles the scan's string state and closes again, so nothing here
+    // opens a comment: the declaration keeps its own column.
+    const diagnostic = minMacroNameLength.test(text, new LintConfig())[0]
+
+    expect(diagnostic.startColumnNumber).toEqual(12)
+    expect(diagnostic.endColumnNumber).toEqual(19)
+  })
+
+  it('should report a declaration that follows a closed comment at its own column', () => {
+    const text = `/**
+  @file
+**/
+/* note */  %macro s();`
+
+    const diagnostic = minMacroNameLength.test(text, new LintConfig())[0]
+
+    expect(diagnostic.startColumnNumber).toEqual(13)
+    expect(diagnostic.endColumnNumber).toEqual(20)
+  })
+
   it('should return an empty array when there is no text', () => {
     expect(minMacroNameLength.test('', new LintConfig())).toEqual([])
   })

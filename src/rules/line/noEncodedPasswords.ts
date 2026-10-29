@@ -16,7 +16,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
     message,
     lineNumber,
     startColumnNumber: value.indexOf(match) + 1,
-    endColumnNumber: value.indexOf(match) + match.length + 1,
+    endColumnNumber: value.indexOf(match) + match.length,
     severity
   }))
 }

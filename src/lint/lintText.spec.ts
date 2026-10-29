@@ -40,7 +40,7 @@ describe('lintText', () => {
       message: 'Line contains encoded password',
       lineNumber: 4,
       startColumnNumber: 11,
-      endColumnNumber: 19,
+      endColumnNumber: 18,
       severity: Severity.Error
     })
   })

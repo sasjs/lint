@@ -14,7 +14,7 @@ describe('noEncodedPasswords', () => {
         message: 'Line contains encoded password',
         lineNumber: 1,
         startColumnNumber: 7,
-        endColumnNumber: 15,
+        endColumnNumber: 14,
         severity: Severity.Error
       }
     ])
@@ -27,7 +27,7 @@ describe('noEncodedPasswords', () => {
         message: 'Line contains encoded password',
         lineNumber: 1,
         startColumnNumber: 7,
-        endColumnNumber: 15,
+        endColumnNumber: 14,
         severity: Severity.Error
       }
     ])
@@ -40,14 +40,14 @@ describe('noEncodedPasswords', () => {
         message: 'Line contains encoded password',
         lineNumber: 1,
         startColumnNumber: 7,
-        endColumnNumber: 15,
+        endColumnNumber: 14,
         severity: Severity.Error
       },
       {
         message: 'Line contains encoded password',
         lineNumber: 1,
         startColumnNumber: 16,
-        endColumnNumber: 24,
+        endColumnNumber: 23,
         severity: Severity.Error
       }
     ])

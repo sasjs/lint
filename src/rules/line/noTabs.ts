@@ -21,7 +21,7 @@ const test = (value: string, lineNumber: number, config?: LintConfig) => {
     message,
     lineNumber,
     startColumnNumber: index + 1,
-    endColumnNumber: index + 2,
+    endColumnNumber: index + 1,
     severity
   }))
 }

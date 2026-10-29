@@ -6,19 +6,31 @@ describe('trimComments', () => {
       trimComments(`
       /* some comment */ some code;
       `)
-    ).toEqual({ statement: 'some code;', commentStarted: false })
+    ).toEqual({
+      statement: 'some code;',
+      commentStarted: false,
+      quoteStarted: ''
+    })
 
     expect(
       trimComments(`
       /*/ some comment */ some code;
       `)
-    ).toEqual({ statement: 'some code;', commentStarted: false })
+    ).toEqual({
+      statement: 'some code;',
+      commentStarted: false,
+      quoteStarted: ''
+    })
 
     expect(
       trimComments(`
       some code;/*/ some comment */ some code;
       `)
-    ).toEqual({ statement: 'some code; some code;', commentStarted: false })
+    ).toEqual({
+      statement: 'some code; some code;',
+      commentStarted: false,
+      quoteStarted: ''
+    })
 
     expect(
       trimComments(`/* some comment */
@@ -26,7 +38,8 @@ describe('trimComments', () => {
       /* some comment */`)
     ).toEqual({
       statement: 'CODE_Keyword1  CODE_Keyword2;',
-      commentStarted: false
+      commentStarted: false,
+      quoteStarted: ''
     })
   })
 
@@ -37,7 +50,11 @@ describe('trimComments', () => {
         comment */
       some code;
       `)
-    ).toEqual({ statement: 'some code;', commentStarted: false })
+    ).toEqual({
+      statement: 'some code;',
+      commentStarted: false,
+      quoteStarted: ''
+    })
   })
 
   it('should return statment, having multi-line comment and some code present in comment', () => {
@@ -48,7 +65,11 @@ describe('trimComments', () => {
         comment */
       some other code;
       `)
-    ).toEqual({ statement: 'some other code;', commentStarted: false })
+    ).toEqual({
+      statement: 'some other code;',
+      commentStarted: false,
+      quoteStarted: ''
+    })
   })
 
   it('should return empty statment, having only comment', () => {
@@ -58,7 +79,7 @@ describe('trimComments', () => {
       some code;
         comment */
       `)
-    ).toEqual({ statement: '', commentStarted: false })
+    ).toEqual({ statement: '', commentStarted: false, quoteStarted: '' })
   })
 
   it('should return empty statment, having continuity in comment', () => {
@@ -67,7 +88,7 @@ describe('trimComments', () => {
         /* some 
       some code;
       `)
-    ).toEqual({ statement: '', commentStarted: true })
+    ).toEqual({ statement: '', commentStarted: true, quoteStarted: '' })
   })
 
   it('should return statment, having already started comment and ends', () => {
@@ -79,7 +100,11 @@ describe('trimComments', () => {
       `,
         true
       )
-    ).toEqual({ statement: 'some code;', commentStarted: false })
+    ).toEqual({
+      statement: 'some code;',
+      commentStarted: false,
+      quoteStarted: ''
+    })
   })
 
   it('should return empty statment, having already started comment and continuity in comment', () => {
@@ -90,6 +115,43 @@ describe('trimComments', () => {
       `,
         true
       )
-    ).toEqual({ statement: '', commentStarted: true })
+    ).toEqual({ statement: '', commentStarted: true, quoteStarted: '' })
+  })
+
+  it('should treat a comment marker inside a quoted value as data', () => {
+    expect(trimComments(`%macro m(a='/*', b);`)).toEqual({
+      statement: `%macro m(a='/*', b);`,
+      commentStarted: false,
+      quoteStarted: ''
+    })
+  })
+
+  it('should report an unclosed comment without swallowing code from the same line', () => {
+    expect(trimComments(`  a = 1   /* note,`)).toEqual({
+      statement: 'a = 1',
+      commentStarted: true,
+      quoteStarted: ''
+    })
+  })
+
+  it('should carry an open quote into the next line, so a marker inside a string is text', () => {
+    const first = trimComments(`x = "ab`)
+    expect(first.quoteStarted).toEqual('"')
+
+    const second = trimComments(
+      `/* not a comment */ cd";`,
+      false,
+      false,
+      first.quoteStarted
+    )
+    expect(second.statement).toEqual(`/* not a comment */ cd";`)
+    expect(second.commentStarted).toBe(false)
+  })
+
+  it('should carry an unterminated quote to the end of the text', () => {
+    const result = trimComments(`y = 'oops;`, false, false, '')
+
+    expect(result.quoteStarted).toEqual("'")
+    expect(result.statement).toEqual(`y = 'oops;`)
   })
 })

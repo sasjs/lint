@@ -71,6 +71,10 @@ For more details, and the default state, see the description of each rule below.
 
 Configuring a non-zero return code (ERROR) is helpful when running `sasjs lint` as part of a git pre-commit hook. An example is available [here](https://github.com/sasjs/template_jobs/blob/main/.git-hooks/pre-commit).
 
+## Diagnostic columns
+
+A diagnostic carries `lineNumber`, `startColumnNumber` and `endColumnNumber`. Both columns are 1-based, and `endColumnNumber` is the column of the span's LAST character - a one-character span starts and ends on the same column. A consumer that highlights `startColumnNumber` through `endColumnNumber` inclusive therefore covers exactly the text the rule reports.
+
 ## Per-file overrides
 
 A file can adjust the configuration for itself, with a `@sasjslint` block in its Doxygen header:

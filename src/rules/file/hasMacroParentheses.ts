@@ -22,11 +22,15 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: macro.startLineNumbers![0],
         startColumnNumber: getColumnNumber(
           macro.declarationLines![0],
-          '%macro'
+          '%macro',
+          true
         ),
+        // The span ends on the declaration's last character, the convention the
+        // other macro rules use.
         endColumnNumber:
-          getColumnNumber(macro.declarationLines![0], '%macro') +
-          macro.declaration.length,
+          getColumnNumber(macro.declarationLines![0], '%macro', true) +
+          macro.declaration.length -
+          1,
         severity
       })
     } else if (!macro.declarationLines.find((dl) => dl.includes('('))) {

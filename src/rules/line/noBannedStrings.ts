@@ -67,7 +67,7 @@ const test = (
         message: `${message}: "${match[0]}"`,
         lineNumber,
         startColumnNumber: start + 1,
-        endColumnNumber: end + 1,
+        endColumnNumber: end,
         severity
       })
     }

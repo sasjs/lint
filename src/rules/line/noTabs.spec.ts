@@ -14,7 +14,7 @@ describe('noTabs', () => {
         message: 'Line contains a tab character (09x)',
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
