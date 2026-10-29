@@ -41,6 +41,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "noBannedStrings": true,
   "noEncodedPasswords": true,
   "noGremlins": true,
+  "noMacroIfInOpenCode": false,
   "noNestedCommentsInHeader": true,
   "noNestedMacros": true,
   "noSingleAsteriskComments": false,
@@ -368,6 +369,30 @@ Capture zero-width whitespace and other non-standard characters. The logic is bo
 The list of characters can be found in this file: [https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts](https://github.com/sasjs/lint/blob/main/src/utils/gremlinCharacters.ts)
 
 - Default: true
+- Severity: WARNING
+
+### noMacroIfInOpenCode
+
+`%if-%then-%else` in open code is a SAS 9.4M5 feature. On an earlier maintenance SAS rejects the statement outright - "ERROR: The %IF statement is not valid in open code" - so a program that uses one cannot run below that floor, while the same logic wrapped in a macro can. At M5 the `%then` / `%else` clause has to be a `%do` / `%end` block, so the construct worth removing is the `%if ... %then %do; ... %end;` block.
+
+This rule reports a warning for each `%if` that runs in open code - that is, outside every `%macro` definition in the file. A `%if` inside a definition is silent. The scan skips the regions the other macro rules skip: block comments, macro comments (`%* ... ;`), comment statements, `datalines` / `cards` sections, `proc lua` / `proc groovy` submit blocks and the argument of `%str` / `%nrstr`. A `%if` inside a single-quoted string is not reported, because SAS resolves no macro trigger there; one inside a double-quoted string is reported, because SAS does resolve triggers there and the statement the string generates still runs on the target session.
+
+The rule is **off by default**: it encodes a release floor, so it applies to the projects whose floor is earlier than 9.4M5. Enable it per project with `"noMacroIfInOpenCode": true`, or for one file in its `@sasjslint` header block:
+
+```sas
+/**
+  @file
+  @brief Loads the settlement feed
+
+  @sasjslint {"noMacroIfInOpenCode": true}
+**/
+```
+
+There is no fix. Moving a block into a macro means writing a `%macro` / `%mend` pair and an invocation around code the formatter cannot reorder, and an invented macro name is worse than the warning that points at the block.
+
+Two boundaries are deliberate. A definition with no `%mend` reads to the end of the file, because SAS reads it as the macro body, so a `%if` after such a declaration is not reported. And a `%if` written on the same line as the `%mend` that closes a definition is read as part of that definition.
+
+- Default: false
 - Severity: WARNING
 
 ### noNestedCommentsInHeader

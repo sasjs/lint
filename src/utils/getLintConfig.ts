@@ -39,6 +39,7 @@ export const DefaultLintConfiguration = {
   noBannedStrings: true,
   noEncodedPasswords: true,
   noGremlins: true,
+  noMacroIfInOpenCode: false,
   noNestedCommentsInHeader: true,
   noNestedMacros: true,
   noSingleAsteriskComments: false,
