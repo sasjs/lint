@@ -16,6 +16,7 @@ _Note:_ The SASjs project and its repositories are not affiliated with SAS Insti
 
 - [@sasjs/vscode-extension](https://github.com/sasjs/vscode-extension) - just download SASjs in the VSCode marketplace, and select view/problems in the menu bar.
 - [@sasjs/cli](https://cli.sasjs.io/lint) - run `sasjs lint` to get a list of all files with their problems, along with line and column indexes.
+- [SASjs Server](https://server.sasjs.io) - the Studio editor lints and formats its buffer through `POST /SASjsApi/code/lint` and `POST /SASjsApi/code/format`, resolving the `.sasjslint` nearest to the file so each folder in the drive can carry its own rules.
 
 Configuration is via a `.sasjslint` file with the following structure (these are also the defaults - a setting that is absent, and a project with no `.sasjslint` file at all, uses the value below):
 
