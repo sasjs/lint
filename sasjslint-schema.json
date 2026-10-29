@@ -25,6 +25,7 @@
     "noBannedStrings": true,
     "noEncodedPasswords": true,
     "noGremlins": true,
+    "noMacroIfInOpenCode": false,
     "noNestedCommentsInHeader": true,
     "noNestedMacros": true,
     "noSingleAsteriskComments": false,
@@ -50,6 +51,7 @@
       "maxHeaderLineLength": 80,
       "maxDataLineLength": 80,
       "noGremlins": true,
+      "noMacroIfInOpenCode": false,
       "allowedGremlins": ["0x0080", "0x3000"],
       "noTabs": true,
       "indentationMultiple": 4,
@@ -107,6 +109,14 @@
       "title": "noGremlins",
       "description": "Captures problematic characters such as zero-width whitespace and others that look valid but usually are not (such as the en dash)",
       "default": [true],
+      "examples": [true, false]
+    },
+    "noMacroIfInOpenCode": {
+      "$id": "#/properties/noMacroIfInOpenCode",
+      "type": "boolean",
+      "title": "noMacroIfInOpenCode",
+      "description": "Reports %if used in open code - that is, outside every %macro definition in the file. Open-code %if-%then-%else is a SAS 9.4M5 feature, so a program that uses one cannot run on an earlier maintenance; at M5 the %then / %else clause has to be a %do / %end block. Off by default, because the rule encodes a release floor - enable it where the floor is earlier than 9.4M5. There is no fix; move the block inside a %macro definition.",
+      "default": false,
       "examples": [true, false]
     },
     "bannedStrings": {
@@ -495,6 +505,13 @@
         "strictMacroDefinition": {
           "$id": "#/properties/severityLevel/strictMacroDefinition",
           "title": "strictMacroDefinition",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noMacroIfInOpenCode": {
+          "$id": "#/properties/severityLevel/noMacroIfInOpenCode",
+          "title": "noMacroIfInOpenCode",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

@@ -1,6 +1,7 @@
 import {
   hasDoxygenHeader,
   hasMacroNameInMend,
+  noMacroIfInOpenCode,
   noNestedCommentsInHeader,
   noNestedMacros,
   hasMacroParentheses,
@@ -198,6 +199,13 @@ export class LintConfig {
 
     if (json?.noNestedMacros !== false) {
       this.fileLintRules.push(noNestedMacros)
+    }
+
+    // Off by default: the rule encodes a SAS release floor - open-code %if
+    // needs 9.4M5 - so it is enabled by the projects whose floor is earlier
+    // and is noise for everyone else.
+    if (json?.noMacroIfInOpenCode) {
+      this.fileLintRules.push(noMacroIfInOpenCode)
     }
 
     // Absence means the documented default, so a project that omits the key
