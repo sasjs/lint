@@ -9,9 +9,8 @@ on:
       - main
   workflow_dispatch:
 
-# One release at a time. Both triggers publish, and the push trigger fires on
-# every release commit @semantic-release/git pushes back to main, so a
-# dispatched recovery run can interleave with a push-triggered one. Two
+# One release at a time. Both triggers publish - a merge to main, and a
+# dispatched recovery run - so two of them can interleave. Two
 # semantic-release processes racing the same tag and the same npm publish is a
 # new way to strand a release - the state the retry below exists to recover.
 # `cancel-in-progress: false` queues the second run rather than cancelling the
@@ -90,22 +89,22 @@ jobs:
         # Installing it here, pinned, keeps the dependency tree clean. Keep
         # these versions in step with `release.plugins` in package.json.
         #
-        # semantic-release pushes twice: @semantic-release/git pushes the release
-        # commit to the branch, then core pushes the tag in a second, tags-only
-        # push. When that second push is rejected the branch keeps the release
-        # commit - package.json at the new version - with no tag: no GitHub
-        # release, no npm publish, and every later run dying in the exec plugin's
-        # `npm version` with "Version not changed", a state only a hand repair
-        # clears. sasjs/adapter hit exactly that on 2026-10-17.
+        # semantic-release pushes ONCE, and only a tag. @semantic-release/git
+        # used to commit package.json to the branch as well, which is the sole
+        # reason this workflow needed an App with a branch-protection bypass -
+        # and a bypass granted to an App is a bypass for anyone holding a token
+        # for that App. The branch push is gone, so `main` stays PR-only for every
+        # identity: the released version lives in the tag and on the registry,
+        # while the file carries a placeholder that `prepareCmd` replaces in the
+        # workspace before packing, so the tarball is still correct.
         #
-        # The tag push runs after the tag exists locally and after the branch is
-        # updated, so one more attempt has only the tag to push. Retry exactly
-        # that case: a local tag alone does not identify it, because the tag is
-        # also there when the failure came later (the GitHub release), and
-        # retrying that finds the tag restored by semantic-release's own fetch,
-        # decides there is nothing to release, exits 0 and leaves the step green
-        # with the release still missing - so require the tag to be absent from
-        # the remote as well.
+        # The tag push runs after the tag exists locally, so one more attempt has
+        # only the tag to push. Retry exactly that case: a local tag alone does
+        # not identify it, because the tag is also there when the failure came
+        # later (the GitHub release), and retrying that finds the tag restored by
+        # semantic-release's own fetch, decides there is nothing to release, exits
+        # 0 and leaves the step green with the release still missing - so require
+        # the tag to be absent from the remote as well.
         #
         # Only a definitive answer counts. `git ls-remote --exit-code` exits 2 for
         # an absent ref but 128 when the query itself fails (network, auth,
@@ -118,7 +117,6 @@ jobs:
             npx --yes \
               --package semantic-release@25.0.9 \
               --package @semantic-release/exec@7.1.0 \
-              --package @semantic-release/git@11.0.1 \
               semantic-release
           }
 
@@ -162,15 +160,23 @@ jobs:
       - name: Publish to npm with trusted publisher
         id: publish
         if: success()
+        env:
+          PLACEHOLDER_VERSION: 0.0.0-semantically-released
         run: |
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view @sasjs/lint version 2>/dev/null || echo "")
+          # `prepareCmd` writes the version into the workspace only when
+          # semantic-release decides to cut one, so the placeholder surviving this
+          # step IS the "nothing to release" signal. It replaces a comparison with
+          # the registry, which cannot work once the committed file is a
+          # placeholder: the two would never match and every merge would try to
+          # publish an already-published version.
+          version=$(node -p "require('./package.json').version")
 
-          if [ "$local_version" = "$published_version" ]; then
+          if [ "$version" = "$PLACEHOLDER_VERSION" ]; then
             echo "released=false" >> "$GITHUB_OUTPUT"
-            echo "Nothing to publish - $local_version is already on npm"
+            echo "Nothing to publish - semantic-release cut no version in this run"
             exit 0
           fi
 
+          echo "Publishing $version"
           npm publish --access public
           echo "released=true" >> "$GITHUB_OUTPUT"

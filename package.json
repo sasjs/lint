@@ -34,15 +34,6 @@
           "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version --allow-same-version"
         }
       ],
-      [
-        "@semantic-release/git",
-        {
-          "assets": [
-            "package.json",
-            "package-lock.json"
-          ]
-        }
-      ],
       "@semantic-release/github"
     ]
   },
@@ -100,7 +91,7 @@
   "overrides": {
     "qs": "6.17.0"
   },
-  "version": "4.8.1",
+  "version": "0.0.0-semantically-released",
   "devEngines": {
     "runtime": {
       "name": "node",
