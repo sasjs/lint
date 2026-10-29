@@ -25,9 +25,11 @@ const test = (value: string, config?: LintConfig) => {
       diagnostics.push({
         message: `%mend statement is redundant`,
         lineNumber: macro.endLineNumber,
-        startColumnNumber: getColumnNumber(endLine, '%mend'),
+        startColumnNumber: getColumnNumber(endLine, '%mend', true),
         endColumnNumber:
-          getColumnNumber(endLine, '%mend') + macro.termination.length,
+          getColumnNumber(endLine, '%mend', true) +
+          macro.termination.length -
+          1,
         severity
       })
     } else if (
@@ -63,8 +65,11 @@ const test = (value: string, config?: LintConfig) => {
       diagnostics.push({
         message: `%mend statement is missing macro name - ${macro.name}`,
         lineNumber: macro.endLineNumber as number,
-        startColumnNumber: getColumnNumber(endLine, '%mend'),
-        endColumnNumber: getColumnNumber(endLine, '%mend') + 6,
+        startColumnNumber: getColumnNumber(endLine, '%mend', true),
+        // The span covers the keyword itself, so it ends on its last character
+        // whatever its length - `%mend` is five characters, not seven.
+        endColumnNumber:
+          getColumnNumber(endLine, '%mend', true) + '%mend'.length - 1,
         severity
       })
     }
@@ -82,12 +87,15 @@ const fix = (value: string, config?: LintConfig): string => {
     if (macro.startLineNumbers.length === 0 && macro.endLineNumber !== null) {
       // %mend statement is redundant
       const endLine = lines[macro.endLineNumber - 1]
-      const startColumnNumber = getColumnNumber(endLine, '%mend')
+      const startColumnNumber = getColumnNumber(endLine, '%mend', true)
       const endColumnNumber =
-        getColumnNumber(endLine, '%mend') + macro.termination.length
+        getColumnNumber(endLine, '%mend', true) + macro.termination.length - 1
 
       const beforeStatement = endLine.slice(0, startColumnNumber - 1)
-      const afterStatement = endLine.slice(endColumnNumber)
+      // `termination` is the statement as the parser split it, so what follows it
+      // is optional whitespace and its own `;` - both go with the statement.
+      const trailing = endLine.slice(endColumnNumber).match(/^\s*;?/)![0].length
+      const afterStatement = endLine.slice(endColumnNumber + trailing)
       lines[macro.endLineNumber - 1] = beforeStatement + afterStatement
     } else if (
       macro.endLineNumber === null &&
@@ -114,13 +122,21 @@ const fix = (value: string, config?: LintConfig): string => {
     } else if (!macro.hasMacroNameInMend) {
       // %mend statement is missing macro name
       const endLine = lines[(macro.endLineNumber as number) - 1]
-      const startColumnNumber = getColumnNumber(endLine, '%mend')
-      const endColumnNumber = getColumnNumber(endLine, '%mend') + 4
+      const startColumnNumber = getColumnNumber(endLine, '%mend', true)
+      // The keyword keeps the capitalisation the file wrote - the fix adds a
+      // name, it does not restyle the statement.
+      const keyword = endLine.slice(
+        startColumnNumber - 1,
+        startColumnNumber - 1 + '%mend'.length
+      )
+      const endColumnNumber = startColumnNumber + keyword.length - 1
 
       const beforeStatement = endLine.slice(0, startColumnNumber - 1)
+      // The keyword is replaced in place: whatever follows it, `;` included, is
+      // kept.
       const afterStatement = endLine.slice(endColumnNumber)
       lines[(macro.endLineNumber as number) - 1] =
-        beforeStatement + `%mend ${macro.name}` + afterStatement
+        beforeStatement + `${keyword} ${macro.name}` + afterStatement
     }
   })
   const formattedText = lines.join(lineEnding)

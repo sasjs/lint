@@ -1,38 +1,69 @@
+/**
+ * Removes the block comments from a statement, or from one line of a statement.
+ *
+ * The scan tracks two states the previous implementation did not:
+ *
+ * - a quoted value, because SAS accepts both quote characters, so an opening
+ *   comment marker inside a string is data rather than the start of a comment;
+ * - a comment that is still open at the end of the text, which is reported back
+ *   as `commentStarted` so the caller carries it into the next line. The old
+ *   implementation lost that state when the opening marker had no closing
+ *   delimiter on the same line, and returned the comment's content as code
+ *   (sasjs/lint#274).
+ *
+ * A quoted value is carried across lines too (`quoteStarted`), because a SAS
+ * literal really does continue onto the next physical line: measured on a live
+ * engine, `x = "ab` / `cd";` is one string and `length(x)` is 4. An UNTERMINATED
+ * quote is carried as far as the text goes, which is also what the engine does -
+ * it consumes the rest of the file as string content.
+ */
 export const trimComments = (
   statement: string,
   commentStarted: boolean = false,
-  trimEnd: boolean = false
-): { statement: string; commentStarted: boolean } => {
-  let trimmed = trimEnd ? (statement || '').trimEnd() : (statement || '').trim()
+  trimEnd: boolean = false,
+  quoteStarted: string = ''
+): { statement: string; commentStarted: boolean; quoteStarted: string } => {
+  const text = statement || ''
+  let result = ''
+  let quote = quoteStarted
+  let inComment = commentStarted
 
-  if (commentStarted || trimmed.startsWith('/*')) {
-    const parts = trimmed.startsWith('/*')
-      ? trimmed.slice(2).split('*/')
-      : trimmed.split('*/')
-    if (parts.length === 2) {
-      return {
-        statement: (parts.pop() as string).trim(),
-        commentStarted: false
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index]
+
+    if (inComment) {
+      if (character === '*' && text[index + 1] === '/') {
+        inComment = false
+        index++
       }
-    } else if (parts.length > 2) {
-      parts.shift()
-      return trimComments(parts.join('*/'), false)
-    } else {
-      return { statement: '', commentStarted: true }
-    }
-  } else if (trimmed.includes('/*')) {
-    const statementBeforeCommentStarts = trimmed.slice(0, trimmed.indexOf('/*'))
-    trimmed = trimmed.slice(trimmed.indexOf('/*') + 2)
-    const remainingStatement = trimmed.slice(trimmed.indexOf('*/') + 2)
 
-    const result = trimComments(remainingStatement, false, true)
-    const completeStatement = statementBeforeCommentStarts + result.statement
-    return {
-      statement: trimEnd
-        ? completeStatement.trimEnd()
-        : completeStatement.trim(),
-      commentStarted: result.commentStarted
+      continue
     }
+
+    if (quote) {
+      result += character
+      if (character === quote) quote = ''
+      continue
+    }
+
+    if (character === "'" || character === '"') {
+      quote = character
+      result += character
+      continue
+    }
+
+    if (character === '/' && text[index + 1] === '*') {
+      inComment = true
+      index++
+      continue
+    }
+
+    result += character
   }
-  return { statement: trimmed, commentStarted: false }
+
+  return {
+    statement: trimEnd ? result.trimEnd() : result.trim(),
+    commentStarted: inComment,
+    quoteStarted: quote
+  }
 }

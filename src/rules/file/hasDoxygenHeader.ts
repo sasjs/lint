@@ -73,7 +73,7 @@ const diagnose = (
         message: messageForSingleAsteriskClose,
         lineNumber,
         startColumnNumber: columnNumber,
-        endColumnNumber: columnNumber + 2,
+        endColumnNumber: columnNumber + 1,
         severity,
         close
       }

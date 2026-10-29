@@ -62,7 +62,7 @@ run;
         message: 'Doxygen header contains a nested block comment',
         lineNumber: 7,
         startColumnNumber: 7,
-        endColumnNumber: 9,
+        endColumnNumber: 8,
         severity: Severity.Warning
       }
     ])
@@ -83,7 +83,7 @@ run;
           'Doxygen header contains /*/, which SAS reads as a comment terminator',
         lineNumber: 3,
         startColumnNumber: 31,
-        endColumnNumber: 33,
+        endColumnNumber: 32,
         severity: Severity.Warning
       }
     ])
@@ -161,7 +161,7 @@ run;
         message: 'Doxygen header contains a nested block comment',
         lineNumber: 3,
         startColumnNumber: 12,
-        endColumnNumber: 14,
+        endColumnNumber: 13,
         severity: Severity.Warning
       }
     ])
@@ -181,7 +181,7 @@ run;
         message: 'Doxygen header contains a close marker as text',
         lineNumber: 3,
         startColumnNumber: 29,
-        endColumnNumber: 31,
+        endColumnNumber: 30,
         severity: Severity.Warning
       }
     ])
@@ -215,7 +215,7 @@ run;`
         message: 'Doxygen header contains a nested block comment',
         lineNumber: 3,
         startColumnNumber: 21,
-        endColumnNumber: 23,
+        endColumnNumber: 22,
         severity: Severity.Warning
       }
     ])
@@ -234,7 +234,7 @@ run;`
         message: 'Doxygen header contains a nested block comment',
         lineNumber: 2,
         startColumnNumber: 23,
-        endColumnNumber: 25,
+        endColumnNumber: 24,
         severity: Severity.Warning
       }
     ])
@@ -258,7 +258,7 @@ run;`
         message: 'Doxygen header contains a nested block comment',
         lineNumber: 3,
         startColumnNumber: 21,
-        endColumnNumber: 23,
+        endColumnNumber: 22,
         severity: Severity.Error
       }
     ])

@@ -15,7 +15,7 @@ describe('noBannedStrings', () => {
         message: 'Line contains a banned string: "error "',
         lineNumber: 1,
         startColumnNumber: 4,
-        endColumnNumber: 10,
+        endColumnNumber: 9,
         severity: Severity.Warning
       }
     ])
@@ -44,7 +44,7 @@ describe('noBannedStrings', () => {
 
       expect(diagnostics.length).toEqual(1)
       expect(diagnostics[0].startColumnNumber).toEqual(4)
-      expect(diagnostics[0].endColumnNumber).toEqual(10)
+      expect(diagnostics[0].endColumnNumber).toEqual(9)
       expect(diagnostics[0].severity).toEqual(Severity.Warning)
       // The message quotes the text as written, so the case is preserved there.
       expect(diagnostics[0].message.toLowerCase()).toEqual(

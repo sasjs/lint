@@ -2,7 +2,11 @@ import { Diagnostic, LintConfig } from '../../types'
 import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
-import { checkIsDataLine, getDataSectionsDetail } from '../../utils'
+import {
+  checkIsDataLine,
+  escapeRegExp,
+  getDataSectionsDetail
+} from '../../utils'
 import { getColumnNumber } from '../../utils/getColumnNumber'
 import { parseMacros } from '../../utils/parseMacros'
 import { splitLines } from '../../utils/splitLines'
@@ -11,10 +15,6 @@ const name = 'minMacroNameLength'
 const description =
   'Ensure a macro name is long enough not to collide with another language.'
 const message = `Macro name '{macro}' is shorter than {length} characters`
-
-/** Escapes a macro name so it can be interpolated into a RegExp literally. */
-const escapeRegExp = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 /**
  * The block-comment spans on a line. A `/*` inside a single-quoted string opens
@@ -117,7 +117,7 @@ const test = (value: string, config?: LintConfig): Diagnostic[] => {
         const declaration = matches[occurrence]
         const startColumnNumber = declaration
           ? declaration.index + 1
-          : getColumnNumber(line, '%macro')
+          : getColumnNumber(line, '%macro', true)
 
         return {
           message: message

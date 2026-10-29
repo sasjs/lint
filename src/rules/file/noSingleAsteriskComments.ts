@@ -206,7 +206,7 @@ const test = (value: string, config?: LintConfig): Diagnostic[] => {
           message,
           lineNumber,
           startColumnNumber: columnNumber,
-          endColumnNumber: columnNumber + 1,
+          endColumnNumber: columnNumber,
           severity
         })
         let end = index + 1

@@ -93,4 +93,18 @@ describe('noNestedMacros', () => {
       }
     ])
   })
+
+  it('should report an upper case nested definition', () => {
+    const content = `%macro outer();\n%MACRO inner();\n%mend inner;\n%mend outer;`
+
+    expect(noNestedMacros.test(content)).toEqual([
+      {
+        message: "Macro definition for 'inner' present in macro 'outer'",
+        lineNumber: 2,
+        startColumnNumber: 1,
+        endColumnNumber: 15,
+        severity: Severity.Warning
+      }
+    ])
+  })
 })

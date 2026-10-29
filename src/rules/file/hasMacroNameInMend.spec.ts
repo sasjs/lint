@@ -32,7 +32,7 @@ describe('hasMacroNameInMend - test', () => {
         message: '%mend statement is missing macro name - somemacro',
         lineNumber: 4,
         startColumnNumber: 3,
-        endColumnNumber: 9,
+        endColumnNumber: 7,
         severity: Severity.Warning
       }
     ])
@@ -105,7 +105,7 @@ describe('hasMacroNameInMend - test', () => {
         message: '%mend statement is redundant',
         lineNumber: 5,
         startColumnNumber: 3,
-        endColumnNumber: 18,
+        endColumnNumber: 17,
         severity: Severity.Warning
       }
     ])
@@ -148,7 +148,7 @@ describe('hasMacroNameInMend - test', () => {
           message: '%mend statement is missing macro name - inner',
           lineNumber: 6,
           startColumnNumber: 5,
-          endColumnNumber: 11,
+          endColumnNumber: 9,
           severity: Severity.Warning
         }
       ])
@@ -170,7 +170,7 @@ describe('hasMacroNameInMend - test', () => {
           message: '%mend statement is missing macro name - outer',
           lineNumber: 9,
           startColumnNumber: 3,
-          endColumnNumber: 9,
+          endColumnNumber: 7,
           severity: Severity.Warning
         }
       ])
@@ -192,14 +192,14 @@ describe('hasMacroNameInMend - test', () => {
           message: '%mend statement is missing macro name - inner',
           lineNumber: 6,
           startColumnNumber: 5,
-          endColumnNumber: 11,
+          endColumnNumber: 9,
           severity: Severity.Warning
         },
         {
           message: '%mend statement is missing macro name - outer',
           lineNumber: 9,
           startColumnNumber: 3,
-          endColumnNumber: 9,
+          endColumnNumber: 7,
           severity: Severity.Warning
         }
       ])
@@ -257,7 +257,7 @@ describe('hasMacroNameInMend - test', () => {
           message: '%mend statement is missing macro name - examplemacro',
           lineNumber: 29,
           startColumnNumber: 5,
-          endColumnNumber: 11,
+          endColumnNumber: 9,
           severity: Severity.Warning
         }
       ])
@@ -293,7 +293,7 @@ describe('hasMacroNameInMend - test', () => {
           message: '%mend statement is missing macro name - somemacro',
           lineNumber: 4,
           startColumnNumber: 5,
-          endColumnNumber: 11,
+          endColumnNumber: 9,
           severity: Severity.Warning
         }
       ])
@@ -334,7 +334,7 @@ describe('hasMacroNameInMend - test', () => {
         message: '%mend statement is missing macro name - somemacro',
         lineNumber: 3,
         startColumnNumber: 1,
-        endColumnNumber: 7,
+        endColumnNumber: 5,
         severity: Severity.Warning
       }
     ])
@@ -477,7 +477,7 @@ describe('hasMacroNameInMend - file endings that differ from the config', () => 
         message: '%mend statement is missing macro name - foo',
         lineNumber: 3,
         startColumnNumber: 1,
-        endColumnNumber: 7,
+        endColumnNumber: 5,
         severity: Severity.Warning
       }
     ])
@@ -492,7 +492,7 @@ describe('hasMacroNameInMend - file endings that differ from the config', () => 
         message: '%mend statement is missing macro name - foo',
         lineNumber: 3,
         startColumnNumber: 1,
-        endColumnNumber: 7,
+        endColumnNumber: 5,
         severity: Severity.Warning
       }
     ])
@@ -503,5 +503,47 @@ describe('hasMacroNameInMend - file endings that differ from the config', () => 
     const config = new LintConfig({ lineEndings: 'crlf' })
 
     expect(hasMacroNameInMend.fix!(content, config)).toContain('%mend foo;')
+  })
+})
+
+describe('hasMacroNameInMend - keyword capitalisation', () => {
+  it('should report nothing for an upper case definition and %mend', () => {
+    const content = `%MACRO somemacro();\n  %put &sysmacroname;\n%MEND somemacro;`
+
+    expect(hasMacroNameInMend.test(content)).toEqual([])
+  })
+
+  it('should report a missing name on an upper case %MEND at its own column', () => {
+    const content = `%MACRO somemacro();\n  %put &sysmacroname;\n%MEND;`
+
+    expect(hasMacroNameInMend.test(content)).toEqual([
+      {
+        message: '%mend statement is missing macro name - somemacro',
+        lineNumber: 3,
+        startColumnNumber: 1,
+        endColumnNumber: 5,
+        severity: Severity.Warning
+      }
+    ])
+  })
+
+  it('should keep the %MEND keyword as written when adding a missing name', () => {
+    const content = `%MACRO somemacro();\n  %put &sysmacroname;\n%MEND;`
+
+    expect(hasMacroNameInMend.fix!(content, new LintConfig())).toContain(
+      '%MEND somemacro;'
+    )
+  })
+
+  it('should remove a redundant %mend statement with a space before its semicolon', () => {
+    const content = `%macro somemacro;
+  %put &sysmacroname;
+%mend somemacro;
+  %mend something ;`
+
+    const formattedContent = hasMacroNameInMend.fix!(content, new LintConfig())
+
+    expect(formattedContent).not.toContain('something')
+    expect(formattedContent).not.toContain('; ;')
   })
 })

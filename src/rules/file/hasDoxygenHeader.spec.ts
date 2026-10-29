@@ -57,7 +57,7 @@ describe('hasDoxygenHeader - test', () => {
           'File not following Doxygen header style, close with double asterisks',
         lineNumber: 4,
         startColumnNumber: 2,
-        endColumnNumber: 4,
+        endColumnNumber: 3,
         severity: Severity.Warning
       }
     ])

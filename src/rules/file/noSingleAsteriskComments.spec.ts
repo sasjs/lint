@@ -20,7 +20,7 @@ run;`
         message,
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
@@ -32,7 +32,7 @@ run;`
         message,
         lineNumber: 1,
         startColumnNumber: 3,
-        endColumnNumber: 4,
+        endColumnNumber: 3,
         severity: Severity.Warning
       }
     ])
@@ -48,7 +48,7 @@ text;`
         message,
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
@@ -65,7 +65,7 @@ text;`
         message,
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
@@ -79,7 +79,7 @@ text;`
         message,
         lineNumber: 1,
         startColumnNumber: 19,
-        endColumnNumber: 20,
+        endColumnNumber: 19,
         severity: Severity.Warning
       }
     ])
@@ -94,7 +94,7 @@ text;`
         message,
         lineNumber: 1,
         startColumnNumber: 6,
-        endColumnNumber: 7,
+        endColumnNumber: 6,
         severity: Severity.Warning
       }
     ])
@@ -106,7 +106,7 @@ text;`
         message,
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
@@ -118,7 +118,7 @@ text;`
         message,
         lineNumber: 1,
         startColumnNumber: 11,
-        endColumnNumber: 12,
+        endColumnNumber: 11,
         severity: Severity.Warning
       }
     ])
@@ -130,7 +130,7 @@ text;`
         message,
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
@@ -147,14 +147,14 @@ run;
       message,
       lineNumber: 1,
       startColumnNumber: 1,
-      endColumnNumber: 2,
+      endColumnNumber: 1,
       severity: Severity.Warning
     })
     expect(noSingleAsteriskComments.test(content)).toContainEqual({
       message,
       lineNumber: 5,
       startColumnNumber: 1,
-      endColumnNumber: 2,
+      endColumnNumber: 1,
       severity: Severity.Warning
     })
   })
@@ -246,7 +246,7 @@ run;
         message,
         lineNumber: 6,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
@@ -264,7 +264,7 @@ run;`
         message,
         lineNumber: 3,
         startColumnNumber: 3,
-        endColumnNumber: 4,
+        endColumnNumber: 3,
         severity: Severity.Warning
       }
     ])
@@ -308,7 +308,7 @@ run;`
         message,
         lineNumber: 1,
         startColumnNumber: 2,
-        endColumnNumber: 3,
+        endColumnNumber: 2,
         severity: Severity.Warning
       }
     ])
@@ -325,7 +325,7 @@ run;`
         message,
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Error
       }
     ])
@@ -376,7 +376,7 @@ run;`
         message,
         lineNumber: 6,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])
@@ -391,14 +391,14 @@ run;`
         message,
         lineNumber: 1,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       },
       {
         message,
         lineNumber: 2,
         startColumnNumber: 1,
-        endColumnNumber: 2,
+        endColumnNumber: 1,
         severity: Severity.Warning
       }
     ])

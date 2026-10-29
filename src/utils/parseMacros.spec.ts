@@ -278,6 +278,70 @@ describe('parseMacros', () => {
   })
 })
 
+describe('parseMacros - keyword capitalisation', () => {
+  it('should read an upper case definition and %mend', () => {
+    const text = `%MACRO test();\n  %put 'hello';\n%MEND test;`
+
+    expect(parseMacros(text, new LintConfig())).toContainEqual({
+      name: 'test',
+      declarationLines: ['%MACRO test();'],
+      terminationLine: '%MEND test;',
+      declaration: '%MACRO test()',
+      termination: '%MEND test',
+      startLineNumbers: [1],
+      endLineNumber: 3,
+      parentMacro: '',
+      hasMacroNameInMend: true,
+      mismatchedMendMacroName: ''
+    })
+  })
+
+  it('should read a mixed case definition', () => {
+    const text = `%Macro test(var);\n  %put 'hello';\n%mend test`
+
+    const macros = parseMacros(text, new LintConfig())
+
+    expect(macros.length).toEqual(1)
+    expect(macros[0].name).toEqual('test')
+    expect(macros[0].endLineNumber).toEqual(3)
+  })
+
+  it('should match the %mend name without regard to case', () => {
+    const text = `%macro Foo();\n  %put 'hello';\n%mend foo;`
+
+    const macros = parseMacros(text, new LintConfig())
+
+    expect(macros[0].name).toEqual('Foo')
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+    expect(macros[0].mismatchedMendMacroName).toEqual('')
+  })
+
+  it('should read the %mend name after a tab', () => {
+    const text = `%macro test();\n  %put 'hello';\n%mend\ttest;`
+
+    expect(parseMacros(text, new LintConfig())[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('should not read a call that starts with the keyword as a definition', () => {
+    const text = `%macro_thing(x=1);\n%put done;`
+
+    expect(parseMacros(text, new LintConfig())).toEqual([])
+  })
+
+  it('should record a mixed case nested definition under its parent', () => {
+    const text = `%macro outer();\n  %MACRO inner();\n    %put 'x';\n  %mend inner;\n%mend outer;`
+
+    const macros = parseMacros(text, new LintConfig())
+
+    expect(macros.map((macro) => [macro.name, macro.parentMacro])).toEqual([
+      ['inner', 'outer'],
+      ['outer', '']
+    ])
+    expect(macros[0].endLineNumber).toEqual(4)
+    expect(macros[1].endLineNumber).toEqual(5)
+  })
+})
+
 describe('parseMacros - file endings that differ from the config', () => {
   it('should parse an LF file under lineEndings crlf', () => {
     const text = "%macro foo();\n  %put 'x';\n%mend;"
@@ -297,5 +361,56 @@ describe('parseMacros - file endings that differ from the config', () => {
     expect(macros[0].startLineNumbers).toEqual([1])
     expect(macros[0].endLineNumber).toEqual(3)
     expect(macros[0].declarationLines![0].includes('\r')).toBe(false)
+  })
+
+  it('should drop the content of a comment that spans lines from the declaration', () => {
+    const macros = parseMacros(`%macro m(a = 1 /* note,
+  more text */
+)/secure;
+%mend;`)
+
+    // The comment opens on line 1 and closes on line 2 (#274): its content is not
+    // part of the declaration, and the closing parenthesis is still found.
+    expect(macros[0].declaration).toEqual('%macro m(a = 1 )/secure')
+  })
+
+  it('should keep a comment marker inside a quoted default in the declaration', () => {
+    const macros = parseMacros(`%macro m(a = '/*', b);
+%mend;`)
+
+    expect(macros[0].declaration).toEqual(`%macro m(a = '/*', b)`)
+  })
+
+  it('should read a definition that follows a comment closing on the same line', () => {
+    const macros = parseMacros(`/* note
+*/ %macro foo;
+%mend;`)
+
+    // The comment opened on the previous line and closes ahead of the code, so
+    // the declaration is on this line and must not be swallowed as comment text.
+    expect(macros).toHaveLength(1)
+    expect(macros[0].name).toEqual('foo')
+    expect(macros[0].declaration).toEqual('%macro foo')
+  })
+
+  it('should still drop a statement that continues an unclosed comment', () => {
+    const macros = parseMacros(`%macro foo;
+  /* note
+  more */ %put 'x';
+%mend;`)
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].name).toEqual('foo')
+  })
+
+  it('should read a comment marker inside a multi-line quoted value as text', () => {
+    const macros = parseMacros(`%macro m(a = "ab
+/* not a comment */ cd");
+%mend;`)
+
+    // A SAS literal continues onto the next line (measured: length is 4 for
+    // "ab / cd"), so the marker inside it is data and the declaration keeps it.
+    expect(macros).toHaveLength(1)
+    expect(macros[0].declaration).toContain('/* not a comment */')
   })
 })

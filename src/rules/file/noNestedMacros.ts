@@ -27,12 +27,14 @@ const test = (value: string, config?: LintConfig) => {
         lineNumber: macro.startLineNumbers![0] as number,
         startColumnNumber: getColumnNumber(
           lines[(macro.startLineNumbers![0] as number) - 1],
-          '%macro'
+          '%macro',
+          true
         ),
         endColumnNumber:
           getColumnNumber(
             lines[(macro.startLineNumbers![0] as number) - 1],
-            '%macro'
+            '%macro',
+            true
           ) +
           lines[(macro.startLineNumbers![0] as number) - 1].trim().length -
           1,
