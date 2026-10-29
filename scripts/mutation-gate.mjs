@@ -276,6 +276,21 @@ const WATCHED_CONFIG = [
   'package-lock.json'
 ]
 
+// The `list` mode prints the files a matrix job should mutate, as a JSON array,
+// and stops. It exists so the workflow can put one file per job: the gate mutated
+// the changed files SEQUENTIALLY, and a PR touching nineteen of them ran past the
+// job's timeout and reported no verdict at all (sasjs/lint#272).
+if (mode === 'list') {
+  const { changed, mutable } = changedFiles()
+  const onlyConfigChanged =
+    !mutable.length && changed.some((f) => WATCHED_CONFIG.includes(f))
+  const files = onlyConfigChanged ? PROBE_FILES : mutable
+  if (onlyConfigChanged)
+    console.error('Only the gate configuration changed; listing the probe file.')
+  console.log(JSON.stringify(files))
+  process.exit(0)
+}
+
 let mutate = []
 let configOnly = false
 
