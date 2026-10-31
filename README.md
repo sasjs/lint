@@ -35,6 +35,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "indentationMultiple": 2,
   "lineEndings": "off",
   "lowerCaseFileNames": true,
+  "lowerCaseMacroNames": true,
   "maxDataLineLength": 80,
   "maxHeaderLineLength": 80,
   "maxLineLength": 80,
@@ -263,6 +264,22 @@ Example (to enforce unix line endings):
 ### lowerCaseFileNames
 
 On *nix systems, it is imperative that autocall macros are in lowercase. When sharing code between windows and *nix systems, the difference in case sensitivity can also be a cause of lost developer time. For this reason, we recommend that sas filenames are always lowercase.
+
+- Default: true
+- Severity: WARNING
+
+### lowerCaseMacroNames
+
+The companion to `lowerCaseFileNames`: it checks the macro names a project writes down, in the places they appear.
+
+- the `@li` entries of the `<h4> SAS Macros </h4>` header - the list `sasjs compile` reads to find each dependency
+- the `%macro` statement, and the name carried by `%mend`
+
+`lowerCaseFileNames` only sees the file, and a file named `mf_GetUser.sas` resolves on Windows whatever the header says - then fails on any case-sensitive filesystem. With both rules on, the file and its declarations are reported together, and the fix lower cases the declarations.
+
+`sasjs lint fix` rewrites the name in place wherever it appears: the header entry, the `%macro` name and the `%mend` name. Indentation, the order of the entries, and the rest of each line are left as they are.
+
+Note the pairing: rewriting a header entry changes which file `sasjs compile` looks for. If the file itself is still `mf_GetUser.sas`, compilation reports a missing dependency until the file is renamed to match - which is what `lowerCaseFileNames` is reporting on that file.
 
 - Default: true
 - Severity: WARNING
