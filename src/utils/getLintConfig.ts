@@ -32,6 +32,7 @@ export const DefaultLintConfiguration = {
   indentationMultiple: 2,
   lineEndings: LineEndings.OFF,
   lowerCaseFileNames: true,
+  lowerCaseMacroNames: true,
   maxDataLineLength: 80,
   maxHeaderLineLength: 80,
   maxLineLength: 80,

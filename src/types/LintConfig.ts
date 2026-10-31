@@ -12,7 +12,8 @@ import {
   noSingleAsteriskComments,
   noUndeclaredMacros,
   noUnusedMacros,
-  noUnusedLibnames
+  noUnusedLibnames,
+  lowerCaseMacroNames
 } from '../rules/file'
 import {
   indentationMultiple,
@@ -187,6 +188,10 @@ export class LintConfig {
 
     if (json?.lowerCaseFileNames !== false) {
       this.pathLintRules.push(lowerCaseFileNames)
+    }
+
+    if (json?.lowerCaseMacroNames !== false) {
+      this.fileLintRules.push(lowerCaseMacroNames)
     }
 
     if (json?.hasMacroNameInMend !== false) {
