@@ -18,6 +18,7 @@
     "indentationMultiple": 2,
     "lineEndings": "off",
     "lowerCaseFileNames": true,
+    "lowerCaseMacroNames": true,
     "maxDataLineLength": 80,
     "maxHeaderLineLength": 80,
     "maxLineLength": 80,
@@ -175,6 +176,14 @@
       "type": "boolean",
       "title": "lowerCaseFileNames",
       "description": "Enforces no uppercase characters in file names. Shows a warning when they are present.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "lowerCaseMacroNames": {
+      "$id": "#/properties/lowerCaseMacroNames",
+      "type": "boolean",
+      "title": "lowerCaseMacroNames",
+      "description": "Enforces no uppercase characters in macro names, in the <h4> SAS Macros </h4> header and in the %macro and %mend statements. Shows a warning when they are present, and fixes the name in both places when asked to.",
       "default": true,
       "examples": [true, false]
     },
@@ -414,6 +423,13 @@
         "lowerCaseFileNames": {
           "$id": "#/properties/severityLevel/lowerCaseFileNames",
           "title": "lowerCaseFileNames",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "lowerCaseMacroNames": {
+          "$id": "#/properties/severityLevel/lowerCaseMacroNames",
+          "title": "lowerCaseMacroNames",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"
