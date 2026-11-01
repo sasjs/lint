@@ -1,14 +1,14 @@
 name: Audit Watch
 
-# The build gate runs `npm audit --omit=dev`, because the dev tree carries one
-# advisory that cannot be fixed from here (GHSA-hp3w-g68c-fv3c, sprintf-js - see
-# the Security Audit step in build.yml). Nothing in build.yml re-checks the dev
-# tree, so that exemption would otherwise be open-ended. This runs the full audit
-# weekly and fails when the exemption stops matching reality: a new dev-tree
-# advisory appears, an exempted one disappears, or a package named in the
-# exemption publishes a newer release. Any of those files an issue - and only
-# those, because a scheduled job that is red every week trains people to ignore
-# red.
+# The build gate audits the whole tree, dev dependencies included, and carries an
+# EXEMPTIONS list for the one advisory that cannot be fixed from here
+# (GHSA-gcqx-w48m-w2h4, deepmerge through jest - see the Security Audit step in
+# build.yml). Nothing in build.yml re-checks whether that exemption is still
+# justified, so this runs the full audit weekly and fails when it stops matching
+# reality: a new dev-tree advisory appears, an exempted one disappears, or a
+# package named in the exemption publishes a newer release. Any of those files an
+# issue - and only those, because a scheduled job that is red every week trains
+# people to ignore red.
 
 on:
   schedule:
