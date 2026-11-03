@@ -50,6 +50,7 @@ export const DefaultLintConfiguration = {
   noUndeclaredMacros: true,
   noUnusedLibnames: false,
   noUnusedMacros: true,
+  noXcmd: true,
   requiredMacroOptions: [],
   severityLevel: {},
   strictMacroDefinition: true
