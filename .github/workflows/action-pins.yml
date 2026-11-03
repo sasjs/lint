@@ -20,7 +20,9 @@ permissions:
 jobs:
   resolve:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # the script retries a rate-limited or 5xx lookup (5s then 10s per ref), so
+    # the job has to outlast its own retry budget rather than being killed midway
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
