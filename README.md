@@ -4,6 +4,8 @@
 ![total lines](https://tokei.rs/b1/github/sasjs/lint)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/sasjs/lint)
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/sasjs/lint/badge)](https://scorecard.dev/viewer/?uri=github.com/sasjs/lint)
+
 # SAS Code linting and formatting
 
 Our goal is to help SAS developers everywhere spend less time on code reviews, bug fixing and arguing about standards - and more time delivering extraordinary business value.
