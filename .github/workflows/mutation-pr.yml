@@ -36,6 +36,9 @@ concurrency:
   group: mutation-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+# read-only by default; each job states what it needs
+permissions: read-all
+
 jobs:
   # The files the matrix will run over. `list` mode prints them as a JSON array
   # and exits; it refuses (non-zero) when no base ref can be resolved, so a
@@ -49,13 +52,13 @@ jobs:
     outputs:
       files: ${{ steps.list.outputs.files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # the diff against the base commit needs the base commit
           fetch-depth: 0
 
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -89,12 +92,12 @@ jobs:
       matrix:
         file: ${{ fromJson(needs.changed-files.outputs.files) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -110,7 +113,7 @@ jobs:
 
       - name: Keep the report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           # one artifact per file, and the index keeps the names valid whatever
           # the path separator is
