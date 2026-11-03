@@ -113,7 +113,7 @@ jobs:
 
       - name: Keep the report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           # one artifact per file, and the index keeps the names valid whatever
           # the path separator is
