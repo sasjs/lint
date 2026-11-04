@@ -4,6 +4,7 @@ import {
   noMacroIfInOpenCode,
   noNestedCommentsInHeader,
   noNestedMacros,
+  noXcmd,
   hasMacroParentheses,
   lineEndings,
   minMacroNameLength,
@@ -204,6 +205,10 @@ export class LintConfig {
 
     if (json?.noNestedMacros !== false) {
       this.fileLintRules.push(noNestedMacros)
+    }
+
+    if (json?.noXcmd !== false) {
+      this.fileLintRules.push(noXcmd)
     }
 
     // Off by default: the rule encodes a SAS release floor - open-code %if

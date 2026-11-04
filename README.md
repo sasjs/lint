@@ -49,6 +49,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "noUndeclaredMacros": true,
   "noUnusedLibnames": false,
   "noUnusedMacros": true,
+  "noXcmd": true,
   "requiredMacroOptions": [],
   "severityLevel": {},
   "strictMacroDefinition": true
@@ -552,6 +553,29 @@ An invocation written inside the argument of `%str` / `%nrstr` counts as a use. 
 An invocation written inside a single-quoted string counts as a use as well. SAS resolves no macro trigger there, so the text is data while the string is built - but code that generates code submits it later: `call execute('%mf_mkdir('!!path!!')')` runs the macro when the DATA step executes, and a program written to a fileref and `%inc`ed runs it then. Counting it as unused would report a declaration the file needs, and the formatter would delete it.
 
 Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) removes the unused entries from the header. Together with `noUndeclaredMacros`, this leaves the `<h4> SAS Macros </h4>` section listing exactly the macros the file uses. The pass that reads the list also writes each entry back as `@li <macro>.sas` at the section's indentation, in place and without re-spacing the header, so a mistyped tag (`@il`) is repaired even when no entry is removed.
+
+- Default: true
+- Severity: WARNING
+
+### noXcmd
+
+This rule reports the SAS statements and functions that run an operating system command. They need the XCMD option, so on a server where it is off - a LOCKDOWN server, or a SASjs Server deployment that keeps it off - they fail at run time, and the failure arrives long after the code was reviewed. It is on by default for the same reason [`noEncodedPasswords`](#noencodedpasswords) is: the hazard is invisible in review and only shows up on the server that matters.
+
+It reports:
+
+- the `x` statement, quoted (`x "cmd";`) or bare (`x dir;`), where a statement begins and a command follows - so `keep x`, a variable named `x`, and the assignment and sum statements (`x = 1;`, `x + 1;`) are not commands;
+- `call system(...)`, with or without a space before the parenthesis;
+- `%sysexec`, anchored on the macro name, so a user macro such as `%mf_sysexec(...)` is not a match. The macro is the only form SAS has: the XCMD option's own list of what it governs names the `%SYSEXEC` macro, `CALL SYSTEM`, the SYSTEM function, PIPE and the X statement, and there is no `SYSEXEC` function or `CALL SYSEXEC` routine;
+- `system(...)` as a function, and `%sysfunc(system(...))` through which it is usually reached - `%sysfunc(sysrc())` is not a command and is not reported;
+- `options xcmd;` in its positive form ONLY - `options noxcmd;` is the hardening, and reporting it would push a project away from the setting that makes it safe;
+- `filename <ref> pipe "cmd";` and `infile "cmd" pipe;`, where `pipe` stands in the option position of a `filename` statement or follows the quoted path of an `infile` - a fileref named `pipe`, or a variable of that name, is not reported;
+- `systask command`.
+
+The text is read as code rather than as text, which is what separates this rule from [`noBannedStrings`](#nobannedstrings): comments are not searched, so a header or a note that documents `options xcmd;` is not reported, and a quoted value is not searched either, so `put "x ""ls"";"` stays clean. A `datalines` payload is data, so it is skipped whether or not the statement is indented. Macro definitions and open code are read the same way, because the risk is the same in both - and for the same reason a command is reported inside a macro body as it is anywhere else.
+
+One limit is worth stating: an UNTERMINATED quote masks the rest of the file, because SAS itself reads an unterminated literal that way - the engine consumes the remaining text as string content. A stray apostrophe in open code therefore hides the constructs after it, rather than reporting the words inside a string as commands. A `datalines` payload cannot cause it, because the payload is blanked before the comment and quote scan runs, so a data value such as `O'Brien` is harmless.
+
+There is no fix. Which command a project should run instead is a change to the job, not a formatting decision.
 
 - Default: true
 - Severity: WARNING

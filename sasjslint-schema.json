@@ -36,6 +36,7 @@
     "noUndeclaredMacros": true,
     "noUnusedLibnames": false,
     "noUnusedMacros": true,
+    "noXcmd": true,
     "requiredMacroOptions": [],
     "severityLevel": {},
     "strictMacroDefinition": true
@@ -62,6 +63,7 @@
       "noSingleAsteriskComments": false,
       "noUndeclaredMacros": true,
       "noUnusedMacros": true,
+      "noXcmd": true,
       "hasMacroParentheses": true,
       "lineEndings": "crlf",
       "strictMacroDefinition": true,
@@ -284,6 +286,14 @@
       "default": true,
       "examples": [true, false]
     },
+    "noXcmd": {
+      "$id": "#/properties/noXcmd",
+      "type": "boolean",
+      "title": "noXcmd",
+      "description": "Reports the statements and functions that run an operating system command, which need XCMD: the `x` statement, `call system`, `%sysexec`, `system(...)` and `%sysfunc(system(...))`, `options xcmd`, a `pipe` fileref and `systask command`. `options noxcmd` is not reported. Comments, quoted values and `datalines` payloads are not searched. There is no fix.",
+      "default": true,
+      "examples": [true, false]
+    },
     "noUnusedLibnames": {
       "$id": "#/properties/noUnusedLibnames",
       "type": "boolean",
@@ -500,6 +510,13 @@
         "noUnusedMacros": {
           "$id": "#/properties/severityLevel/noUnusedMacros",
           "title": "noUnusedMacros",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noXcmd": {
+          "$id": "#/properties/severityLevel/noXcmd",
+          "title": "noXcmd",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"

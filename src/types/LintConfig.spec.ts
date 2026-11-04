@@ -284,7 +284,7 @@ describe('LintConfig', () => {
     expect(config.lineLintRules[6].name).toEqual('noGremlins')
     expect(config.lineLintRules[6].type).toEqual(LintRuleType.Line)
 
-    expect(config.fileLintRules.length).toEqual(13)
+    expect(config.fileLintRules.length).toEqual(14)
     expect(config.fileLintRules[0].name).toEqual('lineEndings')
     expect(config.fileLintRules[0].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[1].name).toEqual('hasDoxygenHeader')
@@ -297,20 +297,22 @@ describe('LintConfig', () => {
     expect(config.fileLintRules[4].type).toEqual(LintRuleType.File)
     expect(config.fileLintRules[5].name).toEqual('noNestedMacros')
     expect(config.fileLintRules[5].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[6].name).toEqual('minMacroNameLength')
+    expect(config.fileLintRules[6].name).toEqual('noXcmd')
     expect(config.fileLintRules[6].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[7].name).toEqual('hasMacroParentheses')
+    expect(config.fileLintRules[7].name).toEqual('minMacroNameLength')
     expect(config.fileLintRules[7].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[8].name).toEqual('strictMacroDefinition')
+    expect(config.fileLintRules[8].name).toEqual('hasMacroParentheses')
     expect(config.fileLintRules[8].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[9].name).toEqual('hasRequiredMacroOptions')
+    expect(config.fileLintRules[9].name).toEqual('strictMacroDefinition')
     expect(config.fileLintRules[9].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[10].name).toEqual('noSingleAsteriskComments')
+    expect(config.fileLintRules[10].name).toEqual('hasRequiredMacroOptions')
     expect(config.fileLintRules[10].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[11].name).toEqual('noUndeclaredMacros')
+    expect(config.fileLintRules[11].name).toEqual('noSingleAsteriskComments')
     expect(config.fileLintRules[11].type).toEqual(LintRuleType.File)
-    expect(config.fileLintRules[12].name).toEqual('noUnusedMacros')
+    expect(config.fileLintRules[12].name).toEqual('noUndeclaredMacros')
     expect(config.fileLintRules[12].type).toEqual(LintRuleType.File)
+    expect(config.fileLintRules[13].name).toEqual('noUnusedMacros')
+    expect(config.fileLintRules[13].type).toEqual(LintRuleType.File)
 
     expect(config.pathLintRules.length).toEqual(2)
     expect(config.pathLintRules[0].name).toEqual('noSpacesInFileNames')
@@ -444,6 +446,17 @@ describe('LintConfig', () => {
     expect(() => new LintConfig({ bannedStrings: [''] })).toThrow(
       `Property "bannedStrings" has invalid type of values. It can contain only non-empty strings.`
     )
+  })
+
+  it('registers noXcmd by default, and drops it when the setting is false', () => {
+    expect(
+      new LintConfig({}).fileLintRules.find((rule) => rule.name === 'noXcmd')
+    ).toBeDefined()
+    expect(
+      new LintConfig({ noXcmd: false }).fileLintRules.find(
+        (rule) => rule.name === 'noXcmd'
+      )
+    ).toBeUndefined()
   })
 })
 
