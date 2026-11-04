@@ -26,8 +26,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # the check below reads the base branch's copy, so it has to be fetched
+          fetch-depth: 0
+
+      - name: The checker is the one from the base branch, not from this change
+        # a pull request that edits the checker could otherwise switch off the gate
+        # it is meant to pass through. The base ref is resolved before anything is
+        # read: a checkout that did not fetch it fails here rather than quietly
+        # falling back to the copy in the change.
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          target="$RUNNER_TEMP/check-action-pins/check-action-pins.py"
+          mkdir -p "$(dirname "$target")"
+          ref="origin/${BASE_REF}"
+          if [ -z "$BASE_REF" ]; then
+            echo "no base ref - not a pull request, so the copy in this change is used"
+            cp .github/scripts/check-action-pins.py "$target"
+          elif ! git rev-parse --verify --quiet "$ref" > /dev/null; then
+            echo "::error::$ref is not in this checkout, so the reviewed copy of the checker cannot be read"
+            exit 1
+          elif git cat-file -e "$ref:.github/scripts/check-action-pins.py" 2>/dev/null; then
+            git show "$ref:.github/scripts/check-action-pins.py" > "$target"
+            echo "using the checker from $ref"
+          else
+            echo "$ref has no checker - using the copy in this change, which is the PR that adds it"
+            cp .github/scripts/check-action-pins.py "$target"
+          fi
 
       - name: Every action is pinned to a commit, and that commit exists
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python3 .github/scripts/check-action-pins.py
+        run: python3 "$RUNNER_TEMP/check-action-pins/check-action-pins.py"
