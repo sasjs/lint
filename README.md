@@ -1,6 +1,6 @@
 # SAS Code linting and formatting
 
-![GitHub top language](https://img.shields.io/github/languages/top/sasjs/lint) [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/sasjs/lint)](https://github.com/sasjs/lint/issues?q=is%3Aissue+is%3Aclosed) [![GitHub issues](https://img.shields.io/github/issues-raw/sasjs/lint)](https://github.com/sasjs/lint/issues) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/sasjs/lint/badge)](https://scorecard.dev/viewer/?uri=github.com/sasjs/lint) ![total lines](https://tokei.rs/b1/github/sasjs/lint) [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/sasjs/lint)
+![GitHub top language](https://img.shields.io/github/languages/top/sasjs/lint) [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/sasjs/lint)](https://github.com/sasjs/lint/issues?q=is%3Aissue+is%3Aclosed) [![GitHub issues](https://img.shields.io/github/issues-raw/sasjs/lint)](https://github.com/sasjs/lint/issues) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/sasjs/lint/badge)](https://scorecard.dev/viewer/?uri=github.com/sasjs/lint) 
 
 Our goal is to help SAS developers everywhere spend less time on code reviews, bug fixing and arguing about standards - and more time delivering extraordinary business value.
 
