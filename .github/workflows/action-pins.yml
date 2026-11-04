@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # the check below reads the base branch's copy, so it has to be fetched
           fetch-depth: 0
@@ -54,6 +54,31 @@ jobs:
             echo "$ref has no checker - using the copy in this change, which is the PR that adds it"
             cp .github/scripts/check-action-pins.py "$target"
           fi
+
+      - name: The checker behaves as its tests say
+        # each copy is tested by the suite that belongs to it. Where the base branch
+        # has no suite yet - the PR that first adds one - there is nothing to run
+        # against the copy that gates, and saying so beats pairing it with tests
+        # written for a later version.
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          base="$RUNNER_TEMP/self-test-base"
+          change="$RUNNER_TEMP/self-test-change"
+          mkdir -p "$base/.github/scripts" "$change/.github/scripts"
+          cp .github/scripts/check-action-pins.py .github/scripts/check-action-pins.test.py \
+            "$change/.github/scripts/"
+          ref="origin/${BASE_REF}"
+          if [ -n "$BASE_REF" ] && git cat-file -e "$ref:.github/scripts/check-action-pins.test.py" 2>/dev/null; then
+            cp "$RUNNER_TEMP/check-action-pins/check-action-pins.py" "$base/.github/scripts/check-action-pins.py"
+            git show "$ref:.github/scripts/check-action-pins.test.py" > "$base/.github/scripts/check-action-pins.test.py"
+            echo "the copy that gates, with its own suite"
+            ( cd "$base" && python3 .github/scripts/check-action-pins.test.py )
+          else
+            echo "the base branch has no suite for the checker - nothing to run against the copy that gates"
+          fi
+          echo "the copy in this change, with this suite"
+          ( cd "$change" && python3 .github/scripts/check-action-pins.test.py )
 
       - name: Every action is pinned to a commit, and that commit exists
         env:
