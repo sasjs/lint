@@ -274,7 +274,7 @@
       "$id": "#/properties/noUndeclaredMacros",
       "type": "boolean",
       "title": "noUndeclaredMacros",
-      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` section of the header - the only header list `sasjs compile` reads. Macros that ship with SAS are always considered declared, and so are the macros listed in `ignoredMacros` (`webout` by default). The formatter resolves the warning by adding the macro names to the header, sorted alphabetically.",
+      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` section of the header - the only header list `sasjs compile` reads. Macros that ship with SAS are always considered declared, and so are the macros listed in `ignoredMacros` (`webout` by default). The formatter resolves the warning by adding the macro names to the header, sorted alphabetically. A file with no header is not reported: it has no `<h4> SAS Macros </h4>` section, and the fix cannot write into one, so `hasDoxygenHeader` reports the missing header instead.",
       "default": true,
       "examples": [true, false]
     },
