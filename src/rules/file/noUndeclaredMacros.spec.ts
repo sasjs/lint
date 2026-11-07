@@ -214,11 +214,43 @@ run;`
   })
 
   it('should not report a macro that is defined in the file', () => {
-    const text = `%macro mf_trim();
+    const text = `/**
+  @file
+  @brief test
+**/
+%macro mf_trim();
 %mend;
 %mf_trim()`
 
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should not report anything in a file that has no header', () => {
+    const text = `data _null_;
+  call execute('%mf_foo(x)');
+run;
+%mf_bar()`
+
+    // The declaration this rule asks for lives in the header, and a file
+    // without one has nowhere to put it - the fix cannot write it either. The
+    // missing header is `hasDoxygenHeader`'s finding, and reporting every call
+    // as well would bury it.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should report a macro in a file whose header is not in the Doxygen form', () => {
+    const text = `/*
+  @file
+**/
+%mf_foo()`
+
+    // A single-asterisk block still opens a header, and `hasDoxygenHeader`
+    // widens it to the Doxygen form; the declaration then lands in a section
+    // the fix can create, so the macro is reported here.
+    const diagnostics = noUndeclaredMacros.test(text, new LintConfig())
+
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0].message).toContain('mf_foo')
   })
 
   it('should not report a macro that appears only inside a masking function', () => {
@@ -236,7 +268,10 @@ run;`
   })
 
   it('should not report the macros that ship with SAS', () => {
-    const text = `%put %sysfunc(date());
+    const text = `/**
+  @file
+**/
+%put %sysfunc(date());
 %scan(a b, 1);
 %if &x %then %do;
 %end;`
@@ -258,28 +293,47 @@ run;`
 
   it('should report webout when ignoredMacros is empty', () => {
     const config = new LintConfig({ ignoredMacros: [] })
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)`
 
-    expect(noUndeclaredMacros.test(`%webout(OBJ,x)`, config).length).toEqual(1)
+    expect(noUndeclaredMacros.test(text, config).length).toEqual(1)
   })
 
   it('should not report a macro listed in ignoredMacros', () => {
     const config = new LintConfig({ ignoredMacros: ['webout'] })
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)`
 
-    expect(noUndeclaredMacros.test(`%webout(OBJ,x)`, config)).toEqual([])
+    expect(noUndeclaredMacros.test(text, config)).toEqual([])
   })
 
   it('should match ignoredMacros case-insensitively', () => {
     const config = new LintConfig({ ignoredMacros: ['WEBout'] })
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)`
 
-    expect(noUndeclaredMacros.test(`%webout(OBJ,x)`, config)).toEqual([])
+    expect(noUndeclaredMacros.test(text, config)).toEqual([])
   })
 
   it('should still report the other undeclared macros when one is ignored', () => {
     const config = new LintConfig({ ignoredMacros: ['webout'] })
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%webout(OBJ,x)
+%mf_foo()`
 
-    expect(
-      noUndeclaredMacros.test(`%webout(OBJ,x)\n%mf_foo()`, config).length
-    ).toEqual(1)
+    expect(noUndeclaredMacros.test(text, config).length).toEqual(1)
   })
 
   it('should report a macro that is used but not declared', () => {
@@ -302,25 +356,42 @@ run;`
   })
 
   it('should report each undeclared macro once, at its first use', () => {
-    const text = `%mf_foo()\n%mf_bar()\n%mf_foo()`
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%mf_foo()
+%mf_bar()
+%mf_foo()`
 
     expect(
       noUndeclaredMacros.test(text, new LintConfig()).map((d) => d.lineNumber)
-    ).toEqual([1, 2])
+    ).toEqual([5, 6])
   })
 
   it('should respect the configured severity', () => {
     const config = new LintConfig({
       severityLevel: { noUndeclaredMacros: 'error' }
     })
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%mf_foo()`
 
-    expect(noUndeclaredMacros.test(`%mf_foo()`, config)[0].severity).toEqual(
+    expect(noUndeclaredMacros.test(text, config)[0].severity).toEqual(
       Severity.Error
     )
   })
 
   it('should fall back to the default configuration', () => {
-    expect(noUndeclaredMacros.test(`%mf_foo()`).length).toEqual(1)
+    const text = `/**
+  @file
+  <h4> SAS Macros </h4>
+**/
+%mf_foo()`
+
+    expect(noUndeclaredMacros.test(text).length).toEqual(1)
   })
 
   it('should return an empty array when there is no text', () => {
