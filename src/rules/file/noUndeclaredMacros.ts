@@ -2,8 +2,8 @@ import { Diagnostic, LintConfig } from '../../types'
 import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
-import { getHeaderLinesCount } from '../../utils/getHeaderLinesCount'
 import { addMacrosToHeader, getHeaderMacros } from '../../utils/headerMacros'
+import { isDoxygenHeader } from '../../utils/isDoxygenHeader'
 import { MacroCall, parseMacroCalls } from '../../utils/parseMacroCalls'
 import { parseMacros } from '../../utils/parseMacros'
 import { isSasMacro } from '../../utils/sasMacros'
@@ -22,8 +22,10 @@ const message = `Macro '{macro}' is not declared - add it to the <h4> SAS Macros
  * names the configuration lists in `ignoredMacros` - a macro such as `%webout`
  * has no file to point at.
  *
- * A file with no header is not scanned at all: the declaration the rule asks
- * for goes in the header, so a file without one has no place to put it.
+ * A file with no Doxygen header is not scanned at all: the declaration the rule
+ * asks for goes in the header, so a file without one has no place to put it,
+ * and a leading comment written with a single asterisk is a plain comment
+ * rather than a header.
  *
  * The scan leaves out the argument of `%str` / `%nrstr`: a file that masks a
  * trigger usually does so to print it, and reporting it would be a new warning
@@ -34,12 +36,19 @@ const message = `Macro '{macro}' is not declared - add it to the <h4> SAS Macros
 const getUndeclaredCalls = (value: string, config: LintConfig): MacroCall[] => {
   if (!value) return []
 
-  // A file with no header has no `<h4> SAS Macros </h4>` section to declare a
-  // macro in, and `addMacrosToHeader` cannot write into one - so a report here
-  // would be a warning no pass could resolve. It is also the only reading that
-  // lets `test` and `fix` agree on such a file. `hasDoxygenHeader` reports the
-  // missing header itself, which is the change the file needs.
-  if (!getHeaderLinesCount(value, config)) return []
+  // A file with no Doxygen header has no `<h4> SAS Macros </h4>` section to
+  // declare a macro in, and `addMacrosToHeader` cannot write into one - so a
+  // report here would be a warning no pass could resolve. It is also the only
+  // reading that lets `test` and `fix` agree on such a file. `hasDoxygenHeader`
+  // reports the missing header itself, which is the change the file needs.
+  //
+  // A comment that is not a Doxygen header - one that fits on one line, one
+  // opened with a single asterisk, or a `/**` block whose close is not a line
+  // of its own or never arrives - leaves nothing the fix can write into, and
+  // reading any of them as a header made this rule report invocations against a
+  // header it then left untouched. `hasDoxygenHeader` reports each shape, and
+  // its fixes put the header into the form this rule reads.
+  if (!isDoxygenHeader(value)) return []
 
   const declared = new Set<string>()
 

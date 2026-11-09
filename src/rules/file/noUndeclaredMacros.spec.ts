@@ -238,19 +238,51 @@ run;
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
-  it('should report a macro in a file whose header is not in the Doxygen form', () => {
+  it('should not report a macro in a file whose leading comment is not a Doxygen header', () => {
     const text = `/*
   @file
 **/
 %mf_foo()`
 
-    // A single-asterisk block still opens a header, and `hasDoxygenHeader`
-    // widens it to the Doxygen form; the declaration then lands in a section
-    // the fix can create, so the macro is reported here.
-    const diagnostics = noUndeclaredMacros.test(text, new LintConfig())
+    // A block opened with a single asterisk is a plain comment, not a header.
+    // `hasDoxygenHeader` widens the opener earlier in the same `sasjs lint fix`
+    // pass, which is what puts a header in front of this rule; on the text as
+    // written the declaration has nowhere to go, so the macro is not reported.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
 
-    expect(diagnostics).toHaveLength(1)
-    expect(diagnostics[0].message).toContain('mf_foo')
+  it('should not report a macro in a file that opens with a plain comment', () => {
+    const text = `/* some comment */
+%mf_foo()`
+
+    // The shape that exposed the bad check: a one-line comment is not a header,
+    // and the fix cannot add a declaration to it.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+    expect(noUndeclaredMacros.fix!(text, new LintConfig())).toEqual(text)
+  })
+
+  it('should not report a macro in a file whose Doxygen close is not a line of its own', () => {
+    const text = `/**
+  @file
+*/
+%mf_foo()`
+
+    // The block opens in the Doxygen form but has no close line, so it is not
+    // yet a header. `hasDoxygenHeader` reports the close style and widens it
+    // earlier in the same `sasjs lint fix` pass, which is what puts a header in
+    // front of this rule.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+  })
+
+  it('should not report a macro in a file whose header closes on its content line', () => {
+    const text = `/** @brief test **/
+%mf_foo()`
+
+    // A close that shares its line with the content is not the header form, and
+    // a one-line block has no room for a `<h4> SAS Macros </h4>` section.
+    // `hasDoxygenHeader` reports it and expands it in the same fix pass.
+    expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
+    expect(noUndeclaredMacros.fix!(text, new LintConfig())).toEqual(text)
   })
 
   it('should not report a macro that appears only inside a masking function', () => {

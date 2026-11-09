@@ -94,7 +94,7 @@
       "$id": "#/properties/hasDoxygenHeader",
       "type": "boolean",
       "title": "hasDoxygenHeader",
-      "description": "Enforces the presence of a Doxygen header in the form of a comment block at the start of each SAS file. Shows a warning when one is absent.",
+      "description": "Enforces a Doxygen header at the start of each SAS file: a comment block that opens with `/**` and closes with a line holding nothing but `**/`. Shows a warning when the header is absent, when it opens or closes with a single asterisk, when the close shares its line with the header content, and when the block is never closed. The fix widens a single-asterisk marker and moves a close onto a line of its own; an unclosed block is left for the author.",
       "default": true,
       "examples": [true, false]
     },
@@ -274,7 +274,7 @@
       "$id": "#/properties/noUndeclaredMacros",
       "type": "boolean",
       "title": "noUndeclaredMacros",
-      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` section of the header - the only header list `sasjs compile` reads. Macros that ship with SAS are always considered declared, and so are the macros listed in `ignoredMacros` (`webout` by default). The formatter resolves the warning by adding the macro names to the header, sorted alphabetically. A file with no header is not reported: it has no `<h4> SAS Macros </h4>` section, and the fix cannot write into one, so `hasDoxygenHeader` reports the missing header instead.",
+      "description": "Reports a warning for each macro a file invokes without declaring it in the `<h4> SAS Macros </h4>` section of the header - the only header list `sasjs compile` reads. Macros that ship with SAS are always considered declared, and so are the macros listed in `ignoredMacros` (`webout` by default). The formatter resolves the warning by adding the macro names to the header, sorted alphabetically. A file with no Doxygen header is not reported: it has no `<h4> SAS Macros </h4>` section, and the fix cannot write into one, so `hasDoxygenHeader` reports the missing header instead. The same skip covers a leading comment that is not a header - one that fits on one line, one opened with a single asterisk, or a `/**` block whose close is not a line of its own - because `hasDoxygenHeader` reports each of those shapes and its fixes put the header into the form this rule can write into.",
       "default": true,
       "examples": [true, false]
     },
