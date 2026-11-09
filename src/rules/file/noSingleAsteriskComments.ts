@@ -2,6 +2,7 @@ import { Diagnostic, LintConfig } from '../../types'
 import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noSingleAsteriskComments'
 const description =
@@ -32,7 +33,7 @@ const embeddedLanguageEnd = /^endsubmit\s*;/i
 const embeddedLanguageEndSearch = /endsubmit/i
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
   const diagnostics: Diagnostic[] = []
   const length = value.length
 

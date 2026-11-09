@@ -5,6 +5,7 @@ import { Severity } from '../../types/Severity'
 import { getColumnNumber } from '../../utils/getColumnNumber'
 import { parseMacros } from '../../utils/parseMacros'
 import { LintConfig } from '../../types'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'hasMacroParentheses'
 const description = 'Enforces the presence of parentheses in macro definitions.'
@@ -13,7 +14,7 @@ const message = 'Macro definition missing parentheses'
 const test = (value: string, config?: LintConfig) => {
   const diagnostics: Diagnostic[] = []
   const macros = parseMacros(value, config)
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   macros.forEach((macro) => {
     if (!macro.name) {

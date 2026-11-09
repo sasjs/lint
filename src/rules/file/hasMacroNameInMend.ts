@@ -7,6 +7,7 @@ import { LintConfig } from '../../types'
 import { LineEndings } from '../../types/LineEndings'
 import { parseMacros } from '../../utils/parseMacros'
 import { splitLines } from '../../utils/splitLines'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'hasMacroNameInMend'
 const description =
@@ -16,7 +17,7 @@ const message = '%mend statement has missing or incorrect macro name'
 const test = (value: string, config?: LintConfig) => {
   const lines = splitLines(value)
   const macros = parseMacros(value, config)
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
   const diagnostics: Diagnostic[] = []
 
   macros.forEach((macro) => {

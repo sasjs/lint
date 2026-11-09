@@ -3,6 +3,7 @@ import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { escapeRegExp } from '../../utils'
 import { parseMacros } from '../../utils/parseMacros'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'strictMacroDefinition'
 const description = 'Enforce strictly rules of macro definition syntax.'
@@ -103,7 +104,7 @@ const processParams = (
   config?: LintConfig
 ): string => {
   const declaration = macro.declaration
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   // The parser reports a declaration with its comments removed, including one that
   // spans lines (sasjs/lint#274), so the list is read from the declaration itself.
@@ -192,7 +193,7 @@ const processOptions = (
   config?: LintConfig
 ): void => {
   let optionsPresent = _declaration.split('/')?.[1]?.trim()
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   if (optionsPresent) {
     // An option value is quoted and can hold spaces - and the other quote

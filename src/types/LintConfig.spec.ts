@@ -218,6 +218,34 @@ describe('LintConfig', () => {
     })
   })
 
+  it('should read the default severity from the severityLevel config', () => {
+    const config = new LintConfig({ severityLevel: { default: 'error' } })
+
+    expect(config.defaultSeverity).toEqual(Severity.Error)
+    // `default` is a fallback, not a rule, so it stays out of the rule map.
+    expect(config.severityLevel).toEqual({})
+  })
+
+  it('should read a warn default severity', () => {
+    const config = new LintConfig({ severityLevel: { default: 'warn' } })
+
+    expect(config.defaultSeverity).toEqual(Severity.Warning)
+  })
+
+  it('should leave the default severity unset when it is not configured', () => {
+    const config = new LintConfig({
+      severityLevel: { noTrailingSpaces: 'error' }
+    })
+
+    expect(config.defaultSeverity).toBeUndefined()
+  })
+
+  it('should reject a default severity that is not warn or error', () => {
+    expect(
+      () => new LintConfig({ severityLevel: { default: 'ERROR' } })
+    ).toThrow('Property "severityLevel.default" can only be "warn" or "error"')
+  })
+
   it('should create an instance with the line endings set to LF by default', () => {
     const config = new LintConfig({})
 

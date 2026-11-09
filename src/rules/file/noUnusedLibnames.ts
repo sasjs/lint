@@ -3,6 +3,7 @@ import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getUnusedLibnames, LibnameAssignment } from '../../utils/parseLibnames'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noUnusedLibnames'
 const description =
@@ -31,7 +32,7 @@ const getUnused = (value: string, config: LintConfig): LibnameAssignment[] => {
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
   const cfg = config || new LintConfig()
-  const severity = cfg.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(cfg, name, Severity.Warning)
 
   return getUnused(value, cfg).map((assignment) => ({
     message: message.replace('{libref}', assignment.libref),

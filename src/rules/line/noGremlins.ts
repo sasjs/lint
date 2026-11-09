@@ -3,13 +3,14 @@ import { LineLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { gremlinCharacters } from '../../utils'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noGremlins'
 const description = 'Disallow characters specified in gremlins array'
 const message = 'Line contains a gremlin'
 
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
   const allowedGremlins = config?.allowedGremlins || []
 
   const diagnostics: Diagnostic[] = []

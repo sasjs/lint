@@ -3,6 +3,7 @@ import { LineEndings } from '../../types/LineEndings'
 import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'lineEndings'
 const description =
@@ -21,7 +22,7 @@ const test = (value: string, config?: LintConfig) => {
     .replace(/\n/g, '{lf}')
     .split(new RegExp(`(?<=${expectedLineEnding})`))
   const diagnostics: Diagnostic[] = []
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   let indexOffset = 0
 

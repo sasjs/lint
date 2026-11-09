@@ -3,6 +3,7 @@ import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getPosition } from '../../utils'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noXcmd'
 const description =
@@ -536,7 +537,7 @@ const removeNested = <T extends { index: number; length: number }>(
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
   if (!value) return []
 
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
   // Data first, then code: see blankDatalines for why the order is this way.
   const { code, statementStarts } = maskNonCode(blankDatalines(value))
 

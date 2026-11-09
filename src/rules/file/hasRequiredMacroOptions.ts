@@ -2,6 +2,7 @@ import { Diagnostic, LintConfig, Macro, Severity } from '../../types'
 import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { parseMacros } from '../../utils/parseMacros'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'hasRequiredMacroOptions'
 const description = 'Enforce required macro options'
@@ -13,7 +14,7 @@ const processOptions = (
   config?: LintConfig
 ): void => {
   const optionsPresent = macro.declaration.split('/')?.[1]?.trim() ?? ''
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   config?.requiredMacroOptions.forEach((option) => {
     if (!optionsPresent.includes(option)) {

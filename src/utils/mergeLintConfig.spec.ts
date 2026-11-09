@@ -36,6 +36,15 @@ describe('mergeLintConfig', () => {
     })
   })
 
+  it('should carry a severityLevel default through a per-file override', () => {
+    expect(
+      mergeLintConfig(
+        { severityLevel: { default: 'error' } },
+        { severityLevel: { maxLineLength: 'warn' } }
+      )
+    ).toEqual({ severityLevel: { default: 'error', maxLineLength: 'warn' } })
+  })
+
   it('should keep the keys the override does not mention', () => {
     expect(
       mergeLintConfig({ maxLineLength: 80, noTabs: true }, { noTabs: false })

@@ -3,6 +3,7 @@ import { LineLintRule, LineLintRuleOptions } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { defaultBannedStrings } from '../../utils'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noBannedStrings'
 const description =
@@ -38,7 +39,7 @@ const test = (
   if (options?.isDataLine) return diagnostics
   if (overrideLine.test(value)) return diagnostics
 
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
   const bannedStrings = config?.bannedStrings || defaultBannedStrings
 
   if (!bannedStrings.length) return diagnostics

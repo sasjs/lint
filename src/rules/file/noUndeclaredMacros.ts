@@ -7,6 +7,7 @@ import { addMacrosToHeader, getHeaderMacros } from '../../utils/headerMacros'
 import { MacroCall, parseMacroCalls } from '../../utils/parseMacroCalls'
 import { parseMacros } from '../../utils/parseMacros'
 import { isSasMacro } from '../../utils/sasMacros'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noUndeclaredMacros'
 const description = 'Enforce that every macro used in a file is declared.'
@@ -126,7 +127,7 @@ const getTemplateDefinitions = (value: string): string[] =>
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
   const cfg = config || new LintConfig()
-  const severity = cfg.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(cfg, name, Severity.Warning)
 
   return getUndeclaredCalls(value, cfg).map((call) => ({
     message: message.replace('{macro}', call.name),

@@ -10,9 +10,12 @@ const description = 'Disallow indenting with tabs.'
 const message = 'Line contains a tab character (09x)'
 
 const test = (value: string, lineNumber: number, config?: LintConfig) => {
+  // The deprecated alias `noTabIndentation` is honoured per file, so it is
+  // checked before the `default` fallback, which applies to every rule.
   const severity =
-    config?.severityLevel[name] ||
-    config?.severityLevel[alias] ||
+    config?.severityLevel[name] ??
+    config?.severityLevel[alias] ??
+    config?.defaultSeverity ??
     Severity.Warning
 
   const indices = getIndicesOf('\t', value)

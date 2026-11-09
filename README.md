@@ -1,6 +1,6 @@
 # SAS Code linting and formatting
 
-![GitHub top language](https://img.shields.io/github/languages/top/sasjs/lint) [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/sasjs/lint)](https://github.com/sasjs/lint/issues?q=is%3Aissue+is%3Aclosed) [![GitHub issues](https://img.shields.io/github/issues-raw/sasjs/lint)](https://github.com/sasjs/lint/issues) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/sasjs/lint/badge)](https://scorecard.dev/viewer/?uri=github.com/sasjs/lint) 
+![GitHub top language](https://img.shields.io/github/languages/top/sasjs/lint) [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/sasjs/lint)](https://github.com/sasjs/lint/issues?q=is%3Aissue+is%3Aclosed) [![GitHub issues](https://img.shields.io/github/issues-raw/sasjs/lint)](https://github.com/sasjs/lint/issues) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/sasjs/lint/badge)](https://scorecard.dev/viewer/?uri=github.com/sasjs/lint)
 
 Our goal is to help SAS developers everywhere spend less time on code reviews, bug fixing and arguing about standards - and more time delivering extraordinary business value.
 
@@ -613,6 +613,36 @@ This setting allows the default severity to be adjusted. This is helpful when ru
 
 - "warn" - show warning in the log (doesn’t affect exit code)
 - "error" - show error in the log (exit code is 1 when triggered)
+
+### severityLevel default
+
+To fail on every warning without listing each rule, set the `default` entry.
+It applies to every rule that has no entry of its own, including the rules added in later versions - so a new rule needs no `.sasjslint` change to be treated the same way as the rest.
+
+```json
+{
+  "severityLevel": {
+    "default": "error"
+  }
+}
+```
+
+A rule named in the same object still wins over `default`, so an exception can be left as a warning:
+
+```json
+{
+  "severityLevel": {
+    "default": "error",
+    "maxLineLength": "warn"
+  }
+}
+```
+
+The precedence is the rule's own entry, then `default`, then the severity built into the rule (`noEncodedPasswords` is an ERROR, the others are WARNING).
+`default` accepts `"warn"` and `"error"`; any other value is an error, rather than being ignored.
+
+Note this is the severity a violation is _reported_ at, which is what the exit code follows.
+The `sasjs lint --fail-on warning` switch does the same thing for a single run without changing the configuration.
 
 # SAS Formatter
 

@@ -3,6 +3,7 @@ import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getPosition } from '../../utils/getPosition'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noNestedCommentsInHeader'
 const description =
@@ -66,7 +67,7 @@ const ownTerminator = (value: string, close: number) => {
  * build on this shape and the other way round.
  */
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   if (!value) return []
 
