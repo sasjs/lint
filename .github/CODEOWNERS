@@ -3,7 +3,10 @@
 # would simply never report. These two paths need a review from a maintainer before
 # they change; pair this with a required status check on the "Action pins" job and a
 # ruleset on the default branch.
-/.github/workflows/action-pins.yml  @allanbowe
-/.github/scripts/check-action-pins.py  @allanbowe
-/.github/scripts/check-action-pins.test.py  @allanbowe
-/.github/CODEOWNERS  @allanbowe
+#
+# Owners are the sasjs maintainers rather than one person, so a single absence does not
+# hold the gate.
+/.github/workflows/action-pins.yml  @allanbowe @IvorTownsend @medjedovicm @rafgag @saadjutt01 @sabhas @tmoody @YuryShkoda
+/.github/scripts/check-action-pins.py  @allanbowe @IvorTownsend @medjedovicm @rafgag @saadjutt01 @sabhas @tmoody @YuryShkoda
+/.github/scripts/check-action-pins.test.py  @allanbowe @IvorTownsend @medjedovicm @rafgag @saadjutt01 @sabhas @tmoody @YuryShkoda
+/.github/CODEOWNERS  @allanbowe @IvorTownsend @medjedovicm @rafgag @saadjutt01 @sabhas @tmoody @YuryShkoda
