@@ -1,3 +1,4 @@
+import { LintConfig } from '../../types/LintConfig'
 import { Severity } from '../../types/Severity'
 import { noTrailingSpaces } from './noTrailingSpaces'
 
@@ -18,5 +19,25 @@ describe('noTrailingSpaces', () => {
         severity: Severity.Warning
       }
     ])
+  })
+
+  it('should report at the default severity when severityLevel.default is set', () => {
+    const config = new LintConfig({ severityLevel: { default: 'error' } })
+    const line = "%put 'hello';  "
+
+    expect(noTrailingSpaces.test(line, 1, config)[0].severity).toEqual(
+      Severity.Error
+    )
+  })
+
+  it('should keep a rule entry above the default', () => {
+    const config = new LintConfig({
+      severityLevel: { default: 'error', noTrailingSpaces: 'warn' }
+    })
+    const line = "%put 'hello';  "
+
+    expect(noTrailingSpaces.test(line, 1, config)[0].severity).toEqual(
+      Severity.Warning
+    )
   })
 })

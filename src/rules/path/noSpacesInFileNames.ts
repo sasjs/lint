@@ -3,13 +3,14 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import path from 'path'
 import { LintConfig } from '../../types'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noSpacesInFileNames'
 const description = 'Enforce the absence of spaces within file names.'
 const message = 'File name contains spaces'
 
 const test = (value: string, config?: LintConfig) => {
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
   const fileName = path.basename(value)
 
   if (fileName.includes(' ')) {

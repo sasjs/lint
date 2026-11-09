@@ -1,3 +1,4 @@
+import { LintConfig } from '../../types/LintConfig'
 import { Severity } from '../../types/Severity'
 import { noEncodedPasswords } from './noEncodedPasswords'
 
@@ -51,5 +52,14 @@ describe('noEncodedPasswords', () => {
         severity: Severity.Error
       }
     ])
+  })
+
+  it('should follow a warn default even though the rule is an error by default', () => {
+    const config = new LintConfig({ severityLevel: { default: 'warn' } })
+    const line = "%put '{SASENC}';"
+
+    expect(noEncodedPasswords.test(line, 1, config)[0].severity).toEqual(
+      Severity.Warning
+    )
   })
 })

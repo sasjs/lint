@@ -10,6 +10,7 @@ import {
 import { getColumnNumber } from '../../utils/getColumnNumber'
 import { parseMacros } from '../../utils/parseMacros'
 import { splitLines } from '../../utils/splitLines'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'minMacroNameLength'
 const description =
@@ -62,7 +63,7 @@ const inComment = (line: string, index: number) => {
 }
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
   const minimum = config?.minMacroNameLength ?? 3
 
   // A floor below two characters switches the rule off, the way a zero

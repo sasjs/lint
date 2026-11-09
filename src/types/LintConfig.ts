@@ -59,6 +59,13 @@ export class LintConfig {
   readonly lineEndings: LineEndings = LineEndings.LF
   readonly defaultHeader: string = getDefaultHeader()
   readonly severityLevel: { [key: string]: Severity } = {}
+  /**
+   * The severity every rule reports at unless it has its own entry in
+   * `severityLevel`, read from the `default` key of that object. This is what
+   * lets a project fail on every warning without naming each rule, and keeps
+   * covering the rules added in later versions.
+   */
+  readonly defaultSeverity?: Severity
   readonly requiredMacroOptions: string[] = []
   readonly ignoredLibnames: string[] = []
   readonly ignoredMacros: string[] = []
@@ -330,7 +337,21 @@ export class LintConfig {
     }
 
     if (json?.severityLevel) {
+      const defaultSeverity = json.severityLevel.default
+
+      if (defaultSeverity !== undefined) {
+        if (defaultSeverity === 'warn') this.defaultSeverity = Severity.Warning
+        else if (defaultSeverity === 'error')
+          this.defaultSeverity = Severity.Error
+        else
+          throw new Error(
+            `Property "severityLevel.default" can only be "warn" or "error"`
+          )
+      }
+
       for (const [rule, severity] of Object.entries(json.severityLevel)) {
+        // `default` is the fallback rather than a rule of its own.
+        if (rule === 'default') continue
         if (severity === 'warn') this.severityLevel[rule] = Severity.Warning
         if (severity === 'error') this.severityLevel[rule] = Severity.Error
       }

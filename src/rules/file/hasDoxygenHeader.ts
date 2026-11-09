@@ -5,6 +5,7 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { DefaultLintConfiguration } from '../../utils/getLintConfig'
 import { getPosition } from '../../utils/getPosition'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'hasDoxygenHeader'
 const description =
@@ -57,7 +58,7 @@ const diagnose = (
   value: string,
   config?: LintConfig
 ): HeaderDiagnosis | null => {
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   try {
     const start = value.search(/\S/)

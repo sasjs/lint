@@ -9,6 +9,7 @@ import {
   repairHeaderList
 } from '../../utils/headerMacros'
 import { parseMacroCalls } from '../../utils/parseMacroCalls'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noUnusedMacros'
 const description =
@@ -55,7 +56,7 @@ const getUnusedMacros = (value: string, config: LintConfig): HeaderMacro[] => {
 
 const test = (value: string, config?: LintConfig): Diagnostic[] => {
   const cfg = config || new LintConfig()
-  const severity = cfg.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(cfg, name, Severity.Warning)
 
   return getUnusedMacros(value, cfg).map((macro) => ({
     message: message.replace('{macro}', macro.name),

@@ -366,7 +366,7 @@
       "$id": "#/properties/severityLevel",
       "type": "object",
       "title": "severityLevel",
-      "description": "An object which specifies the severity level of each rule.",
+      "description": "An object which specifies the severity level of each rule. A `default` entry sets the level for every rule that has no entry of its own, including rules added in future versions.",
       "default": {},
       "examples": [
         {
@@ -378,9 +378,19 @@
           "hasDoxygenHeader": "warn",
           "maxLineLength": "error",
           "noTrailingSpaces": "error"
+        },
+        {
+          "default": "error"
         }
       ],
       "properties": {
+        "default": {
+          "$id": "#/properties/severityLevel/default",
+          "title": "default",
+          "description": "Severity of every rule that has no entry of its own in this object. Rules added in later versions are covered without being listed.",
+          "type": "string",
+          "enum": ["error", "warn"]
+        },
         "noBannedStrings": {
           "$id": "#/properties/severityLevel/noBannedStrings",
           "title": "noBannedStrings",

@@ -4,6 +4,7 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { parseMacroCalls } from '../../utils/parseMacroCalls'
 import { parseMacros } from '../../utils/parseMacros'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noMacroIfInOpenCode'
 const description = 'Reports %if used in open code, which requires SAS 9.4M5.'
@@ -64,7 +65,7 @@ const test = (value: string, config?: LintConfig): Diagnostic[] => {
   if (!value) return []
 
   const cfg = config || new LintConfig()
-  const severity = cfg.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(cfg, name, Severity.Warning)
   const spans = getMacroSpans(value, cfg)
 
   return parseMacroCalls(value, cfg)

@@ -6,6 +6,7 @@ import { LineEndings } from '../../types/LineEndings'
 import { getHeaderMacros } from '../../utils/headerMacros'
 import { parseMacros } from '../../utils/parseMacros'
 import { splitText } from '../../utils/splitText'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'lowerCaseMacroNames'
 const description =
@@ -42,7 +43,7 @@ const test = (value: string, config?: LintConfig): Diagnostic[] => {
   if (!value) return []
 
   const cfg = config || new LintConfig()
-  const severity = cfg.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(cfg, name, Severity.Warning)
   const diagnostics: Diagnostic[] = []
 
   getHeaderMacros(value, cfg).forEach((macro) => {

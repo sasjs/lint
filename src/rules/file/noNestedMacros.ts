@@ -6,6 +6,7 @@ import { getColumnNumber } from '../../utils/getColumnNumber'
 import { parseMacros } from '../../utils/parseMacros'
 import { splitLines } from '../../utils/splitLines'
 import { LintConfig } from '../../types'
+import { getSeverity } from '../../utils/getSeverity'
 
 const name = 'noNestedMacros'
 const description = 'Enfoces the absence of nested macro definitions.'
@@ -15,7 +16,7 @@ const test = (value: string, config?: LintConfig) => {
   const lines = splitLines(value)
   const diagnostics: Diagnostic[] = []
   const macros = parseMacros(value, config)
-  const severity = config?.severityLevel[name] || Severity.Warning
+  const severity = getSeverity(config, name, Severity.Warning)
 
   macros
     .filter((m) => !!m.parentMacro)
