@@ -177,7 +177,9 @@ The addition of the macro name in the `%mend` statement is optional, but can app
 
 ### hasMacroParentheses
 
-As per the example [here](https://github.com/sasjs/lint/issues/20), macros defined without parentheses cause problems if that macro is ever extended (it's not possible to reliably extend that macro without potentially breaking some code that has used the macro). It's better to always define parentheses, even if they are not used. This check will also throw a warning if there are spaces between the macro name and the opening parenthesis.
+As per the example [here](https://github.com/sasjs/lint/issues/20), macros defined without parentheses cause problems if that macro is ever extended (it's not possible to reliably extend that macro without potentially breaking some code that has used the macro). It's better to always define parentheses, even if they are not used. This check reports a definition whose parameter list is absent altogether, and a definition that carries no name.
+
+Running `sasjs lint fix` (or saving in the SASjs VS Code extension with `formatOnSave`) adds the empty parameter list to a definition that takes no parameters. The case of the keyword and the name, the spacing before the `;` and any comment on that line are left exactly as they were. A declaration that carries parameter text without parentheses is left alone - an inserted `()` would land in front of the parameters - so that warning stays for the author to resolve.
 
 - Default: true
 - Severity: WARNING

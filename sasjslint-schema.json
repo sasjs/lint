@@ -161,7 +161,7 @@
       "$id": "#/properties/hasMacroParentheses",
       "type": "boolean",
       "title": "hasMacroParentheses",
-      "description": "Enforces the presence of parentheses in macro definitions. Shows a warning for each macro defined without parentheses, or with spaces between the macro name and the opening parenthesis.",
+      "description": "Enforces the presence of parentheses in macro definitions. Shows a warning for each macro defined without a parameter list, or without a name. The fix adds the empty parameter list to a definition that takes no parameters.",
       "default": true,
       "examples": [true, false]
     },
