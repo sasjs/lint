@@ -155,4 +155,122 @@ describe('hasMacroParentheses', () => {
       ])
     })
   })
+
+  describe('fix', () => {
+    it('should add the empty parameter list to a declaration without one', () => {
+      const content = `%macro somemacro;\n  %put &sysmacroname;\n%mend somemacro;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(
+        `%macro somemacro();\n  %put &sysmacroname;\n%mend somemacro;`
+      )
+    })
+
+    it('should keep the case of the keyword and of the name', () => {
+      const content = `%MACRO SomeMacro ;\n  %put &sysmacroname;\n%MEND SomeMacro;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(
+        `%MACRO SomeMacro() ;\n  %put &sysmacroname;\n%MEND SomeMacro;`
+      )
+    })
+
+    it('should keep a comment that shares the declaration line', () => {
+      const content = `  %macro somemacro; /* the name says it all */\n%mend somemacro;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(
+        `  %macro somemacro(); /* the name says it all */\n%mend somemacro;`
+      )
+    })
+
+    it('should fix every declaration in the file', () => {
+      const content = `%macro first;\n%mend first;\n%macro second;\n%mend second;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(
+        `%macro first();\n%mend first;\n%macro second();\n%mend second;`
+      )
+    })
+
+    it('should leave the other characters of the file alone, line endings included', () => {
+      const content = `%macro first; \r\n  %put &sysmacroname;\r\n%mend first;\r\n`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(
+        `%macro first(); \r\n  %put &sysmacroname;\r\n%mend first;\r\n`
+      )
+    })
+
+    it('should resolve the diagnostic it fixes', () => {
+      const content = `%macro somemacro;\n%mend somemacro;`
+      const fixed = hasMacroParentheses.fix!(content)
+
+      expect(hasMacroParentheses.test(fixed)).toEqual([])
+    })
+
+    it('should be idempotent', () => {
+      const content = `%macro somemacro;\n%mend somemacro;`
+      const once = hasMacroParentheses.fix!(content)
+
+      expect(hasMacroParentheses.fix!(once)).toEqual(once)
+    })
+
+    it('should decline a declaration that carries parameter text without parentheses', () => {
+      const content = `%macro somemacro param=1;\n%mend somemacro;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(content)
+      // the warning stays: adding `()` here would land in front of the
+      // parameters, so this shape is the author's to repair
+      expect(hasMacroParentheses.test(content)).toEqual([
+        {
+          message: 'Macro definition missing parentheses',
+          lineNumber: 1,
+          startColumnNumber: 8,
+          endColumnNumber: 16,
+          severity: Severity.Warning
+        }
+      ])
+    })
+
+    it('should decline a declaration that carries no name', () => {
+      const content = `%macro ();\n%mend;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(content)
+    })
+
+    it('should fix each declaration on a line that carries two', () => {
+      const content = `%macro first; %mend first; %macro second; %mend second;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(
+        `%macro first(); %mend first; %macro second(); %mend second;`
+      )
+    })
+
+    it('should keep a comment that sits between the name and the semicolon', () => {
+      const content = `%macro somemacro /* no parameters */;\n%mend somemacro;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(
+        `%macro somemacro() /* no parameters */;\n%mend somemacro;`
+      )
+    })
+
+    it('should leave a declaration with no name alone', () => {
+      const content = `%macro ;\n%mend;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(content)
+    })
+
+    it('should leave a definition that already has parentheses alone', () => {
+      const content = `%macro somemacro();\n%mend somemacro;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(content)
+    })
+
+    it('should leave a definition whose parentheses are on a later declaration line alone', () => {
+      const content = `%macro somemacro\n  (param=1)\n  /secure;\n%mend somemacro;`
+
+      expect(hasMacroParentheses.fix!(content)).toEqual(content)
+      expect(hasMacroParentheses.test(content)).toEqual([])
+    })
+
+    it('should do nothing with an empty file', () => {
+      expect(hasMacroParentheses.fix!('')).toEqual('')
+    })
+  })
 })
