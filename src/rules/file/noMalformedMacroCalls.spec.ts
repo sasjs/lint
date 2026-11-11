@@ -70,6 +70,22 @@ const cases: { id: string; sas: string; expect: string | null }[] = [
 describe('noMalformedMacroCalls', () => {
   const config = new LintConfig({ noMalformedMacroCalls: true })
 
+  it('is off by default', () => {
+    const defaultConfig = new LintConfig({})
+
+    expect(
+      defaultConfig.fileLintRules.find(
+        (rule) => rule.name === 'noMalformedMacroCalls'
+      )
+    ).toBeUndefined()
+  })
+
+  it('is enabled by the setting', () => {
+    expect(
+      config.fileLintRules.find((rule) => rule.name === 'noMalformedMacroCalls')
+    ).toBeTruthy()
+  })
+
   it.each(cases)('$id: $sas', ({ sas, expect: expected }) => {
     const diagnostics = noMalformedMacroCalls.test(sas, config)
 
