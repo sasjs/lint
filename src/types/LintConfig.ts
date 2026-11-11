@@ -2,6 +2,7 @@ import {
   hasDoxygenHeader,
   hasMacroNameInMend,
   noMacroIfInOpenCode,
+  noMalformedMacroCalls,
   noNestedCommentsInHeader,
   noNestedMacros,
   noXcmd,
@@ -204,6 +205,12 @@ export class LintConfig {
 
     if (json?.hasMacroNameInMend !== false) {
       this.fileLintRules.push(hasMacroNameInMend)
+    }
+
+    // Off by default: the checks model the macro tokenizer, so a project turns
+    // them on after reading them against its own corpus.
+    if (json?.noMalformedMacroCalls) {
+      this.fileLintRules.push(noMalformedMacroCalls)
     }
 
     if (json?.noNestedCommentsInHeader !== false) {

@@ -40,6 +40,7 @@ Configuration is via a `.sasjslint` file with the following structure (these are
   "noEncodedPasswords": true,
   "noGremlins": true,
   "noMacroIfInOpenCode": false,
+  "noMalformedMacroCalls": false,
   "noNestedCommentsInHeader": true,
   "noNestedMacros": true,
   "noSingleAsteriskComments": false,
@@ -412,6 +413,35 @@ The rule is **off by default**: it encodes a release floor, so it applies to the
 There is no fix. Moving a block into a macro means writing a `%macro` / `%mend` pair and an invocation around code the formatter cannot reorder, and an invented macro name is worse than the warning that points at the block.
 
 Two boundaries are deliberate. A definition with no `%mend` reads to the end of the file, because SAS reads it as the macro body, so a `%if` after such a declaration is not reported. And a `%if` written on the same line as the `%mend` that closes a definition is read as part of that definition.
+
+- Default: false
+- Severity: WARNING
+
+### noMalformedMacroCalls
+
+A macro call is read by the macro tokenizer before the engine runs it, and the tokenizer can read more than the author wrote. An unterminated quote or comment, or a parenthesis that never closes, makes the rest of the file part of the value: the engine reports `ERROR: Macro parameter contains syntax error` at the end of the file, or reports a different error somewhere further down, so the mistake and its symptom sit pages apart. A comma inside an unquoted value splits the parameter list instead, and the engine answers `ERROR: All positional parameters must precede keyword parameters`.
+
+This rule reports two shapes, both confirmed on SAS 9.4:
+
+- the call never closes - `unclosed quote`, `unclosed parenthesis`, `unterminated comment`;
+- a parameter after the first `name=` one that carries no `name=` - text spilled at a comma inside a value, reported on the spilled text itself. When nothing was spilled (`%foo(a=1, b=2,)`, or a parameter holding only a comment) the message is `an empty parameter follows a comma`, because that is what the engine makes of it: a positional parameter, and an error. A quoted name (`%foo(a=1, "b"=2)`) gets its own message, because the engine names that fault exactly: `ERROR: Invalid macro parameter name "b"`. A masked name (`%foo(a=1, %str(b)=2)`) is refused too - the engine reads the masked text as a positional parameter, not a keyword one - so it has its own message as well.
+
+Each reason names its own repair: spill the value inside `%str()` when text was spilled, remove the comma when nothing was spilled, drop the quotes from a quoted name, and drop the mask from a masked one. Masking a parameter _name_ is the one place where `%str()` is the fault rather than the cure.
+
+```sas
+%put %kw(a=Check the library's lines, b=2);   /* unclosed quote */
+%put %kw(a=1, wider than 80);                 /* "wider than 80" is not a name=value parameter */
+```
+
+The scan follows the macro tokenizer: it tracks single and double quotes, parenthesis depth and block comments, and steps over the whole argument of a masking function (`%str`, `%nrstr`, `%quote`, `%superq`, `%qsysfunc` and the rest of the `%q` family), because a comma or a quote inside one is data. A parameter therefore splits only at a comma that sits at depth zero, outside a quote and outside a mask.
+
+The cases this rule stays silent on are worth naming, because each one is accepted by the engine and delivers its values intact: a comma inside a quoted or masked value, a positional call (`%foo(one, two)`), a space-separated list passed as one positional (`%foo(one two three)`), a comment between parameters, a value continued onto the next line, a keyword whose name arrives through a macro trigger (`%foo(a=1, &k=2)` with `%let k=b;`, which the macro processor resolves before it parses the parameter list), and a nested call used as a value.
+
+The trigger is the one place where the rule knowingly under-reports. When the macro variable is **not** set, the engine leaves the text as written and refuses the call - `%foo(&k=9)` gives `WARNING: Apparent symbolic reference K not resolved` and `ERROR: More positional parameters found than defined` - but whether a trigger resolves depends on what ran before, and a file cannot be read for that. The rule therefore stays silent on a trigger name, and the engine's own warning is the right place to catch it.
+
+A call that closes early - `%foo(a=1), b=2)` - is **not** reported. The closing parenthesis belongs to the call and the leftover text is an ordinary statement error, and a nested call used as a value has exactly the same shape, so there is no way to tell them apart from the text alone.
+
+The rule is **off by default**. It models the tokenizer rather than the grammar, so the sensible way to adopt it is to run it over a project once, read the findings, and then turn it on.
 
 - Default: false
 - Severity: WARNING
