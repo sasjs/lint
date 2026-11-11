@@ -60,6 +60,51 @@ const cases: { id: string; sas: string; expect: string | null }[] = [
   },
 
   {
+    id: 'B11',
+    sas: '%kw(a=1, b=2, /* note */);',
+    expect: 'an empty parameter follows a comma'
+  },
+
+  // Decision probes, run on the same engine while reviewing this rule.
+  {
+    id: 'D1',
+    sas: '%kw(a=1, , b=2);',
+    expect: 'an empty parameter follows a comma'
+  },
+  { id: 'D2', sas: '%kw(a=1, b=2 /* note */);', expect: null },
+  { id: 'D3', sas: '%kw(a=%nrstr(x,y), b=2);', expect: null },
+  { id: 'D4', sas: '%kw(a=%quote(x,y), b=2);', expect: null },
+  {
+    id: 'D5',
+    sas: '%kw(a=1, %str(b)=2);',
+    expect: 'is not a name=value parameter'
+  },
+  {
+    id: 'D6',
+    sas: '%kw(a=1, "b"=2);',
+    expect: 'a parameter name cannot be quoted'
+  },
+  { id: 'D7', sas: '%kw(a=%str(%(x%)), b=2);', expect: null },
+  {
+    id: 'D8',
+    sas: '%kw(a=1,);',
+    expect: 'an empty parameter follows a comma'
+  },
+  // D9 - `%kw(&k=9)` with K unset is refused by the engine ("More positional
+  // parameters found than defined"), but with `%let k=b;` the same call is well
+  // formed. Whether the trigger resolves is not knowable from the text, so the
+  // rule stays silent - see the README.
+
+  // Verified after review: the macro processor resolves the trigger before it
+  // parses the parameter list, so the name arrives as `b` and the call is well
+  // formed (SAS 9.4, syscc 0, a=1 b=9).
+  {
+    id: 'W15',
+    sas: '%let k=b;\n%kw(a=1, &k=9);',
+    expect: null
+  },
+
+  {
     id: 'I01',
     sas: "/* %kw(a=Check the library's lines, b=2); */",
     expect: null

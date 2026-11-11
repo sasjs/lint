@@ -24,8 +24,13 @@ const reasons = {
   spill:
     '"%s" is not a name=value parameter and follows one - a comma inside a value? quote it with %str()',
   empty:
-    'an empty parameter follows a comma - remove it; the engine reads it as a positional parameter'
+    'an empty parameter follows a comma - remove it; the engine reads it as a positional parameter',
+  quotedName:
+    'a parameter name cannot be quoted - the engine answers "Invalid macro parameter name"; drop the quotes'
 }
+
+/** A parameter that opens with a quoted name, `"b"=2`. */
+const quotedParameterName = /^\s*(['"])[^'"]*\1\s*=/
 
 /**
  * Lint rule that reports a macro call the macro tokenizer cannot read as the
@@ -108,6 +113,18 @@ const test = (value: string, config?: LintConfig) => {
           .replace(/\/\*[\s\S]*?\*\//g, ' ')
           .trim()
           .replace(/\s+/g, ' ')
+
+        if (quotedParameterName.test(stray.text)) {
+          diagnostics.push(
+            at(
+              stray.start + (stray.text.length - stray.text.trimStart().length),
+              stray.end,
+              reasons.quotedName
+            )
+          )
+
+          return
+        }
 
         if (!visible) {
           diagnostics.push(
