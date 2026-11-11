@@ -80,6 +80,27 @@ const skipMasked = (text: string, openParen: number): number => {
 }
 
 /**
+ * True when a parameter opens with a masking function whose argument is
+ * followed by `=`, as in `%str(b)=2`.
+ *
+ * That is not a keyword parameter: the engine reads the whole thing as
+ * positional text and refuses the call, which is why the rule reports it and
+ * tells the reader to drop the mask rather than add one.
+ *
+ * @param {string} parameter - one parameter's text, as written.
+ */
+export const hasMaskedName = (parameter: string): boolean => {
+  const start = parameter.length - parameter.trimStart().length
+
+  maskingFunction.lastIndex = start
+  if (!maskingFunction.test(parameter)) return false
+
+  const end = skipMasked(parameter, maskingFunction.lastIndex - 1)
+
+  return /^\s*=/.test(parameter.slice(end))
+}
+
+/**
  * Reads the argument region of a macro call: where it starts and ends, the
  * parameters it contains, and whether it closes at all.
  *

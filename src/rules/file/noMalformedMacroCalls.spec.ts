@@ -77,7 +77,7 @@ const cases: { id: string; sas: string; expect: string | null }[] = [
   {
     id: 'D5',
     sas: '%kw(a=1, %str(b)=2);',
-    expect: 'is not a name=value parameter'
+    expect: 'a parameter name cannot be masked'
   },
   {
     id: 'D6',
@@ -215,6 +215,28 @@ describe('noMalformedMacroCalls', () => {
     expect(noMalformedMacroCalls.test('%sysfunc(a=1, stray);', config)).toEqual(
       []
     )
+  })
+
+  it('keeps the empty-parameter span on the comma', () => {
+    const [diagnostic] = noMalformedMacroCalls.test(
+      '%kw(\n  a=1,\n  b=2,\n);',
+      config
+    )
+
+    expect(diagnostic.lineNumber).toEqual(3)
+    expect(diagnostic.startColumnNumber).toEqual(6)
+    expect(diagnostic.endColumnNumber).toEqual(7)
+  })
+
+  it('keeps the quoted-name span inside the parameter', () => {
+    const [diagnostic] = noMalformedMacroCalls.test(
+      '%kw(a=1, "b"=2\n);',
+      config
+    )
+
+    expect(diagnostic.lineNumber).toEqual(1)
+    expect(diagnostic.startColumnNumber).toEqual(10)
+    expect(diagnostic.endColumnNumber).toEqual(15)
   })
 
   it('reads positions in a CRLF file', () => {

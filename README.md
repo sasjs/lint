@@ -422,9 +422,9 @@ A macro call is read by the macro tokenizer before the engine runs it, and the t
 This rule reports two shapes, both confirmed on SAS 9.4:
 
 - the call never closes - `unclosed quote`, `unclosed parenthesis`, `unterminated comment`;
-- a parameter after the first `name=` one that carries no `name=` - text spilled at a comma inside a value, reported on the spilled text itself. When nothing was spilled (`%foo(a=1, b=2,)`, or a parameter holding only a comment) the message is `an empty parameter follows a comma`, because that is what the engine makes of it: a positional parameter, and an error. A quoted name (`%foo(a=1, "b"=2)`) gets its own message, because the engine names that fault exactly: `ERROR: Invalid macro parameter name "b"`.
+- a parameter after the first `name=` one that carries no `name=` - text spilled at a comma inside a value, reported on the spilled text itself. When nothing was spilled (`%foo(a=1, b=2,)`, or a parameter holding only a comment) the message is `an empty parameter follows a comma`, because that is what the engine makes of it: a positional parameter, and an error. A quoted name (`%foo(a=1, "b"=2)`) gets its own message, because the engine names that fault exactly: `ERROR: Invalid macro parameter name "b"`. A masked name (`%foo(a=1, %str(b)=2)`) is refused too - the engine reads the masked text as a positional parameter, not a keyword one - so it has its own message as well.
 
-Quoting the value with `%str()` repairs both.
+Each reason names its own repair: spill the value inside `%str()` when text was spilled, remove the comma when nothing was spilled, drop the quotes from a quoted name, and drop the mask from a masked one. Masking a parameter _name_ is the one place where `%str()` is the fault rather than the cure.
 
 ```sas
 %put %kw(a=Check the library's lines, b=2);   /* unclosed quote */

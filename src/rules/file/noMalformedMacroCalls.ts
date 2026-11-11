@@ -6,7 +6,10 @@ import { getIndex } from '../../utils/getIndex'
 import { getPosition } from '../../utils/getPosition'
 import { getSeverity } from '../../utils/getSeverity'
 import { isSasMacro } from '../../utils/sasMacros'
-import { parseMacroCallArguments } from '../../utils/parseMacroCallArguments'
+import {
+  hasMaskedName,
+  parseMacroCallArguments
+} from '../../utils/parseMacroCallArguments'
 import { parseMacroCalls } from '../../utils/parseMacroCalls'
 
 const name = 'noMalformedMacroCalls'
@@ -26,7 +29,9 @@ const reasons = {
   empty:
     'an empty parameter follows a comma - remove it; the engine reads it as a positional parameter',
   quotedName:
-    'a parameter name cannot be quoted - the engine answers "Invalid macro parameter name"; drop the quotes'
+    'a parameter name cannot be quoted - the engine answers "Invalid macro parameter name"; drop the quotes',
+  maskedName:
+    'a parameter name cannot be masked - the engine reads it as a positional parameter; drop the %str() and name the parameter directly'
 }
 
 /** A parameter that opens with a quoted name, `"b"=2`. */
@@ -107,43 +112,44 @@ const test = (value: string, config?: LintConfig) => {
       if (stray) {
         // A parameter holding nothing but whitespace or a comment is an empty
         // one: the engine reads `%foo(a=1, b=2,)` and `%foo(a=1, b=2, /*x*/)`
-        // as a positional parameter and refuses both. Point at the comma that
-        // introduced it, and say what to remove.
+        // as a positional parameter and refuses both.
         const visible = stray.text
           .replace(/\/\*[\s\S]*?\*\//g, ' ')
           .trim()
           .replace(/\s+/g, ' ')
 
+        // Every span here stays within the parameter's own text, trimmed of the
+        // whitespace around it: a parameter may run past a newline, and a range
+        // measured to `stray.end` would then name a line it does not cover.
+        const textStart =
+          stray.start + (stray.text.length - stray.text.trimStart().length)
+        const textEnd =
+          stray.end - (stray.text.length - stray.text.trimEnd().length)
+
+        if (hasMaskedName(stray.text)) {
+          diagnostics.push(at(textStart, textEnd, reasons.maskedName))
+
+          return
+        }
+
         if (quotedParameterName.test(stray.text)) {
-          diagnostics.push(
-            at(
-              stray.start + (stray.text.length - stray.text.trimStart().length),
-              stray.end,
-              reasons.quotedName
-            )
-          )
+          diagnostics.push(at(textStart, textEnd, reasons.quotedName))
 
           return
         }
 
         if (!visible) {
+          // Point at the comma that introduced the parameter - one character,
+          // so the range cannot straddle a line break.
           diagnostics.push(
-            at(Math.max(stray.start - 1, 0), stray.end, reasons.empty)
+            at(Math.max(stray.start - 1, 0), stray.start, reasons.empty)
           )
 
           return
         }
 
-        // Point at the text rather than at the whitespace around it.
-        const leading = stray.text.length - stray.text.trimStart().length
-        const trailing = stray.text.length - stray.text.trimEnd().length
-
         diagnostics.push(
-          at(
-            stray.start + leading,
-            stray.end - trailing,
-            reasons.spill.replace('%s', visible)
-          )
+          at(textStart, textEnd, reasons.spill.replace('%s', visible))
         )
       }
     })
