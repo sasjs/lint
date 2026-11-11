@@ -27,6 +27,7 @@
     "noEncodedPasswords": true,
     "noGremlins": true,
     "noMacroIfInOpenCode": false,
+    "noMalformedMacroCalls": false,
     "noNestedCommentsInHeader": true,
     "noNestedMacros": true,
     "noSingleAsteriskComments": false,
@@ -54,6 +55,7 @@
       "maxDataLineLength": 80,
       "noGremlins": true,
       "noMacroIfInOpenCode": false,
+      "noMalformedMacroCalls": false,
       "allowedGremlins": ["0x0080", "0x3000"],
       "noTabs": true,
       "indentationMultiple": 4,
@@ -119,6 +121,14 @@
       "type": "boolean",
       "title": "noMacroIfInOpenCode",
       "description": "Reports %if used in open code - that is, outside every %macro definition in the file. Open-code %if-%then-%else is a SAS 9.4M5 feature, so a program that uses one cannot run on an earlier maintenance; at M5 the %then / %else clause has to be a %do / %end block. Off by default, because the rule encodes a release floor - enable it where the floor is earlier than 9.4M5. There is no fix; move the block inside a %macro definition.",
+      "default": false,
+      "examples": [true, false]
+    },
+    "noMalformedMacroCalls": {
+      "$id": "#/properties/noMalformedMacroCalls",
+      "type": "boolean",
+      "title": "noMalformedMacroCalls",
+      "description": "Reports a macro call whose argument list does not parse as written: a call that never closes (an unclosed quote, parenthesis or comment), or a parameter after the first name= one that carries no name= - text spilled at a comma inside a value. Quoting the value with %str() repairs both. Off by default.",
       "default": false,
       "examples": [true, false]
     },
@@ -562,6 +572,13 @@
         "hasRequiredMacroOptions": {
           "$id": "#/properties/severityLevel/hasRequiredMacroOptions",
           "title": "hasRequiredMacroOptions",
+          "type": "string",
+          "enum": ["error", "warn"],
+          "default": "warn"
+        },
+        "noMalformedMacroCalls": {
+          "$id": "#/properties/severityLevel/noMalformedMacroCalls",
+          "title": "noMalformedMacroCalls",
           "type": "string",
           "enum": ["error", "warn"],
           "default": "warn"
