@@ -22,7 +22,9 @@ const reasons = {
     'unclosed parenthesis - the call never closes; quote the value with %str()',
   comment: 'unterminated comment - the rest of the call is read as a comment',
   spill:
-    '"%s" is not a name=value parameter and follows one - a comma inside a value? quote it with %str()'
+    '"%s" is not a name=value parameter and follows one - a comma inside a value? quote it with %str()',
+  empty:
+    'an empty parameter follows a comma - remove it; the engine reads it as a positional parameter'
 }
 
 /**
@@ -98,6 +100,23 @@ const test = (value: string, config?: LintConfig) => {
         .find((parameter) => !parameter.isKeyword)
 
       if (stray) {
+        // A parameter holding nothing but whitespace or a comment is an empty
+        // one: the engine reads `%foo(a=1, b=2,)` and `%foo(a=1, b=2, /*x*/)`
+        // as a positional parameter and refuses both. Point at the comma that
+        // introduced it, and say what to remove.
+        const visible = stray.text
+          .replace(/\/\*[\s\S]*?\*\//g, ' ')
+          .trim()
+          .replace(/\s+/g, ' ')
+
+        if (!visible) {
+          diagnostics.push(
+            at(Math.max(stray.start - 1, 0), stray.end, reasons.empty)
+          )
+
+          return
+        }
+
         // Point at the text rather than at the whitespace around it.
         const leading = stray.text.length - stray.text.trimStart().length
         const trailing = stray.text.length - stray.text.trimEnd().length
@@ -106,7 +125,7 @@ const test = (value: string, config?: LintConfig) => {
           at(
             stray.start + leading,
             stray.end - trailing,
-            reasons.spill.replace('%s', stray.text.trim().replace(/\s+/g, ' '))
+            reasons.spill.replace('%s', visible)
           )
         )
       }

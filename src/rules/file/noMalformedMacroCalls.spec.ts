@@ -19,7 +19,7 @@ const cases: { id: string; sas: string; expect: string | null }[] = [
   {
     id: 'W08',
     sas: '%kw(a=1, b=2,);',
-    expect: 'is not a name=value parameter'
+    expect: 'an empty parameter follows a comma'
   },
   { id: 'W09', sas: '%kw(\n  a=1,\n  b=2\n);', expect: null },
   { id: 'W10', sas: '%pos(one two three);', expect: null },

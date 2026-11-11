@@ -41,8 +41,14 @@ export interface MacroCallArguments {
 const maskingFunction =
   /%(nrstr|str|bquote|quote|superq|qsysfunc|qcmpres|qleft|qlowcase|qscan|qsubstr|qtrim|qupcase|qverify)\s*\(/iy
 
-/** A parameter that opens with `name=`, which is what makes it a keyword one. */
-const keywordParameter = /^\s*[a-z_][a-z0-9_]*\s*=/i
+/**
+ * A parameter that opens with `name=`, which is what makes it a keyword one.
+ *
+ * The name may arrive through a macro trigger: the macro processor resolves
+ * `&k` before the parameter list is parsed, so `%foo(a=1, &k=2)` with
+ * `%let k=b;` passes `b` as a keyword parameter (SAS 9.4, syscc 0).
+ */
+const keywordParameter = /^\s*(?:&+[a-z_][a-z0-9_.]*|[a-z_][a-z0-9_]*)\s*=/i
 
 /**
  * A comment at the start of a parameter, which the engine ignores: in
