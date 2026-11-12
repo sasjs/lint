@@ -3,6 +3,7 @@ import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getColumnNumber } from '../../utils/getColumnNumber'
+import { getIndex } from '../../utils/getIndex'
 import { parseMacros } from '../../utils/parseMacros'
 import { LintConfig } from '../../types'
 import { Macro } from '../../types/Macro'
@@ -31,21 +32,6 @@ const nameLine = (macro: Macro): number =>
   macro.declarationLines.findIndex((declarationLine) =>
     declarationLine.includes(macro.name)
   )
-
-/**
- * The offset at which each line of the text starts, measured on the text as it
- * stands. Used to edit one line without re-joining every other one, which would
- * rewrite line endings this rule has no business touching.
- */
-const lineStarts = (text: string): number[] => {
-  const starts = [0]
-
-  for (let index = 0; index < text.length; index++) {
-    if (text[index] === '\n') starts.push(index + 1)
-  }
-
-  return starts
-}
 
 const test = (value: string, config?: LintConfig) => {
   const diagnostics: Diagnostic[] = []
@@ -118,9 +104,11 @@ const fix = (value: string, config?: LintConfig): string => {
 
   return declarations.reduce((text, { macro, index }) => {
     const lineNumber = macro.startLineNumbers[index]
-    const starts = lineStarts(text)
-    const start = starts[lineNumber - 1]
-    const end = lineNumber < starts.length ? starts[lineNumber] : text.length
+    // The offsets of this line and of the next one, measured on the text as it
+    // stands. `getIndex` clamps to the end of the file, so the last line ends
+    // there.
+    const start = getIndex(text, lineNumber, 1)
+    const end = getIndex(text, lineNumber + 1, 1)
 
     // The line is taken with its terminator and put back with it, so every byte
     // of the file other than the two this fix inserts is left alone.
