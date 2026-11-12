@@ -27,6 +27,39 @@ describe('getLintConfig', () => {
     expect(config.lineLintRules.length).toEqual(expectedLineLintRulesCount)
     expect(config.pathLintRules.length).toEqual(expectedPathLintRulesCount)
   })
+
+  it('should report a file that is present but not JSON, naming it', async () => {
+    // A comment is the usual way a .sasjslint stops being JSON - the reader
+    // expects one because sasjsconfig.json can be written without them, and the
+    // file is otherwise valid.
+    jest
+      .spyOn(fileModule, 'readFile')
+      .mockImplementationOnce(() =>
+        Promise.resolve('{\n  "noTrailingSpaces": true // no comments here\n}')
+      )
+
+    const error = (await getLintConfig().catch((e: Error) => e)) as Error
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error.message).toMatch(/\.sasjslint is not valid JSON/)
+    expect(error.message).toContain(
+      'https://cli.sasjs.io/sasjslint-schema.json'
+    )
+  })
+
+  it('should read a file that parses, even when it sets one setting', async () => {
+    jest
+      .spyOn(fileModule, 'readFile')
+      .mockImplementationOnce(() =>
+        Promise.resolve('{ "noTrailingSpaces": false }')
+      )
+
+    const config = await getLintConfig()
+
+    expect(config.lineLintRules.map((rule) => rule.name)).not.toContain(
+      'noTrailingSpaces'
+    )
+  })
 })
 
 describe('DefaultLintConfiguration', () => {
