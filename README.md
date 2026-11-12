@@ -59,6 +59,8 @@ Configuration is via a `.sasjslint` file with the following structure (these are
 
 Two keys do not have a section of their own. `requiredMacroOptions` is documented with [`hasRequiredMacroOptions`](#hasrequiredmacrooptions), the rule it configures. The deprecated alias `noTabIndentation` is accepted in place of `noTabs`, and is therefore not listed above - it is an alternative spelling rather than a setting of its own.
 
+The file is read as strict JSON, so it cannot carry comments: a file that does not parse is reported as an error, naming the file, rather than being treated as though no configuration were present. Add `"$schema": "https://cli.sasjs.io/sasjslint-schema.json"` to get completion, hover text and validation for every setting in an editor that understands JSON schemas - `sasjs lint init` and a SASjs Server's seeded drive-root file both write it.
+
 ## SAS Lint Settings
 
 Each setting can have three states:
