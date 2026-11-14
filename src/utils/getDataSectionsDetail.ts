@@ -10,18 +10,19 @@ export const getDataSectionsDetail = (text: string, config: LintConfig) => {
   const dataSections: DataSectionsDetail[] = []
   const lines = splitText(text, config)
 
-  // SAS accepts a statement's leading whitespace and any capitalisation, so an
-  // indented or upper-case `DATALINES;` opens a data section exactly like the
-  // column-0 lower-case form. Readers that locate data records with this
-  // helper - the length rules and the formatter's rewrap pass - would otherwise
-  // treat those records as code.
+  // A data section opens at the start of a statement, which is the start of a
+  // line or the terminator of the statement before it - `input a b; cards;` on
+  // one line opens one - in any capitalisation, with any leading whitespace.
+  // Anchoring on the line alone would read such a record as code, and the
+  // formatter's rewrap pass would then break it into more records; anchoring on
+  // the keyword alone would fire on prose such as `/* see cards; below */`.
   const dataSectionStartRegex1 = new RegExp(
-    '^\\s*(datalines;|cards;|parmcards;)',
+    '(?:^|;)\\s*(datalines|cards|parmcards);',
     'i'
   )
   const dataSectionEndRegex1 = new RegExp(';')
   const dataSectionStartRegex2 = new RegExp(
-    '^\\s*(datalines4;|cards4;|parmcards4;)',
+    '(?:^|;)\\s*(datalines4|cards4|parmcards4);',
     'i'
   )
   const dataSectionEndRegex2 = new RegExp(';;;;')

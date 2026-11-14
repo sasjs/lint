@@ -88,6 +88,31 @@ describe('getDataSectionsDetail', () => {
     ])
   })
 
+  it('should find a section whose opener follows another statement on the line', () => {
+    const text = `data example;\n  input name $ amount; ${datalinesBeginPattern3}\n${datalines}\n${datalinesEndPattern1}\nrun;`
+    expect(getDataSectionsDetail(text, config)).toEqual([
+      {
+        start: 1,
+        end: 5
+      }
+    ])
+  })
+
+  it('should find a section whose opener follows a terminator with no space', () => {
+    const text = `data example;\nx=1;${datalinesBeginPattern5}\n${datalines}\n${datalinesEndPattern1}\nrun;`
+    expect(getDataSectionsDetail(text, config)).toEqual([
+      {
+        start: 1,
+        end: 5
+      }
+    ])
+  })
+
+  it('should not read a keyword in prose as an opener', () => {
+    const text = `run;\n  /* see ${datalinesBeginPattern3} below */\nx=1;`
+    expect(getDataSectionsDetail(text, config)).toEqual([])
+  })
+
   it('should find a section opened in upper case, which SAS accepts', () => {
     const text = `data example;\n${datalinesBeginPattern1.toUpperCase()}\n${datalines}\n${datalinesEndPattern1}\nrun;`
     expect(getDataSectionsDetail(text, config)).toEqual([

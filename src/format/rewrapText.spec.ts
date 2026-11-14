@@ -204,6 +204,37 @@ run;`
     expect(output).toContain('  set work.example (keep=first_name\n')
   })
 
+  it('does not let a masked apostrophe open a literal', () => {
+    // `%str(%')` is how a single quote is written, so the apostrophe is masked
+    // text; reading it as the start of a literal would carry a phantom string
+    // over every line below it and switch the pass off for the rest of the file.
+    const text = `%let q = %str(%');
+data _null_;
+  set work.example (keep=first_name last_name age city country);
+run;`
+
+    expect(rewrapText(text, config({ maxLineLength: 40 }))).toEqual(
+      `%let q = %str(%');
+data _null_;
+  set work.example (keep=first_name
+    last_name age city country);
+run;`
+    )
+  })
+
+  it('leaves a data section alone when its opener follows another statement', () => {
+    // A newline inside a record ends it, so wrapping these lines would give SAS
+    // four records of the wrong width in place of the two it reads.
+    const text = `data example;
+  input name $ amount; cards;
+Alice_Anderson 100 200 300
+Bob_Brown 400 500 600
+;
+run;`
+
+    expect(rewrapText(text, config({ maxLineLength: 20 }))).toBe(text)
+  })
+
   it('leaves datalines records and the statement that opens them alone', () => {
     const text = `data example;
   input id $;

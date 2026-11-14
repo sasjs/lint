@@ -105,6 +105,16 @@ export const scanLine = (line: string, state: ScanState): ScannedLine => {
       continue
     }
 
+    // Masked text is data, so it is read before anything that OPENs a literal
+    // or a comment: `%str(%')` is how a single quote is written, and reading
+    // that apostrophe as the start of a literal would carry a phantom string
+    // into every line below it.
+    if (maskedDepth) {
+      if (character === '(') maskedDepth++
+      else if (character === ')') maskedDepth--
+      continue
+    }
+
     if (quote) {
       if (character === quote) quote = ''
       continue
@@ -120,12 +130,6 @@ export const scanLine = (line: string, state: ScanState): ScannedLine => {
       hasComment = true
       commentStart = index
       index++
-      continue
-    }
-
-    if (maskedDepth) {
-      if (character === '(') maskedDepth++
-      else if (character === ')') maskedDepth--
       continue
     }
 
