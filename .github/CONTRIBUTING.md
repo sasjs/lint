@@ -164,13 +164,13 @@ If you use the [pre-commit](https://pre-commit.com) framework, the repo also shi
 
 ## Commit messages and releases
 
-Merging to `main` runs the [Release workflow](./workflows/release.yml), which reads the conventional commits since the last tag: the commit type decides the version, and a release publishes to npm. Only `feat:`, `fix:`, `perf:` and `refactor:` cut a release - a `chore:` or `docs:` PR publishes nothing, which is correct rather than a failure.
+Merging to `main` releases from the conventional commits since the last tag. Only `feat:`, `fix:`, `perf:` and `refactor:` cut a release - a `chore:` or `docs:` PR publishes nothing, which is correct rather than a failure.
 
 For a squash merge the PR TITLE drives the version, so keep it conventional. Judge the type by what users see: a new diagnostic message, or a formatter that now rewrites files it used to leave alone, is new behaviour and belongs in `feat:` even when it also fixes a defect. Warnings do not move the exit code of `sasjs lint` - only `noEncodedPasswords` ships as an error - so a new warning does not break CI for consumers; a rewritten file might surprise them, and the release notes are where to say so.
 
 Mark a genuinely breaking change with `BREAKING CHANGE:` in the commit body, and name the config key that restores the old behaviour.
 
-The `version` field in `package.json` is a placeholder (`0.0.0`), not a record of the release. The tag is the version: `@sasjs/release` reads the commits since the newest tag, creates the tag at the commit being merged, and the publish job stamps that number into the workspace before the tarball is packed, so the published package and its tag are correct whatever the file says. Do not bump it in a PR, and do not read it to learn what is published - `npm view @sasjs/lint version` and the git tags are the answers. `prepublishOnly` refuses to publish a `0.0.0` version, so a hand-run publish cannot put the placeholder on the registry.
+The `version` field in `package.json` is a placeholder (`0.0.0`), not a record of the release: the tag is the version. Do not bump it in a PR, and do not read it to learn what is published - `npm view @sasjs/lint version` and the git tags are the answers. Publishing by hand is not a supported path; use the workflow.
 
 ## The audit gate
 
@@ -184,11 +184,9 @@ The [build workflow](./workflows/build.yml) scans the full history for secrets w
 
 ## The release tool
 
-[@sasjs/release](https://github.com/sasjs/release) cuts the release: it is a `devDependency` at an exact version, so `package-lock.json` pins its integrity as well as its number, and a bump is a reviewable diff. It has no dependencies of its own, so it adds nothing to audit.
+[@sasjs/release](https://github.com/sasjs/release) cuts the release, pinned in `devDependencies` so the lockfile pins it too. The mechanics are in [release.yml](./workflows/release.yml) and [publish.yml](./workflows/publish.yml) - read those, not this page.
 
-It runs in two workflows, and the split is deliberate: [release.yml](./workflows/release.yml) creates the tag and the GitHub release with `contents: write` and no git credential, and [publish.yml](./workflows/publish.yml) runs `npm publish` with `id-token: write` and no `contents: write`. npm's trusted publisher is registered against the second file, because the registry validates the workflow that actually publishes, so that filename has to stay. Publishing is chained off the Release workflow with `workflow_run`: a `release: published` trigger fires nothing, because a release created with the pipeline's own `GITHUB_TOKEN` produces no events.
-
-Nothing is committed by either workflow, and no branch is written - `main` stays PR-only for every identity, including the App.
+One constraint is not visible from the files: **publish.yml cannot be renamed**, because npm's trusted publisher is registered against the workflow that runs `npm publish`.
 
 ## What to work on
 

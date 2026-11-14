@@ -6,7 +6,7 @@
  * misspelled path publishes a package that is quietly missing that surface, and
  * the first sign of it is a consumer failing to import. This runs after
  * `npm run publishInit` has copied the build output to the package root, and
- * before semantic-release is allowed to publish.
+ * before the package is published.
  *
  * The listing is read from the archive rather than from npm's console output:
  * `npm pack --dry-run --json` answered an empty array on a runner's npm while
