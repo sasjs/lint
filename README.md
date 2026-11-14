@@ -333,7 +333,9 @@ In batch mode, long SAS code lines may also be truncated, causing hard-to-detect
 
 We strongly recommend a line length limit, and set the bar at 80. To turn this feature off, set the value to 0.
 
-Saving with the formatter does three things for this rule, in this order.
+Saving with the formatter does four things for this rule, in this order.
+
+**It lifts a trailing comment onto its own line** when a line is over the limit and carries code before the comment. The code keeps the line it was on and the comment moves below it at the same indentation, which hands the code to the wrap below and the prose to the reflow - so `, var /* variable name from which to return the format */` becomes two lines, and each is handled by the pass that owns it. The lift happens even when the code alone overruns the limit: each half then reaches the pass that owns it, instead of the line being refused by both.
 
 **It breaks a long line of code** at the last space that still fits, and indents the continuation by the next multiple of [`indentationMultiple`](#indentationmultiple), so a wrap never introduces an indentation warning of its own. It prefers a space that does not leave a macro keyword such as `%let` or `%then` at the end of the line, and a line is rewritten only when every line it becomes fits the limit - so the pass never trades one warning for another, which also keeps `fixedDiagnosticsCount` from going backwards. The shapes where a break would change what SAS reads, or what another rule parses, are left alone:
 
@@ -368,8 +370,6 @@ A `%macro` declaration is broken before its parameter commas, and the continuati
 ```
 
 The value is the exact length the longest such line needs and no more: a header line raises `maxHeaderLineLength`, a data record raises `maxDataLineLength`, and a body line raises `maxLineLength`. An existing exception keeps every key it had, and a value is never lowered.
-
-**It lifts a trailing comment onto its own line** when the comment is what pushes the line over the limit. The code keeps the line it was on and the comment moves below it at the same indentation, which hands the code to the wrap above and the prose to the reflow - so `, var /* variable name from which to return the format */` becomes two lines, and each is handled by the pass that owns it.
 
 Nothing is raised for a line whose author can still act on it: a `%*` comment, a `put` whose text holds a word longer than the limit, a `%macro` declaration whose single parameter is too long, or a comment line that a reflow cannot fit. Excusing one of those would relax `maxLineLength` for every line of code in the file, and each is a line the author can rewrite.
 

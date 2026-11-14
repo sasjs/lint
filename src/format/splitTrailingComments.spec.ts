@@ -21,6 +21,17 @@ describe('splitTrailingComments', () => {
     )
   })
 
+  it('splits even when the code alone overruns the limit', () => {
+    // The lift is not gated on the comment being the excess: an unbreakable code
+    // span goes to `adjustLineLength` and the comment to the reflow, so neither
+    // pass is left refusing a line the other also refuses.
+    const text = `  x = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; /* note */`
+
+    expect(splitTrailingComments(text, config({ maxLineLength: 20 }))).toBe(
+      `  x = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";\n  /* note */`
+    )
+  })
+
   it('leaves a line that fits the limit alone', () => {
     const text = `  x = 1; /* note */`
 

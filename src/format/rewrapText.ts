@@ -18,8 +18,14 @@ import {
 /**
  * A macro keyword that reads the token after it, so a break that leaves one at
  * the end of a line is legal but reads badly.
+ *
+ * The delimiter before the keyword is required: without it the pattern also
+ * matches any word ENDING in those letters - `todo`, `redo`, `pseudo` - and the
+ * pass walks back to an earlier space for a reason that does not exist, leaving
+ * lines shorter than the limit allows.
  */
-const leadingKeyword = /%?(?:let|global|local|then|else|do|to|by)$/i
+const leadingKeyword =
+  /(?:^|[\s(;,=])%?(?:let|global|local|then|else|do|to|by)$/i
 
 /**
  * The index of the last safe break point at or before `maximum`, searching only

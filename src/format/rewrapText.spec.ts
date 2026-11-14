@@ -304,6 +304,30 @@ run;`
     })
   })
 
+  it('treats only a real macro keyword as one, not a word ending in its letters', () => {
+    // `todo` ends in `do`, and a pattern without a delimiter matched it, walked
+    // back to the earlier space, and produced a line shorter than the limit
+    // allows.
+    const text = `  set todo things;`
+
+    expect(rewrapText(text, config({ maxLineLength: 11 }))).toBe(
+      `  set todo\n    things;`
+    )
+
+    // A word that merely CONTAINS the letters mid-line is not affected either.
+    expect(
+      rewrapText(
+        `  total_so_far = 1 todo the rest of the line goes here;`,
+        config({ maxLineLength: 40 })
+      )
+    ).toBe(`  total_so_far = 1 todo the rest of the\n    line goes here;`)
+
+    // A real keyword still moves the break back rather than leaving `%to` last.
+    expect(
+      rewrapText(`  %do i = 1 %to 3;`, config({ maxLineLength: 15 }))
+    ).toBe(`  %do i = 1\n    %to 3;`)
+  })
+
   it('breaks a put in a THEN branch, and wraps the next statement', () => {
     const text = `data _null_;
   if found then put "one" two three four five six seven eight nine ten;

@@ -1,10 +1,10 @@
 import { LintConfig } from '../types'
-import { LineEndings } from '../types/LineEndings'
 import {
   checkIsDataLine,
   getDataSectionsDetail
 } from '../utils/getDataSectionsDetail'
 import { cleanState, noScan, scanLine } from '../utils/scanLine'
+import { lineEndingOf } from './adjustLineLength'
 import { splitWithTerminators } from './rewrapText'
 
 /**
@@ -52,12 +52,16 @@ export const splitTrailingComments = (
     const span = scanned.comments[0]
     const code = span ? line.slice(0, span.start) : ''
 
+    // A line is split whenever it is over the limit and carries code before a
+    // comment, including when the CODE alone overruns: the code then goes to the
+    // wrapper (or to `adjustLineLength`) and the comment to the reflow, so each
+    // half reaches the pass that owns it instead of the line being refused by
+    // both.
     const splits =
       !isData &&
       !!span &&
       line.length > configuration.maxLineLength &&
-      code.trim() !== '' &&
-      code.trimEnd() !== line
+      code.trim() !== ''
 
     if (!splits) {
       output.push(line + ending)
@@ -68,8 +72,7 @@ export const splitTrailingComments = (
     const indent = /^\s*/.exec(line)![0]
     // The break takes the line's own terminator; the final line of a file with
     // no final newline takes the configured one instead.
-    const breakEnding =
-      ending || (configuration.lineEndings === LineEndings.CRLF ? '\r\n' : '\n')
+    const breakEnding = ending || lineEndingOf(configuration)
 
     output.push(code.trimEnd() + breakEnding)
     output.push(indent + line.slice(span.start) + ending)

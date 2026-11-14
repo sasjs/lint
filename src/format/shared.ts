@@ -1,8 +1,7 @@
 import { LintConfig } from '../types'
-import { LineEndings } from '../types/LineEndings'
 import { applyLintOverride } from '../utils/parseLintOverride'
 import { splitText } from '../utils/splitText'
-import { adjustLineLength } from './adjustLineLength'
+import { adjustLineLength, lineEndingOf } from './adjustLineLength'
 import { reflowComments } from './reflowComments'
 import { rewrapText } from './rewrapText'
 import { splitTrailingComments } from './splitTrailingComments'
@@ -51,9 +50,7 @@ const processOnce = (text: string, config: LintConfig): string => {
     return processLine(config, line)
   })
 
-  const configuredLineEnding =
-    config.lineEndings === LineEndings.LF ? '\n' : '\r\n'
-  return formattedLines.join(configuredLineEnding)
+  return formattedLines.join(lineEndingOf(config))
 }
 
 const processContent = (config: LintConfig, content: string): string => {
