@@ -238,6 +238,19 @@ run;`
     expect(withoutTrim(output)).toBe(text)
   })
 
+  it('breaks a %let only inside its value, never at the name', () => {
+    // At 40 the only space that fits is the one before the `=`, which is inside
+    // the statement but outside the value - so the line is left alone.
+    const line = `  %let a_fairly_long_variable_name = one two three four five six seven;`
+
+    expect(rewrapText(line, config({ maxLineLength: 40 }))).toBe(line)
+
+    // One character more of room, and the break lands right after the `=`.
+    expect(rewrapText(line, config({ maxLineLength: 44 }))).toBe(
+      `  %let a_fairly_long_variable_name =%trim(\n    ) one two three four five six seven;`
+    )
+  })
+
   it('keeps a %let value intact when it is built over two statements', () => {
     const text = `  %let exp8=MPE_DERIVED:CALLER:VAR_LOGIC may not call a function that;
   %let exp8=&exp8 submits code or reaches the file system,;`
