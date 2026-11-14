@@ -4,15 +4,14 @@ import {
   checkIsDataLine,
   getDataSectionsDetail
 } from '../utils/getDataSectionsDetail'
+import { cleanState, scanLine } from '../utils/scanLine'
 import {
   breakAwareState,
-  cleanState,
   continuationIndentFor,
   firstNonSpace,
   indentationMultipleOf,
   macroComment,
-  macroDeclaration,
-  scanLine
+  macroDeclaration
 } from './longLines'
 
 /**

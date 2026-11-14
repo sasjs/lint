@@ -342,7 +342,7 @@ Saving with the formatter does three things for this rule, in this order.
 - a `%macro` or `%mend` declaration, which the macro rules read as a single statement
 - a `%*` comment statement, which is prose
 
-**It reflows the prose in a block comment**, paragraph by paragraph: the lines of one paragraph are joined and rewrapped, so the block comes back even rather than ragged. A paragraph breaks at a blank line and before anything line-oriented - an `@li` entry, a `@sasjslint` tag, an `<h4>` heading, a list item, a table row or a macro trigger - and a `@brief` or `@param` line carries the lines under it. Blocks holding a `@example` / `@code` / `@verbatim` body, the `<h4> SAS Macros </h4>` section, a comment that shares a line with code, and a comment inside a `datalines` record are left byte-identical. A reflow normalises the runs of spaces inside the paragraph it rewrites, so two spaces after a full stop become one.
+**It reflows the prose in a block comment**, paragraph by paragraph: the lines of one paragraph are joined and rewrapped, so the block comes back even rather than ragged. A paragraph breaks at a blank line and before anything line-oriented - an `@li` entry, a `@sasjslint` tag, an `<h4>` heading, a list item, a table row or a macro trigger - and a `@brief` or `@param` line carries the lines under it. Blocks holding a `@example` / `@code` / `@verbatim` body, the `<h4> SAS Macros </h4>` section, a comment that shares a line with code, and a comment inside a `datalines` record are left byte-identical. Prose written with a `*` at the start of every line - the JavaDoc style - is read as a list and left as it is. A reflow normalises the runs of spaces inside the paragraph it rewrites, so two spaces after a full stop become one.
 
 **It raises the file's own exception** for a line neither pass could shorten - a URL in a header, a long quoted literal that generates code, an indented data record - by writing or merging a [`@sasjslint`](#per-file-overrides) block at the end of the header:
 
@@ -350,7 +350,9 @@ Saving with the formatter does three things for this rule, in this order.
   @sasjslint {"maxHeaderLineLength": 123}
 ```
 
-The value is the exact length the longest such line needs and no more: a header line raises `maxHeaderLineLength`, a data record raises `maxDataLineLength`, and a body line raises `maxLineLength`. An existing exception keeps every key it had, a value is never lowered, and a line the pass declined on purpose - a `put` statement, a `%*` comment, a `%macro` declaration - does not raise anything, because the author can act on those and excusing them would hide the finding for good.
+The value is the exact length the longest such line needs and no more: a header line raises `maxHeaderLineLength`, a data record raises `maxDataLineLength`, and a body line raises `maxLineLength`. An existing exception keeps every key it had, and a value is never lowered.
+
+Nothing is raised for a line the author can act on: a `put` statement, a `%*` comment, a `%macro` declaration, or a comment in the body of the file. The first three are fixable by reworking the line; a body comment has no key of its own, so excusing one would relax `maxLineLength` for every line of code in the file - and the reflow above has already done what it can with the prose.
 
 - Default: 80
 - Severity: WARNING

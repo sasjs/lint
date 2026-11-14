@@ -5,7 +5,8 @@ import {
   getDataSectionsDetail
 } from '../utils/getDataSectionsDetail'
 import { getHeaderLinesCount } from '../utils/getHeaderLinesCount'
-import { cleanState, indentationMultipleOf, scanLine } from './longLines'
+import { cleanState, scanLine } from '../utils/scanLine'
+import { indentationMultipleOf } from './longLines'
 import { splitWithTerminators } from './rewrapText'
 
 /**
@@ -86,6 +87,20 @@ const wrapWords = (
   }
 
   lines.push(line)
+
+  // The closing marker rides on the last line, so that line has `trail.length`
+  // fewer characters to spend: pull words down until the marker fits, and give
+  // up when the last line is a single word that cannot move.
+  while (lines[lines.length - 1].length + trail.length > limit) {
+    const last = lines[lines.length - 1]
+    const cut = last.lastIndexOf(' ')
+
+    if (cut < 1 || !last.slice(0, cut).trim()) return null
+
+    lines[lines.length - 1] = last.slice(0, cut)
+    lines.push(continuationIndent + last.slice(cut + 1))
+  }
+
   lines[lines.length - 1] += trail
 
   return lines.every((wrapped) => wrapped.length <= limit) ? lines : null

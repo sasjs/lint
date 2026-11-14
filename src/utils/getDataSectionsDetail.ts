@@ -1,4 +1,5 @@
 import { LintConfig } from '../types'
+import { cleanState, scanLine } from './scanLine'
 import { splitText } from './splitText'
 
 interface DataSectionsDetail {
@@ -6,27 +7,29 @@ interface DataSectionsDetail {
   end: number
 }
 
+/**
+ * A data section: the statement that opens it, and the record list it holds.
+ *
+ * The opener is matched against the line's CODE, with literals and comments
+ * blanked, so a `;cards;` inside a quoted string or a comment opens nothing -
+ * and against statement boundaries rather than the line start, so
+ * `input a b; cards;` on one line still opens one. The records themselves are
+ * not code: a quote in a record is data, so the scan state is reset at the
+ * opener and the records are matched as plain lines.
+ *
+ * @param {string} text - the text to read.
+ * @param {LintConfig} config - the configuration in force.
+ * @returns {DataSectionsDetail[]} the line ranges each section covers.
+ */
 export const getDataSectionsDetail = (text: string, config: LintConfig) => {
   const dataSections: DataSectionsDetail[] = []
   const lines = splitText(text, config)
 
-  // A data section opens at the start of a statement, which is the start of a
-  // line or the terminator of the statement before it - `input a b; cards;` on
-  // one line opens one - in any capitalisation, with any leading whitespace.
-  // Anchoring on the line alone would read such a record as code, and the
-  // formatter's rewrap pass would then break it into more records; anchoring on
-  // the keyword alone would fire on prose such as `/* see cards; below */`.
-  const dataSectionStartRegex1 = new RegExp(
-    '(?:^|;)\\s*(datalines|cards|parmcards);',
-    'i'
-  )
+  const opener = /(?:^|;)\s*(datalines|cards|parmcards)(4?);/i
   const dataSectionEndRegex1 = new RegExp(';')
-  const dataSectionStartRegex2 = new RegExp(
-    '(?:^|;)\\s*(datalines4|cards4|parmcards4);',
-    'i'
-  )
   const dataSectionEndRegex2 = new RegExp(';;;;')
 
+  let state = cleanState()
   let dataSectionStarted = false
   let dataSectionStartIndex = -1
   let dataSectionEndRegex = dataSectionEndRegex1
@@ -36,17 +39,23 @@ export const getDataSectionsDetail = (text: string, config: LintConfig) => {
       if (dataSectionEndRegex.test(line)) {
         dataSections.push({ start: dataSectionStartIndex, end: index })
         dataSectionStarted = false
+        state = cleanState()
       }
-    } else {
-      if (dataSectionStartRegex1.test(line)) {
-        dataSectionStarted = true
-        dataSectionStartIndex = index
-        dataSectionEndRegex = dataSectionEndRegex1
-      } else if (dataSectionStartRegex2.test(line)) {
-        dataSectionStarted = true
-        dataSectionStartIndex = index
-        dataSectionEndRegex = dataSectionEndRegex2
-      }
+      return
+    }
+
+    const scanned = scanLine(line, state)
+    state = scanned.endState
+
+    const match = opener.exec(scanned.code)
+
+    if (match) {
+      dataSectionStarted = true
+      dataSectionStartIndex = index
+      dataSectionEndRegex = match[2]
+        ? dataSectionEndRegex2
+        : dataSectionEndRegex1
+      state = cleanState()
     }
   })
 

@@ -237,6 +237,30 @@ run;`
     )
   })
 
+  it('moves a word down when the closing marker would not fit beside it', () => {
+    const text = `data _null_;
+/* bravo bravo india golf charlie foxtrot */
+run;`
+
+    // Greedy alone would leave `  golf charlie foxtrot */`, one over the limit,
+    // so the last word moves to a line of its own.
+    expect(reflowComments(text, config({ maxLineLength: 24 }))).toEqual(
+      `data _null_;
+/* bravo bravo india
+  golf charlie
+  foxtrot */
+run;`
+    )
+  })
+
+  it('leaves the paragraph alone when the marker cannot be made to fit', () => {
+    const text = `data _null_;
+/* x averylongwordthatcannotfit */
+run;`
+
+    expect(reflowComments(text, config({ maxLineLength: 20 }))).toBe(text)
+  })
+
   it('leaves an unclosed comment alone, which has no closer to re-emit', () => {
     const text = `data _null_;
 /* a paragraph long enough to need wrapping at this length

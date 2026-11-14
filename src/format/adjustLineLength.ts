@@ -6,13 +6,8 @@ import {
 } from '../utils/getDataSectionsDetail'
 import { getHeaderLinesCount } from '../utils/getHeaderLinesCount'
 import { getLintOverride } from '../utils/parseLintOverride'
-import {
-  breakAwareState,
-  cleanState,
-  macroComment,
-  macroDeclaration,
-  scanLine
-} from './longLines'
+import { cleanState, scanLine } from '../utils/scanLine'
+import { breakAwareState, macroComment, macroDeclaration } from './longLines'
 import { splitWithTerminators } from './rewrapText'
 
 /** The line that carries a file's own lint configuration. */
@@ -106,6 +101,13 @@ export const adjustLineLength = (
       macroDeclaration.test(line)
     )
       return
+
+    // A comment carries no key of its own, so excusing one would raise the
+    // limit for every line of code in the file. `reflowComments` has already
+    // reflowed the prose; a paragraph holding a word it cannot fit - a URL - is
+    // left to its author. A header line is the exception: it has
+    // `maxHeaderLineLength`, which scopes the relaxation to the header.
+    if (!isHeader && scanned.hasComment) return
 
     const key: LengthKey = isData
       ? 'maxDataLineLength'

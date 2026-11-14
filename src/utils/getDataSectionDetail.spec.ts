@@ -108,6 +108,11 @@ describe('getDataSectionsDetail', () => {
     ])
   })
 
+  it('should not read an opener out of a quoted literal', () => {
+    const text = `data _null_;\n  x = "a;${datalinesBeginPattern3}";\nx=1;`
+    expect(getDataSectionsDetail(text, config)).toEqual([])
+  })
+
   it('should not read a keyword in prose as an opener', () => {
     const text = `run;\n  /* see ${datalinesBeginPattern3} below */\nx=1;`
     expect(getDataSectionsDetail(text, config)).toEqual([])

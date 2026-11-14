@@ -62,6 +62,19 @@ run;
     expect(output).toContain(record)
   })
 
+  it('does not excuse a long body comment, which has no key of its own', () => {
+    // Raising `maxLineLength` for a comment would relax every line of code in
+    // the file, so a comment the reflow cannot fit stays a warning.
+    const text = `/**
+  @file
+**/
+/* see https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm */
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
   it('does not excuse a line the wrapper declines on purpose', () => {
     const text = `/**
   @file

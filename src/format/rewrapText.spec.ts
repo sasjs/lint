@@ -222,6 +222,23 @@ run;`
     )
   })
 
+  it('wraps a line below a literal holding a data-section keyword', () => {
+    // `a;cards;` inside a string is a statement boundary the scanner must not
+    // see, or the lines below it are read as a data record and never wrapped.
+    const text = `data _null_;
+  x = "a;cards;";
+  set work.example (keep=first_name last_name city);
+run;`
+
+    expect(rewrapText(text, config({ maxLineLength: 40 }))).toEqual(
+      `data _null_;
+  x = "a;cards;";
+  set work.example (keep=first_name
+    last_name city);
+run;`
+    )
+  })
+
   it('leaves a data section alone when its opener follows another statement', () => {
     // A newline inside a record ends it, so wrapping these lines would give SAS
     // four records of the wrong width in place of the two it reads.
