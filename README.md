@@ -352,7 +352,7 @@ Saving with the formatter does three things for this rule, in this order.
 
 The value is the exact length the longest such line needs and no more: a header line raises `maxHeaderLineLength`, a data record raises `maxDataLineLength`, and a body line raises `maxLineLength`. An existing exception keeps every key it had, and a value is never lowered.
 
-Nothing is raised for a line the author can act on: a `put` statement, a `%*` comment, a `%macro` declaration, or a comment in the body of the file. The first three are fixable by reworking the line; a body comment has no key of its own, so excusing one would relax `maxLineLength` for every line of code in the file - and the reflow above has already done what it can with the prose.
+Nothing is raised for a line the author can act on: a `put` statement, a `%*` comment, a `%macro` declaration, or a body comment that is what pushes the line over the limit. The first three are fixable by reworking the line; a comment has no key of its own, so excusing one would relax `maxLineLength` for every line of code in the file - and the reflow above has already done what it can with the prose. A line of code that overruns the limit on its own, with a comment after it, is excused like any other: no pass may break a line carrying a comment, so the author has nothing to act on.
 
 - Default: 80
 - Severity: WARNING

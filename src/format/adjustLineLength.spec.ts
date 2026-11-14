@@ -75,6 +75,48 @@ run;
     expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
   })
 
+  it('excuses a long line of code that carries a trailing comment', () => {
+    // The comment is not what makes this line long, and no pass may break a
+    // line that carries one, so it is excused like any other over-long line.
+    const text = `/**
+  @file
+**/
+  set work.example (keep=first_name last_name city); /* note */
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 50 }))).toContain(
+      '  @sasjslint {"maxLineLength": 63}'
+    )
+  })
+
+  it('does not excuse a line the comment alone pushes over the limit', () => {
+    const text = `/**
+  @file
+**/
+  x = 1; /* a comment long enough to push the line over the limit */
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 50 }))).toBe(text)
+  })
+
+  it('excuses a data record that contains a comment marker', () => {
+    const record = `${'a'.repeat(40)}/*${'b'.repeat(45)}`
+    const text = `/**
+  @file
+**/
+data example;
+  input x $;
+  datalines;
+${record}
+;
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toContain(
+      '  @sasjslint {"maxDataLineLength": 87}'
+    )
+  })
+
   it('does not excuse a line the wrapper declines on purpose', () => {
     const text = `/**
   @file

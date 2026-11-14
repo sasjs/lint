@@ -103,11 +103,16 @@ export const adjustLineLength = (
       return
 
     // A comment carries no key of its own, so excusing one would raise the
-    // limit for every line of code in the file. `reflowComments` has already
-    // reflowed the prose; a paragraph holding a word it cannot fit - a URL - is
-    // left to its author. A header line is the exception: it has
-    // `maxHeaderLineLength`, which scopes the relaxation to the header.
-    if (!isHeader && scanned.hasComment) return
+    // limit for every line of code in the file: `reflowComments` has already
+    // reflowed the prose, and a paragraph holding a word it cannot fit - a URL -
+    // is left to its author. A header line is the exception, because
+    // `maxHeaderLineLength` scopes the relaxation to the header.
+    //
+    // The guard turns on what makes the line long, not on the comment being
+    // there: a line of code that overruns the limit on its own, with a comment
+    // after it, is excused like any other, because no pass may break it either.
+    const codeEnd = scanned.code.trimEnd().length
+    if (!isHeader && !isData && scanned.hasComment && codeEnd <= limit) return
 
     const key: LengthKey = isData
       ? 'maxDataLineLength'
