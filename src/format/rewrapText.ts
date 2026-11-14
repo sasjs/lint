@@ -21,13 +21,18 @@ import {
  */
 const leadingKeyword = /%?(?:let|global|local|then|else|do|to|by)$/i
 
-/** The index just past the last safe break point at or before `maximum`. */
+/**
+ * The index of the last safe break point at or before `maximum`, searching only
+ * the range from `firstIndex`, so a caller looking for a break after the one it
+ * already took is not handed the one behind it.
+ */
 const lastPositionAtMost = (
   positions: number[],
   maximum: number,
-  lastIndex: number
+  lastIndex: number,
+  firstIndex = 0
 ): number => {
-  let low = 0
+  let low = firstIndex
   let high = lastIndex
   let found = -1
 
@@ -72,6 +77,26 @@ const lastBreakBefore = (
   }
 
   return fallback
+}
+
+/** The index of the first safe break point at or after `minimum`. */
+const firstPositionAtLeast = (positions: number[], minimum: number): number => {
+  let low = 0
+  let high = positions.length - 1
+  let found = -1
+
+  while (low <= high) {
+    const middle = (low + high) >> 1
+
+    if (positions[middle] >= minimum) {
+      found = middle
+      high = middle - 1
+    } else {
+      low = middle + 1
+    }
+  }
+
+  return found
 }
 
 /**
@@ -213,11 +238,22 @@ const splitWithTrim = (
     // start of the line, because it keeps the line's own indentation.
     const pieceFrom = pieces.length ? start : 0
     const maximum = pieceFrom + limit - prefix.length - opening.length
-    const cut = lastPositionAtMost(positions, maximum, positions.length - 1)
-    const at =
-      cut >= 0 && positions[cut] >= textFrom && positions[cut] > start
-        ? positions[cut]
-        : -1
+    // Only a break after the text already placed can be taken: the search starts
+    // at the first position at or after `textFrom`, which is where this piece
+    // begins.
+    const firstIndex = firstPositionAtLeast(positions, textFrom)
+
+    // No break point is left after the text already placed, so the whole line
+    // stays as it is rather than being broken somewhere behind itself.
+    if (firstIndex < 0) return null
+
+    const cut = lastPositionAtMost(
+      positions,
+      maximum,
+      positions.length - 1,
+      firstIndex
+    )
+    const at = cut >= 0 ? positions[cut] : -1
 
     if (at < 0) return null
 

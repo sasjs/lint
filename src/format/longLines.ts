@@ -11,14 +11,20 @@ export const macroDeclaration = /^\s*%(?:macro|mend)\b/i
 export const macroComment = /^\s*%\*/
 
 /**
- * A statement whose line breaks SAS reads as output lines rather than as space
- * between tokens: the DATA step's `put` and `putlog`, and the macro and window
- * statements that write text a reader sees. A break inside one of these adds a
- * line to the log or to the file being written, so the passes leave them alone -
- * including a line that only carries the continuation of such a statement.
+ * A statement whose line breaks are data rather than space between tokens.
+ *
+ * For the DATA step's `put` and `putlog`, and the macro and window statements
+ * that write text a reader sees, a break adds a line to the log or to the file
+ * being written. For `%let` a break lands inside the value, and the value keeps
+ * the newline and the continuation indent - measured on a live engine, where a
+ * wrapped `%let` message compared against a single-spaced one failed.
+ *
+ * Both are broken with the `%trim(` idiom rather than by a plain newline, and
+ * neither is left as it is: a break that carries `%trim(` adds no whitespace and
+ * no output line.
  */
 export const breakAwareStatement =
-  /^\s*%?(?:&?[\w.]*\.)?(?:put|putlog|window|display)\b|\b(?:then|else)\s+%?put\b/i
+  /^\s*%?(?:&?[\w.]*\.)?(?:put|putlog|window|display)\b|\b(?:then|else)\s+%?put\b|^\s*%let\b/i
 
 /**
  * The index where the text of a `put`-family statement begins, so a break is
@@ -33,7 +39,19 @@ export const breakAwareStatement =
 export const putTextStart = (line: string): number => {
   const match = breakAwareStatement.exec(line)
 
-  return match ? match.index + match[0].length : firstNonSpace(line, 0)
+  if (!match) return firstNonSpace(line, 0)
+
+  const afterKeyword = match.index + match[0].length
+
+  // A `%let` keeps its name out of the value, so the first break belongs after
+  // the `=` rather than between the keyword and the name.
+  if (/^\s*%let\b/i.test(line)) {
+    const equals = line.indexOf('=', afterKeyword)
+
+    if (equals > -1) return equals + 1
+  }
+
+  return afterKeyword
 }
 
 /** The index of the first non-whitespace character at or after `from`. */

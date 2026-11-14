@@ -224,6 +224,73 @@ run;`
     expect(withoutTrim(output)).toBe(text)
   })
 
+  it('breaks a %let value with %trim, so the value keeps its blank', () => {
+    // From dc/dc: the assertion compares an abort message exactly, and the
+    // expected value is built in a %let on purpose - a plain break would put
+    // the newline and the indent inside the value.
+    const text = `  %let exp8=MPE_DERIVED:CALLER:VAR_LOGIC may not call a function that;`
+
+    const output = rewrapText(text, config({ maxLineLength: 60 }))
+
+    expect(output).toBe(
+      '  %let exp8=MPE_DERIVED:CALLER:VAR_LOGIC may not call%trim(\n    ) a function that;'
+    )
+    expect(withoutTrim(output)).toBe(text)
+  })
+
+  it('keeps a %let value intact when it is built over two statements', () => {
+    const text = `  %let exp8=MPE_DERIVED:CALLER:VAR_LOGIC may not call a function that;
+  %let exp8=&exp8 submits code or reaches the file system,;`
+
+    const output = rewrapText(text, config({ maxLineLength: 60 }))
+
+    expect(output).toContain('%trim(\n')
+    expect(withoutTrim(output)).toBe(text)
+  })
+
+  it('breaks a %let continuation, which is still the value', () => {
+    const text = `  %let err_msg=&orig_libds was updated in batch %trim(&etlsource
+    ) by %trim(&usernm) on &fmt_tm - please refresh the page!!;`
+
+    const output = rewrapText(text, config({ maxLineLength: 60 }))
+
+    expect(output).toContain('%trim(\n')
+    expect(withoutTrim(output)).toBe(text)
+  })
+
+  it('leaves a line alone when its only break point is past the limit', () => {
+    // From sasjs/core: the only space after `%put` sits at the very end, so a
+    // break there would leave a piece that is still too long. The line stays,
+    // and formatting it again finds the same answer.
+    const text = `%put scope check:%mf_existvarlist(work.existvarlist_test,alpha beta);`
+
+    const once = rewrapText(text, config({ maxLineLength: 60 }))
+
+    expect(once).toBe(text)
+    expect(rewrapText(once, config({ maxLineLength: 60 }))).toBe(once)
+  })
+
+  it('never leaves a bare newline inside a %let value, at any limit', () => {
+    const statements = [
+      `  %let pdf_foot=&pdf_foot | first &pdf_maxobs of &pdf_nobs obs;`,
+      `  %let exp8=MPE_DERIVED:CALLER:VAR_LOGIC may not call a function that;`,
+      `  %let long_name_here = a value with several words in it that runs on;`,
+      `  %let quoted = "a value that is one literal and never breaks";`
+    ]
+
+    ;[20, 30, 40, 50, 60, 80].forEach((limit) => {
+      statements.forEach((line) => {
+        const output = rewrapText(line, config({ maxLineLength: limit }))
+
+        if (output === line) return
+
+        // Whatever the limit, the text SAS reads is the text it read before:
+        // every break carries its blank after the closing `)`.
+        expect(withoutTrim(output)).toBe(line)
+      })
+    })
+  })
+
   it('breaks a put in a THEN branch, and wraps the next statement', () => {
     const text = `data _null_;
   if found then put "one" two three four five six seven eight nine ten;
