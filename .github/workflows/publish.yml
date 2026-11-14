@@ -186,10 +186,13 @@ jobs:
         if: steps.tag.outputs.skip != 'true'
         env:
           VERSION: ${{ steps.tag.outputs.version }}
+          # through env like every other input: boolean today, but an input that
+          # is interpolated into shell text is only safe while its type holds
+          REPUBLISH: ${{ inputs.republish }}
         run: |
           set -euo pipefail
           published="$(npm view "@sasjs/lint@${VERSION}" version --prefer-online 2>/dev/null || true)"
-          if [ "$published" = "$VERSION" ] && [ "${{ inputs.republish }}" != "true" ]; then
+          if [ "$published" = "$VERSION" ] && [ "${REPUBLISH:-false}" != "true" ]; then
             echo "already=true" >> "$GITHUB_OUTPUT"
             echo "$VERSION is already on the registry - nothing to publish"
           else
