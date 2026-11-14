@@ -1,10 +1,16 @@
 import { LintConfig } from '../types'
 import { LineEndings } from '../types/LineEndings'
 import { splitText } from '../utils/splitText'
+import { adjustLineLength } from './adjustLineLength'
+import { reflowComments } from './reflowComments'
 import { rewrapText } from './rewrapText'
 
 export const processText = (text: string, config: LintConfig) => {
-  const processedText = rewrapText(processContent(config, text), config)
+  const rewrapped = rewrapText(processContent(config, text), config)
+  const processedText = adjustLineLength(
+    reflowComments(rewrapped, config),
+    config
+  )
   const lines = splitText(processedText, config)
   const formattedLines = lines.map((line) => {
     return processLine(config, line)

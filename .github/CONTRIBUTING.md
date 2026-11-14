@@ -190,14 +190,15 @@ One constraint is not visible from the files: **publish.yml cannot be renamed**,
 
 ## What to work on
 
-The formatter applies these fixes today: `%mend` macro names, a Doxygen header template, adding undeclared macros to the `<h4> SAS Macros </h4>` section, removing unused macros from it, trailing spaces, line endings (including a missing final newline) when [`lineEndings`](../README.md#lineendings) is configured, and breaking a line that exceeds `maxLineLength` at whitespace.
+The formatter applies these fixes today: `%mend` macro names, a Doxygen header template, adding undeclared macros to the `<h4> SAS Macros </h4>` section, removing unused macros from it, trailing spaces, line endings (including a missing final newline) when [`lineEndings`](../README.md#lineendings) is configured, breaking a line that exceeds `maxLineLength` at whitespace, reflowing comment prose, and raising the file's own `@sasjslint` exception for a line neither pass can shorten.
+
+Those last two live in `src/format/reflowComments.ts` and `src/format/adjustLineLength.ts`, and both run from `processText` after `rewrapText` - in that order, because the exception excuses only what the two wrapping passes leave behind.
 
 Fixes not yet implemented, roughly in order of usefulness:
 
 - Change tabs to spaces
 - Remove gremlin characters
 - Convert single asterisk comments to block comments
-- Reflow comment prose over `maxLineLength`. The rewrap pass leaves comments alone: wrapping one physical line of a paragraph reflows it against the lines around it and leaves the block ragged, so prose needs a pass that joins the paragraph first - and one that knows which lines are Doxygen tags and which are code in an `@example`.
 
 Harder, and still under investigation: automatic indentation and code layout.
 

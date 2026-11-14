@@ -135,6 +135,23 @@ run;`
     expect(rewrapText(text, config({ maxLineLength: 40 }))).toBe(text)
   })
 
+  it('prefers a break that does not leave a macro keyword at the end of a line', () => {
+    const text = `  %if &condition ne 1 %then %let name=value;`
+
+    expect(rewrapText(text, config({ maxLineLength: 30 }))).toEqual(
+      `  %if &condition ne 1
+    %then %let name=value;`
+    )
+  })
+
+  it('leaves a line alone when the only break would strand a keyword', () => {
+    const text = `  %let abcdefghijklmnopqrstuvwxyz = 1;`
+
+    // The one space that fits sits after `%let`, and the tail has no break of
+    // its own, so no wrap of this line fits the limit.
+    expect(rewrapText(text, config({ maxLineLength: 20 }))).toBe(text)
+  })
+
   it('leaves a code line with a trailing comment alone', () => {
     const text = `data _null_;
   set work.example (keep=first_name last_name age city country); /* note */`
