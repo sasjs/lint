@@ -382,6 +382,54 @@ run;`
     )
   })
 
+  it('fits a declaration piece that lands exactly on the limit', () => {
+    // The continuation `  , ` plus this parameter is exactly 30 characters, and
+    // the terminator would take it past the limit.
+    const tailDoesNotFit = `%macro example(a, bbbbbbbbbbbbbbbbbbbbbbbbbb);`
+
+    expect(rewrapText(tailDoesNotFit, config({ maxLineLength: 30 }))).toBe(
+      `%macro example(a\n  , bbbbbbbbbbbbbbbbbbbbbbbbbb\n  );`
+    )
+
+    // Here the continuation and the terminator together are exactly 30, so both
+    // take the same line.
+    const exactlyTheLimit = `%macro example(a, cccccccccccccccccccccccc);`
+
+    expect(rewrapText(exactlyTheLimit, config({ maxLineLength: 30 }))).toBe(
+      `%macro example(a\n  , cccccccccccccccccccccccc);`
+    )
+  })
+
+  it('keeps every piece within the limit, at any limit', () => {
+    const statements = [
+      `  set work.example (keep=first_name last_name age city country state);`,
+      `  put "value" a b c d e f g h i j k l m n o p q r s t u v w x y z;`,
+      `  %put NOTE: the macro could not find the requested table and stopped;`,
+      `%macro example(first_parameter, second_parameter, third_parameter);`,
+      `  %let numbers = 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20;`
+    ]
+
+    ;[20, 24, 30, 34, 40, 44, 50, 60].forEach((limit) => {
+      statements.forEach((line) => {
+        const output = rewrapText(line, config({ maxLineLength: limit }))
+
+        // A line the pass declines leaves every piece as it was, which is the
+        // documented rule; a line it rewrites must fit.
+        if (output === line) return
+
+        expect(output.split('\n').every((piece) => piece.length <= limit)).toBe(
+          true
+        )
+
+        // Nothing is dropped and nothing is added, apart from the whitespace a
+        // break replaces and the `%str( )` that carries it.
+        expect(withoutTrim(output).replace(/\s+/g, '')).toBe(
+          line.replace(/\s+/g, '')
+        )
+      })
+    })
+  })
+
   it('leaves the <h4> SAS Macros </h4> section alone', () => {
     const text = `/**
   @file
