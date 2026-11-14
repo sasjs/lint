@@ -322,10 +322,14 @@ run;`
       )
     ).toBe(`  total_so_far = 1 todo the rest of the\n    line goes here;`)
 
-    // A real keyword still moves the break back rather than leaving `%to` last.
+    // A real keyword still moves the break back rather than leaving `%to` last,
+    // including the unspaced form where the sigil is the only delimiter.
     expect(
       rewrapText(`  %do i = 1 %to 3;`, config({ maxLineLength: 15 }))
     ).toBe(`  %do i = 1\n    %to 3;`)
+    expect(rewrapText(`  set i=1%to 10;`, config({ maxLineLength: 14 }))).toBe(
+      `  set\n    i=1%to 10;`
+    )
   })
 
   it('breaks a put in a THEN branch, and wraps the next statement', () => {
@@ -478,7 +482,7 @@ run;`
     )
   })
 
-  it('puts the terminator on a line of its own when it will not fit', () => {
+  it('keeps the terminator on the continuation line when it fits there', () => {
     const text = `%macro example(first_parameter, second_parameter);`
 
     expect(rewrapText(text, config({ maxLineLength: 30 }))).toBe(

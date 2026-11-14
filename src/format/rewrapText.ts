@@ -22,10 +22,11 @@ import {
  * The delimiter before the keyword is required: without it the pattern also
  * matches any word ENDING in those letters - `todo`, `redo`, `pseudo` - and the
  * pass walks back to an earlier space for a reason that does not exist, leaving
- * lines shorter than the limit allows.
+ * lines shorter than the limit allows. The `%` sigil counts as a delimiter in its
+ * own right, so the unspaced form `%do i=1%to` is still recognised.
  */
 const leadingKeyword =
-  /(?:^|[\s(;,=])%?(?:let|global|local|then|else|do|to|by)$/i
+  /(?:^|[\s(;,=]|%)%?(?:let|global|local|then|else|do|to|by)$/i
 
 /**
  * The index of the last safe break point at or before `maximum`, searching only
@@ -412,7 +413,7 @@ export const rewrapText = (text: string, configuration: LintConfig): string => {
               configuration.maxLineLength,
               multiple
             )
-          : breakAware.line
+          : breakAware.line && !scanned.hasComment
             ? splitWithTrim(
                 line,
                 configuration.maxLineLength,

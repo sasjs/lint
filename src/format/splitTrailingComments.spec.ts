@@ -1,5 +1,6 @@
 import { LintConfig } from '../types'
 import { processText } from './shared'
+import { rewrapText } from './rewrapText'
 import { splitTrailingComments } from './splitTrailingComments'
 
 const config = (json: any) => new LintConfig(json)
@@ -46,6 +47,22 @@ describe('splitTrailingComments', () => {
     expect(splitTrailingComments(text, config({ maxLineLength: 40 }))).toBe(
       text
     )
+  })
+
+  it('never inserts a break into comment prose that continues a put', () => {
+    // The line is a comment and carries the continuation of a `put` statement, so
+    // it is break-aware - but prose is not text the statement emits, and the
+    // `%trim(` break would land inside the comment.
+    const text = `data _null_;
+  put aaa bbb
+    /* a comment long enough that a pass might want to break it up */
+    ccc;
+run;`
+
+    const output = rewrapText(text, config({ maxLineLength: 40 }))
+
+    expect(output).toBe(text)
+    expect(output).not.toContain('%trim(')
   })
 
   it('does not split a comment marker inside a literal', () => {
