@@ -5,12 +5,12 @@ const config = (json: any) => new LintConfig(json)
 
 /**
  * The text as SAS reads it: a `%trim(` carrying nothing but the newline and the
- * indentation of a break resolves to no characters at all, and the `%str( )`
- * before it stands for the space the break replaced. Substituting the space
- * back has to give the line the pass started with.
+ * indentation of a break resolves to no characters at all, and the blank after
+ * the closing `)` is the one the break replaced. Substituting it back has to
+ * give the line the pass started with.
  */
 const withoutTrim = (text: string): string =>
-  text.replace(/%str\( \)%trim\(\s*\)/g, ' ')
+  text.replace(/%trim\(\s*\) /g, ' ')
 
 describe('rewrapText', () => {
   it('wraps a long statement at the last space that fits', () => {
@@ -184,7 +184,7 @@ run;`
     const output = rewrapText(text, config({ maxLineLength: 60 }))
 
     expect(output).toBe(
-      `%put NOTE: the macro could not find the%str( )%trim(\n  )requested table and stopped;`
+      `%put NOTE: the macro could not find the requested%trim(\n  ) table and stopped;`
     )
     expect(withoutTrim(output)).toBe(text)
   })
@@ -193,7 +193,7 @@ run;`
     const text = `%&mD.put NOTE: Creating direct (non META) connection to &libref;`
     const output = rewrapText(text, config({ maxLineLength: 60 }))
 
-    expect(output).toContain('%str( )%trim(\n')
+    expect(output).toContain('%trim(\n')
     expect(withoutTrim(output)).toBe(text)
   })
 
@@ -204,7 +204,7 @@ run;`
     ;[putlog, put].forEach((line) => {
       const output = rewrapText(line, config({ maxLineLength: 60 }))
 
-      expect(output).toContain('%str( )%trim(\n')
+      expect(output).toContain('%trim(\n')
       expect(withoutTrim(output)).toBe(line)
       expect(output.split('\n').every((piece) => piece.length <= 60)).toBe(true)
     })
@@ -220,7 +220,7 @@ run;`
 
     // The second line is more of the same put statement, and it keeps its own
     // indentation while gaining the %trim that keeps the line count.
-    expect(output.split('\n')[2]).toMatch(/^    dddddd .*%str\( \)%trim\($/)
+    expect(output.split('\n')[2]).toMatch(/^    dddddd .*%trim\($/)
     expect(withoutTrim(output)).toBe(text)
   })
 
@@ -233,7 +233,7 @@ run;`
     const output = rewrapText(text, config({ maxLineLength: 40 }))
 
     expect(output.split('\n')[1]).toMatch(
-      /^  if found then put "one".*%str\( \)%trim\($/
+      /^  if found then put "one".*%trim\($/
     )
     // The statement the pass inserts resolves back to the one line it was,
     // even though a later line was wrapped the ordinary way.

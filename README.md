@@ -341,14 +341,14 @@ Saving with the formatter does three things for this rule, in this order.
 - a `%*` comment statement, which is prose
 - any space inside `%str`-family masking or a `%sysfunc` / `%qsysfunc` call, whose argument text is carried as data: measured on a live engine, breaking inside `%sysfunc(fput(...))` wrote `Content-Type:   application/csv` where the macro meant one space
 
-A `put`, `putlog` or `%put` statement (including the `%&var.put` form) and the window statements are broken differently, because a plain newline there is a line of the log rather than a delimiter. The break ends the line with `%str( )%trim(` and opens the next with `)`, so the space the break replaced is carried by `%str( )` and the newline and indentation become the argument of `%trim`, which resolves to nothing:
+A `put`, `putlog` or `%put` statement (including the `%&var.put` form) and the window statements are broken differently, because a plain newline there is a line of the log rather than a delimiter. The break ends the line with `%trim(` and opens the next with `)`, so the newline and the indentation become the argument of `%trim` - which resolves to nothing - and the blank the break replaced sits after the closing marker:
 
 ```sas
-  %put NOTE: the macro could not find the%str( )%trim(
-    )requested table and stopped;
+  %put NOTE: the macro could not find the requested%trim(
+    ) table and stopped;
 ```
 
-SAS discards a blank that sits immediately before a macro call, which is why the space is written as `%str( )` rather than left at the end of the line - measured on a live engine, where `requested %trim(` printed `requestedtable`. The construct is verified end to end: a core macro containing these statements writes byte-identical log lines before and after a format at a limit of 40, several breaks per statement included.
+Leaving the blank at the end of the upper line instead would lose it: measured on a live engine, `requested %trim(` printed `requestedtable`, because SAS drops a blank that sits immediately before a macro call - and a trailing blank is what `noTrailingSpaces` reports anyway. The construct is verified end to end: a macro holding these statements writes byte-identical log lines before and after a format at a limit of 40, several breaks per statement included.
 
 A `%macro` declaration is broken before its parameter commas, and the continuation line starts with the comma, so the parameters read as a list and the declaration stays the one statement the macro rules parse:
 

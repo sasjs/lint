@@ -192,7 +192,7 @@ const splitWithTrim = (
 ): string[] | null => {
   const indent = /^\s*/.exec(line)![0]
   const continuationIndent = continuationIndentFor(indent, multiple)
-  const opening = '%str( )%trim('
+  const opening = '%trim('
   const pieces: string[] = []
   let prefix = ''
   let start = firstNonSpace(line, 0)
@@ -208,9 +208,9 @@ const splitWithTrim = (
     }
 
     // The piece carries the prefix, the text up to the space it breaks at,
-    // and the `%str( )%trim(` that replaces that space and swallows the break.
-    // The first piece is measured from the start of the line, because it keeps
-    // the line's own indentation.
+    // and the `%trim(` that swallows the break. The space itself is carried by
+    // the `) ` that opens the next piece. The first piece is measured from the
+    // start of the line, because it keeps the line's own indentation.
     const pieceFrom = pieces.length ? start : 0
     const maximum = pieceFrom + limit - prefix.length - opening.length
     const cut = lastPositionAtMost(positions, maximum, positions.length - 1)
@@ -222,16 +222,18 @@ const splitWithTrim = (
     if (at < 0) return null
 
     // The first piece keeps the line's own indentation and keyword; every
-    // later one starts with the `)` that closes the `%trim(` above it. The
-    // space at the break is dropped: `%str( )` carries it instead, because
-    // SAS discards a blank that sits immediately before a macro call.
+    // later one starts with the `)` that closes the `%trim(` above it, and the
+    // blank the break replaced follows it. A blank left at the end of the
+    // upper line would be discarded, because SAS drops one that sits
+    // immediately before a macro call - and a trailing blank is what
+    // `noTrailingSpaces` reports anyway.
     pieces.push(
       (pieces.length ? prefix + line.slice(start, at) : line.slice(0, at)) +
         opening
     )
     start = at + 1
     textFrom = start
-    prefix = continuationIndent + ')'
+    prefix = continuationIndent + ') '
   }
 }
 
