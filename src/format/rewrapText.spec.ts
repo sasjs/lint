@@ -348,6 +348,40 @@ run;`
     expect(rewrapText(mend, config({ maxLineLength: 10 }))).toBe(mend)
   })
 
+  it('leaves a declaration it cannot read as one statement alone', () => {
+    const noClose = `%macro example(first_parameter, second_parameter;`
+    const noParameters = `%macro example();`
+    const oneLongParameter = `%macro example(a_parameter_that_is_longer_than_the_limit);`
+    // Neither the first piece nor a continuation can hold this parameter.
+    const oneLongContinuation = `%macro example(a, b_parameter_that_is_way_too_long);`
+
+    ;[noClose, noParameters, oneLongParameter, oneLongContinuation].forEach(
+      (line) => {
+        expect(rewrapText(line, config({ maxLineLength: 30 }))).toBe(line)
+      }
+    )
+  })
+
+  it('breaks a declaration only at a comma between parameters', () => {
+    // The comma inside `%str(` is part of a default value, and the comma
+    // inside the nested call belongs to that call.
+    const text = `%macro example(one=%str(a,b), two=%scan(&list,1,%str(,)), three=3);`
+
+    const output = rewrapText(text, config({ maxLineLength: 40 }))
+
+    expect(output).toBe(
+      `%macro example(one=%str(a,b)\n  , two=%scan(&list,1,%str(,)), three=3\n  );`
+    )
+  })
+
+  it('puts the terminator on a line of its own when it will not fit', () => {
+    const text = `%macro example(first_parameter, second_parameter);`
+
+    expect(rewrapText(text, config({ maxLineLength: 30 }))).toBe(
+      `%macro example(first_parameter\n  , second_parameter);`
+    )
+  })
+
   it('leaves the <h4> SAS Macros </h4> section alone', () => {
     const text = `/**
   @file
