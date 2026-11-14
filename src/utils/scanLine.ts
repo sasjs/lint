@@ -25,13 +25,20 @@ export const cleanState = (): ScanState => ({
 })
 
 /**
- * The macros whose argument text is carried as DATA rather than as tokens:
- * `%str(`, `%nrstr(`, `%bquote(`, `%nrbquote(`, `%superq(`, `%nrsuperq(`,
- * `%quote(`, `%nrquote(` and `%unquote(`. A newline inserted inside one of
- * these becomes part of the value the macro returns, so their spaces are never
- * break points.
+ * The calls whose argument text is carried as DATA rather than as tokens.
+ *
+ * The masking macros - `%str(`, `%nrstr(`, `%bquote(`, `%nrbquote(`,
+ * `%superq(`, `%nrsuperq(`, `%quote(`, `%nrquote(`, `%unquote(` - return their
+ * argument as a value, so a newline inserted inside one becomes part of it.
+ * `%sysfunc(` and `%qsysfunc(` are the same problem one level down: the argument
+ * text is handed to a DATA step function, and for the text functions the
+ * whitespace is data. Measured on a live engine, breaking inside
+ * `%sysfunc(fput(&fid,%str(&name): %str(&value)))` wrote
+ * `Content-Type:   application/csv` where the macro meant one space - so no
+ * space inside either form is a break point.
  */
-const maskStart = /%n?r?(?:str|bquote|superq|quote|unquote)\s*\(/iy
+const maskStart =
+  /%n?r?(?:str|bquote|superq|quote|unquote)\s*\(|%q?sysfunc\s*\(/iy
 
 /** A block comment's span on one line, as absolute column indices. */
 export interface CommentSpan {

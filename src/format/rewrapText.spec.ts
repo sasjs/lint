@@ -115,6 +115,17 @@ run;`
     expect(rewrapText(text, config({ maxLineLength: 20 }))).toBe(text)
   })
 
+  it('does not break inside %sysfunc, whose arguments reach a DATA step function', () => {
+    // Measured on a live engine: breaking this line wrote
+    // `Content-Type:   application/csv` - the newline and the continuation
+    // indent became part of the text the macro was writing.
+    const text = `%let rc=%sysfunc(fput(&fid,%str(&header_name): %str(&header_value)));`
+    const quoted = `%let x=%qsysfunc(fput(&fid,%str(&name): %str(&value)));`
+
+    expect(rewrapText(text, config({ maxLineLength: 40 }))).toBe(text)
+    expect(rewrapText(quoted, config({ maxLineLength: 40 }))).toBe(quoted)
+  })
+
   it('treats %quote and %unquote as data too', () => {
     const quoted = `%let v = %quote(a b c d e f g h i j k l m n);`
     const unquoted = `%let v = %unquote(a b c d e f g h i j k l m n);`

@@ -341,6 +341,7 @@ Saving with the formatter does three things for this rule, in this order.
 - a `put`, `putlog` or `%put` statement (including the `%&var.put` form), and the window statements, where a newline is a line of output rather than a delimiter
 - a `%macro` or `%mend` declaration, which the macro rules read as a single statement
 - a `%*` comment statement, which is prose
+- any space inside `%str`-family masking or a `%sysfunc` / `%qsysfunc` call, whose argument text is carried as data: measured on a live engine, breaking inside `%sysfunc(fput(...))` wrote `Content-Type:   application/csv` where the macro meant one space
 
 **It reflows the prose in a block comment**, paragraph by paragraph: the lines of one paragraph are joined and rewrapped, so the block comes back even rather than ragged. A paragraph breaks at a blank line and before anything line-oriented - an `@li` entry, a `@sasjslint` tag, an `<h4>` heading, a list item, a table row or a macro trigger - and a `@brief` or `@param` line carries the lines under it. Blocks holding a `@example` / `@code` / `@verbatim` body, the `<h4> SAS Macros </h4>` section, a comment that shares a line with code, and a comment inside a `datalines` record are left byte-identical. Prose written with a `*` at the start of every line - the JavaDoc style - is read as a list and left as it is. A reflow normalises the runs of spaces inside the paragraph it rewrites, so two spaces after a full stop become one.
 
