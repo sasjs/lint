@@ -64,6 +64,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Always main: a dispatch can name any ref, and the tag gate below
+          # treats HEAD as the default branch. Publishing is from main or not at
+          # all, so the checkout says so rather than inheriting the dispatcher's
+          # choice.
+          ref: main
           # the tag is how this workflow learns what to publish: the release run
           # created it at the commit it released
           fetch-depth: 0
@@ -85,6 +90,13 @@ jobs:
             # the tag the release run just created, at the commit it released
             tag="$(git tag --points-at "$SHA" --sort=-v:refname | head -1)"
             if [ -z "$tag" ]; then
+              # A shallow clone carries no tags, and the branch below would then
+              # report a green publish that published nothing. Only a checkout
+              # with the tags in it can say "that release cut no tag".
+              if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+                echo "::error::this checkout is shallow, so the tag the release created cannot be seen - the job needs fetch-depth: 0"
+                exit 1
+              fi
               echo "::notice::no tag at $SHA - that release had nothing to publish"
               echo "skip=true" >> "$GITHUB_OUTPUT"
               exit 0
@@ -96,11 +108,14 @@ jobs:
             exit 1
           fi
 
-          # a dispatch can name any tag in the repository; only one cut from a
-          # commit on the default branch is a release this pipeline made
-          git fetch --quiet --no-tags origin "+refs/heads/main:refs/remotes/origin/main"
-          if ! git merge-base --is-ancestor "${tag}^{commit}" refs/remotes/origin/main; then
-            echo "::error::$tag is not on main - refusing to publish it"
+          # A dispatch can name any tag in the repository; only one cut from a
+          # commit on the default branch is a release this pipeline made. The
+          # checkout above pins main, so HEAD *is* the default branch here - the
+          # tag is checked out further down - and this needs no fetch: the
+          # checkout runs with persist-credentials: false, and asking origin for
+          # refs would lean on the repository being public.
+          if ! git merge-base --is-ancestor "${tag}^{commit}" HEAD; then
+            echo "::error::$tag is not on the default branch - refusing to publish it"
             exit 1
           fi
 
