@@ -333,6 +333,44 @@ In batch mode, long SAS code lines may also be truncated, causing hard-to-detect
 
 We strongly recommend a line length limit, and set the bar at 80. To turn this feature off, set the value to 0.
 
+Saving with the formatter does three things for this rule, in this order.
+
+**It breaks a long line of code** at the last space that still fits, and indents the continuation by the next multiple of [`indentationMultiple`](#indentationmultiple), so a wrap never introduces an indentation warning of its own. It prefers a space that does not leave a macro keyword such as `%let` or `%then` at the end of the line, and a line is rewritten only when every line it becomes fits the limit - so the pass never trades one warning for another, which also keeps `fixedDiagnosticsCount` from going backwards. The shapes where a break would change what SAS reads, or what another rule parses, are left alone:
+
+- `datalines` / `cards` / `parmcards` records, and the statement that opens them, where a newline ends the record
+- a `%*` comment statement, which is prose
+- any space inside `%str`-family masking or a `%sysfunc` / `%qsysfunc` call, whose argument text is carried as data: measured on a live engine, breaking inside `%sysfunc(fput(...))` wrote `Content-Type:   application/csv` where the macro meant one space
+
+A `put`, `putlog` or `%put` statement (including the `%&var.put` form) and the window statements are broken differently, because a plain newline there is a line of the log rather than a delimiter. The break ends the line with `%trim(` and opens the next with `)`, so the newline and the indentation become the argument of `%trim` - which resolves to nothing - and the blank the break replaced sits after the closing marker:
+
+```sas
+  %put NOTE: the macro could not find the requested%trim(
+    ) table and stopped;
+```
+
+Leaving the blank at the end of the upper line instead would lose it: measured on a live engine, `requested %trim(` printed `requestedtable`, because SAS drops a blank that sits immediately before a macro call - and a trailing blank is what `noTrailingSpaces` reports anyway. The construct is verified end to end: a macro holding these statements writes byte-identical log lines before and after a format at a limit of 40, several breaks per statement included.
+
+A `%macro` declaration is broken before its parameter commas, and the continuation line starts with the comma, so the parameters read as a list and the declaration stays the one statement the macro rules parse:
+
+```sas
+%macro mf_writefile(fpath
+  ,mode=O,l1=,l2=,l3=,l4=,l5=,l6=,l7=,l8=,l9=,l10=);
+```
+
+**It reflows the prose in a block comment**, paragraph by paragraph: the lines of one paragraph are joined and rewrapped, so the block comes back even rather than ragged. A paragraph breaks at a blank line and before anything line-oriented - an `@li` entry, a `@sasjslint` tag, an `<h4>` heading, a list item, a table row or a macro trigger - and a `@brief` or `@param` line carries the lines under it. Blocks holding a `@example` / `@code` / `@verbatim` body, the `<h4> SAS Macros </h4>` section, a comment that shares a line with code, and a comment inside a `datalines` record are left byte-identical. Prose written with a `*` at the start of every line - the JavaDoc style - is read as a list and left as it is. A reflow normalises the runs of spaces inside the paragraph it rewrites, so two spaces after a full stop become one.
+
+**It raises the file's own exception** for a line neither pass could shorten - a URL in a header, a long quoted literal that generates code, an indented data record - by writing or merging a [`@sasjslint`](#per-file-overrides) block at the end of the header:
+
+```sas
+  @sasjslint {"maxHeaderLineLength": 123}
+```
+
+The value is the exact length the longest such line needs and no more: a header line raises `maxHeaderLineLength`, a data record raises `maxDataLineLength`, and a body line raises `maxLineLength`. An existing exception keeps every key it had, and a value is never lowered.
+
+**It lifts a trailing comment onto its own line** when the comment is what pushes the line over the limit. The code keeps the line it was on and the comment moves below it at the same indentation, which hands the code to the wrap above and the prose to the reflow - so `, var /* variable name from which to return the format */` becomes two lines, and each is handled by the pass that owns it.
+
+Nothing is raised for a line whose author can still act on it: a `%*` comment, a `put` whose text holds a word longer than the limit, a `%macro` declaration whose single parameter is too long, or a comment line that a reflow cannot fit. Excusing one of those would relax `maxLineLength` for every line of code in the file, and each is a line the author can rewrite.
+
 - Default: 80
 - Severity: WARNING
 
@@ -690,6 +728,9 @@ We've already implemented the following rules:
 - Remove unused macros from the `<h4> SAS Macros </h4>` section
 - Remove trailing spaces
 - Fix line endings, including adding a missing final newline when [`lineEndings`](#lineendings) is configured
+- Break a line that exceeds [`maxLineLength`](#maxlinelength) at whitespace, where doing so cannot change what SAS reads
+- Reflow the prose in a block comment, paragraph by paragraph
+- Raise the file's own `@sasjslint` exception for a line neither of the above can shorten
 
 The formatter only fixes rules that are in your configuration, so a rule that is off neither warns nor is repaired.
 
