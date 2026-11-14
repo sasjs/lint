@@ -5,37 +5,23 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "jest --coverage",
     "build": "rimraf build && tsc",
+    "check:package": "node scripts/checkPackageContents.mjs",
     "generate:macros": "node ./scripts/generate-macro-names.mjs",
-    "prebuild": "node checkNodeVersion",
-    "publishInit": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
-    "package:lib": "npm run build && cp ./package.json ./checkNodeVersion.js build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
-    "lint:fix": "npx prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
     "lint": "npx prettier --check \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
+    "lint:fix": "npx prettier --write \"{src,test}/**/*.{ts,tsx,js,jsx,html,css,sass,less,json,yml,md,graphql}\"",
     "mutation": "stryker run",
     "mutation:changed": "node scripts/mutation-gate.mjs pr",
     "mutation:watch": "node scripts/mutation-gate.mjs weekly",
-    "check:package": "node scripts/checkPackageContents.mjs"
+    "package:lib": "npm run build && cp ./package.json ./checkNodeVersion.js build && cp README.md build && cd build && npm version \"5.0.0\" && npm pack",
+    "prebuild": "node checkNodeVersion",
+    "prepublishOnly": "node -e \"const v=require('./package.json').version; if (/^0\\.0\\.0/.test(v)) { console.error('refusing to publish ' + v + ': the version is stamped from the tag (npm version <tag> --no-git-tag-version)'); process.exit(1) }\"",
+    "publishInit": "cp -r ./build/* . && rm -rf ./build && rm -rf ./src && rm tsconfig.json",
+    "release": "sasjs-release",
+    "test": "jest --coverage"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "release": {
-    "branches": [
-      "main"
-    ],
-    "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      [
-        "@semantic-release/exec",
-        {
-          "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version --allow-same-version"
-        }
-      ],
-      "@semantic-release/github"
-    ]
   },
   "repository": {
     "type": "git",
@@ -56,6 +42,7 @@
   "homepage": "https://github.com/sasjs/lint#readme",
   "devDependencies": {
     "@nogoo9/gitleaks": "8.30.1-post.2",
+    "@sasjs/release": "0.1.3",
     "@sasjs/sas-language": "0.3.3",
     "@stryker-mutator/core": "10.1.1",
     "@stryker-mutator/jest-runner": "10.1.1",
@@ -93,7 +80,7 @@
     "glob": "^14.0.2",
     "minimatch": "^11.0.1"
   },
-  "version": "0.0.0-semantically-released",
+  "version": "0.0.0",
   "devEngines": {
     "runtime": {
       "name": "node",

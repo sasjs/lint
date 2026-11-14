@@ -164,13 +164,13 @@ If you use the [pre-commit](https://pre-commit.com) framework, the repo also shi
 
 ## Commit messages and releases
 
-Merging to `main` runs semantic-release: the commit type decides the version, and a release publishes to npm. Only `feat:`, `fix:` and `perf:` cut a release - a `chore:` or `docs:` PR publishes nothing, which is correct rather than a failure.
+Merging to `main` releases from the conventional commits since the last tag. Only `feat:`, `fix:`, `perf:` and `refactor:` cut a release - a `chore:` or `docs:` PR publishes nothing, which is correct rather than a failure.
 
 For a squash merge the PR TITLE drives the version, so keep it conventional. Judge the type by what users see: a new diagnostic message, or a formatter that now rewrites files it used to leave alone, is new behaviour and belongs in `feat:` even when it also fixes a defect. Warnings do not move the exit code of `sasjs lint` - only `noEncodedPasswords` ships as an error - so a new warning does not break CI for consumers; a rewritten file might surprise them, and the release notes are where to say so.
 
 Mark a genuinely breaking change with `BREAKING CHANGE:` in the commit body, and name the config key that restores the old behaviour.
 
-The `version` field in `package.json` is a placeholder (`0.0.0-semantically-released`), not a record of the release. semantic-release computes the version from the tags and commits, and `prepareCmd` writes it into the workspace before the tarball is packed, so the published package and its tag are correct whatever the file says. Do not bump it in a PR, and do not read it to learn what is published - `npm view @sasjs/lint version` and the git tags are the answers.
+The `version` field in `package.json` is a placeholder (`0.0.0`), not a record of the release: the tag is the version. Do not bump it in a PR, and do not read it to learn what is published - `npm view @sasjs/lint version` and the git tags are the answers. Publishing by hand is not a supported path; use the workflow.
 
 ## The audit gate
 
@@ -182,11 +182,11 @@ Do not add a dev-tree advisory to the exemption to get a build green. Prefer rem
 
 The [build workflow](./workflows/build.yml) scans the full history for secrets with gitleaks, runs `npm audit`, checks code style and runs the tests. The local hooks are convenience - CI is what a red finding must fail.
 
-## The release toolchain lives in the workflow
+## The release tool
 
-semantic-release is not a project dependency. Every `@semantic-release` plugin declares a `semantic-release` peer, so adding one to `devDependencies` makes npm auto-install semantic-release along with the `npm` package it bundles - and that bundled npm carries advisories this repo cannot fix.
+[@sasjs/release](https://github.com/sasjs/release) cuts the release, pinned in `devDependencies` so the lockfile pins it too. The mechanics are in [release.yml](./workflows/release.yml) and [publish.yml](./workflows/publish.yml) - read those, not this page.
 
-Instead, [publish.yml](./workflows/publish.yml) installs semantic-release, `@semantic-release/exec` and `@semantic-release/git` on the fly, pinned to exact versions. When you add or remove an entry in `release.plugins` (package.json), update that command to match.
+One constraint is not visible from the files: **publish.yml cannot be renamed**, because npm's trusted publisher is registered against the workflow that runs `npm publish`.
 
 ## What to work on
 
