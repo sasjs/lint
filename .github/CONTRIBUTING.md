@@ -190,13 +190,14 @@ One constraint is not visible from the files: **publish.yml cannot be renamed**,
 
 ## What to work on
 
-The formatter applies these fixes today: `%mend` macro names, a Doxygen header template, adding undeclared macros to the `<h4> SAS Macros </h4>` section, removing unused macros from it, trailing spaces, and line endings (including a missing final newline) when [`lineEndings`](../README.md#lineendings) is configured.
+The formatter applies these fixes today: `%mend` macro names, a Doxygen header template, adding undeclared macros to the `<h4> SAS Macros </h4>` section, removing unused macros from it, trailing spaces, line endings (including a missing final newline) when [`lineEndings`](../README.md#lineendings) is configured, and breaking a line that exceeds `maxLineLength` at whitespace.
 
 Fixes not yet implemented, roughly in order of usefulness:
 
 - Change tabs to spaces
 - Remove gremlin characters
 - Convert single asterisk comments to block comments
+- Reflow comment prose over `maxLineLength`. The rewrap pass leaves comments alone: wrapping one physical line of a paragraph reflows it against the lines around it and leaves the block ragged, so prose needs a pass that joins the paragraph first - and one that knows which lines are Doxygen tags and which are code in an `@example`.
 
 Harder, and still under investigation: automatic indentation and code layout.
 

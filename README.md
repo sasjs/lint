@@ -333,6 +333,18 @@ In batch mode, long SAS code lines may also be truncated, causing hard-to-detect
 
 We strongly recommend a line length limit, and set the bar at 80. To turn this feature off, set the value to 0.
 
+Saving with the formatter breaks a line that exceeds the limit at the last space that still fits, and indents the continuation by the next multiple of [`indentationMultiple`](#indentationmultiple). A line is rewritten only when every line it becomes fits the limit, so the pass never trades one warning for another - which also keeps `fixedDiagnosticsCount` from going backwards.
+
+The pass declines the shapes where a break would change what SAS reads, or what another rule parses:
+
+- `datalines` / `cards` / `parmcards` records, and the statement that opens them, where a newline ends the record
+- a `put`, `putlog` or `%put` statement, and the window statements, where a newline is a line of output rather than a delimiter
+- any line carrying a block comment - a paragraph is reflowed as a whole or not at all, and wrapping one of its lines alone leaves the rest ragged
+- the `@sasjslint` line and the `<h4> SAS Macros </h4>` section, both of which sit inside the header comment
+- `%macro` and `%mend` declarations, which the macro rules read as a single statement
+
+A line whose longest token is longer than the limit is left alone as well: no break shortens a single token, so the warning stays for the author.
+
 - Default: 80
 - Severity: WARNING
 
@@ -690,6 +702,7 @@ We've already implemented the following rules:
 - Remove unused macros from the `<h4> SAS Macros </h4>` section
 - Remove trailing spaces
 - Fix line endings, including adding a missing final newline when [`lineEndings`](#lineendings) is configured
+- Break a line that exceeds [`maxLineLength`](#maxlinelength) at whitespace, where doing so cannot change what SAS reads
 
 The formatter only fixes rules that are in your configuration, so a rule that is off neither warns nor is repaired.
 

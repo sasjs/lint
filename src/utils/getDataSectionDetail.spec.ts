@@ -77,6 +77,26 @@ describe('getDataSectionsDetail', () => {
       }
     ])
   })
+
+  it('should find a section opened by an indented statement', () => {
+    const text = `data example;\n  ${datalinesBeginPattern1}\n${datalines}\n  ${datalinesEndPattern1}\nrun;`
+    expect(getDataSectionsDetail(text, config)).toEqual([
+      {
+        start: 1,
+        end: 5
+      }
+    ])
+  })
+
+  it('should find a section opened in upper case, which SAS accepts', () => {
+    const text = `data example;\n${datalinesBeginPattern1.toUpperCase()}\n${datalines}\n${datalinesEndPattern1}\nrun;`
+    expect(getDataSectionsDetail(text, config)).toEqual([
+      {
+        start: 1,
+        end: 5
+      }
+    ])
+  })
 })
 
 describe('checkIsDataLine', () => {
