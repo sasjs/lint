@@ -6,7 +6,7 @@ import {
 } from '../utils/getDataSectionsDetail'
 import { getHeaderLinesCount } from '../utils/getHeaderLinesCount'
 import { getLintOverride } from '../utils/parseLintOverride'
-import { cleanState, scanLine } from '../utils/scanLine'
+import { cleanState, noScan, scanLine } from '../utils/scanLine'
 import { breakAwareState, macroComment, macroDeclaration } from './longLines'
 import { splitWithTerminators } from './rewrapText'
 
@@ -80,14 +80,19 @@ export const adjustLineLength = (
   let breakAwareOpen = false
 
   lines.forEach((line, index) => {
-    const scanned = scanLine(line, state)
-    state = scanned.endState
-
-    const breakAware = breakAwareState(scanned.code, breakAwareOpen)
-    breakAwareOpen = breakAware.open
-
     const isHeader = index < headerLinesCount
     const isData = checkIsDataLine(dataSections, index)
+
+    // A data record is data, so it is not scanned: a comment marker or an
+    // apostrophe in one would otherwise stay open for the rest of the file, and
+    // every later line would read as a comment that no pass may touch.
+    const scanned = isData ? noScan() : scanLine(line, state)
+    state = scanned.endState
+
+    const breakAware = isData
+      ? { line: false, open: false }
+      : breakAwareState(scanned.code, breakAwareOpen)
+    breakAwareOpen = breakAware.open
     const limit = isData
       ? dataLimit
       : isHeader

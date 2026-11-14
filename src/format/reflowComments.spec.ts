@@ -261,6 +261,43 @@ run;`
     expect(reflowComments(text, config({ maxLineLength: 20 }))).toBe(text)
   })
 
+  it('reflows a comment below a record that holds a comment marker', () => {
+    const text = `data a;
+  input x $;
+  datalines;
+abc/*def
+;
+data _null_;
+/* the quick brown fox jumps over the lazy dog and keeps on
+  running until it reaches the end of the line */
+run;`
+
+    expect(reflowComments(text, config({ maxLineLength: 40 }))).toContain(
+      '/* the quick brown fox jumps over the\n  lazy dog'
+    )
+  })
+
+  it('leaves a block alone when a data section starts before its closer', () => {
+    // The opener is prose, but the line that closes it also opens a data
+    // section - so the block covers a record, and a rewrite could move it.
+    const text = `data _null_;
+/* a comment that starts here
+  and ends on the next line */ cards;
+a b c d e f g h i j k l m n o p
+;
+run;`
+
+    expect(reflowComments(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
+  it('leaves a paragraph alone when its first word cannot fit the opener line', () => {
+    const text = `data _null_;
+/* averylongwordthatislong more words here */
+run;`
+
+    expect(reflowComments(text, config({ maxLineLength: 20 }))).toBe(text)
+  })
+
   it('leaves an unclosed comment alone, which has no closer to re-emit', () => {
     const text = `data _null_;
 /* a paragraph long enough to need wrapping at this length

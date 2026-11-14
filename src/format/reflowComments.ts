@@ -133,6 +133,15 @@ const collectBlocks = (lines: string[], configuration: LintConfig): Block[] => {
   let index = 0
 
   while (index < lines.length) {
+    // A data record is data, so it is not scanned and it closes whatever the
+    // line before it left open: a comment marker inside a record would
+    // otherwise hide every comment block below it.
+    if (checkIsDataLine(dataSections, index)) {
+      state = cleanState()
+      index++
+      continue
+    }
+
     const scanned = scanLine(lines[index], state)
     state = scanned.endState
 
@@ -140,7 +149,6 @@ const collectBlocks = (lines: string[], configuration: LintConfig): Block[] => {
     const opensHere =
       !!span &&
       scanned.comments.length === 1 &&
-      !checkIsDataLine(dataSections, index) &&
       lines[index].slice(0, span.start).trim() === ''
 
     if (!opensHere) {
@@ -166,10 +174,16 @@ const collectBlocks = (lines: string[], configuration: LintConfig): Block[] => {
 
     while (usable && !closed && close < lines.length - 1) {
       close++
+
+      if (checkIsDataLine(dataSections, close)) {
+        usable = false
+        break
+      }
+
       const next = scanLine(lines[close], state)
       state = next.endState
 
-      if (checkIsDataLine(dataSections, close) || next.code.trim() !== '') {
+      if (next.code.trim() !== '') {
         usable = false
         break
       }

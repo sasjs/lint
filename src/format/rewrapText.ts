@@ -4,7 +4,7 @@ import {
   checkIsDataLine,
   getDataSectionsDetail
 } from '../utils/getDataSectionsDetail'
-import { cleanState, scanLine } from '../utils/scanLine'
+import { cleanState, noScan, scanLine } from '../utils/scanLine'
 import {
   breakAwareState,
   continuationIndentFor,
@@ -181,16 +181,21 @@ export const rewrapText = (text: string, configuration: LintConfig): string => {
   let changed = false
 
   entries.forEach(({ line, ending }, index) => {
-    const scanned = scanLine(line, state)
+    // A data record is data, so it is not scanned: a comment marker or an
+    // apostrophe in one would otherwise stay open for the rest of the file.
+    const isData = checkIsDataLine(dataSections, index)
+    const scanned = isData ? noScan() : scanLine(line, state)
     state = scanned.endState
 
-    const breakAware = breakAwareState(scanned.code, breakAwareOpen)
+    const breakAware = isData
+      ? { line: false, open: false }
+      : breakAwareState(scanned.code, breakAwareOpen)
     breakAwareOpen = breakAware.open
 
     const isProtected =
+      isData ||
       breakAware.line ||
       scanned.hasComment ||
-      checkIsDataLine(dataSections, index) ||
       macroComment.test(line) ||
       macroDeclaration.test(line)
 

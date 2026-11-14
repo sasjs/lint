@@ -59,6 +59,21 @@ export interface ScannedLine {
 }
 
 /**
+ * The scan of a line that is not code, and so opens and closes nothing.
+ *
+ * A `datalines` record is data: a comment marker or an apostrophe in one is a
+ * character in a value, not the start of a comment or a literal. Reading such a
+ * line with the code scanner would carry that state into every line below it.
+ */
+export const noScan = (): ScannedLine => ({
+  positions: [],
+  code: '',
+  hasComment: false,
+  comments: [],
+  endState: cleanState()
+})
+
+/**
  * Reads one line, starting from the state the previous line ended in.
  *
  * A break is never taken inside a literal, because a SAS literal really does

@@ -252,6 +252,21 @@ run;`
     expect(rewrapText(text, config({ maxLineLength: 20 }))).toBe(text)
   })
 
+  it('wraps a line below a record that holds a comment marker', () => {
+    const text = `data a;
+  input x $;
+  datalines;
+abc/*def
+;
+data _null_;
+  set work.example (keep=first_name last_name age city country);
+run;`
+
+    expect(rewrapText(text, config({ maxLineLength: 40 }))).toContain(
+      '  set work.example (keep=first_name\n    last_name age city country);'
+    )
+  })
+
   it('leaves datalines records and the statement that opens them alone', () => {
     const text = `data example;
   input id $;

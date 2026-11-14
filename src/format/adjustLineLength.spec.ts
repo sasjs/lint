@@ -117,6 +117,42 @@ run;
     )
   })
 
+  it('excuses a line below a record that holds a comment marker', () => {
+    // A record is data: the marker in one opens no comment, so the lines below
+    // it are code and are excused like any other.
+    const text = `/**
+  @file
+**/
+data a;
+  input x $;
+  datalines;
+abc/*def
+;
+${unbreakable}
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toContain(
+      '  @sasjslint {"maxLineLength": 50}'
+    )
+  })
+
+  it('excuses a line below a record that holds an apostrophe', () => {
+    const text = `/**
+  @file
+**/
+data a;
+  input name $;
+  datalines;
+O'Brien
+;
+${unbreakable}
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toContain(
+      '  @sasjslint {"maxLineLength": 50}'
+    )
+  })
+
   it('does not excuse a line the wrapper declines on purpose', () => {
     const text = `/**
   @file
