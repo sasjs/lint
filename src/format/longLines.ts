@@ -17,8 +17,24 @@ export const macroComment = /^\s*%\*/
  * line to the log or to the file being written, so the passes leave them alone -
  * including a line that only carries the continuation of such a statement.
  */
-const breakAwareStatement =
+export const breakAwareStatement =
   /^\s*%?(?:&?[\w.]*\.)?(?:put|putlog|window|display)\b|\b(?:then|else)\s+%?put\b/i
+
+/**
+ * The index where the text of a `put`-family statement begins, so a break is
+ * never taken before the keyword that names it.
+ *
+ * A continuation line carries no keyword of its own, and its whole content is
+ * text, so there the text begins at the first non-whitespace character.
+ *
+ * @param {string} line - the line to read.
+ * @returns {number} the index of the first character of the statement's text.
+ */
+export const putTextStart = (line: string): number => {
+  const match = breakAwareStatement.exec(line)
+
+  return match ? match.index + match[0].length : firstNonSpace(line, 0)
+}
 
 /** The index of the first non-whitespace character at or after `from`. */
 export const firstNonSpace = (line: string, from: number): number => {

@@ -4,9 +4,13 @@ import { splitText } from '../utils/splitText'
 import { adjustLineLength } from './adjustLineLength'
 import { reflowComments } from './reflowComments'
 import { rewrapText } from './rewrapText'
+import { splitTrailingComments } from './splitTrailingComments'
 
 export const processText = (text: string, config: LintConfig) => {
-  const rewrapped = rewrapText(processContent(config, text), config)
+  const rewrapped = rewrapText(
+    splitTrailingComments(processContent(config, text), config),
+    config
+  )
   const processedText = adjustLineLength(
     reflowComments(rewrapped, config),
     config

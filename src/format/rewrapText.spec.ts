@@ -3,6 +3,15 @@ import { rewrapText } from './rewrapText'
 
 const config = (json: any) => new LintConfig(json)
 
+/**
+ * The text as SAS reads it: a `%trim(` carrying nothing but the newline and the
+ * indentation of a break resolves to no characters at all, and the `%str( )`
+ * before it stands for the space the break replaced. Substituting the space
+ * back has to give the line the pass started with.
+ */
+const withoutTrim = (text: string): string =>
+  text.replace(/%str\( \)%trim\(\s*\)/g, ' ')
+
 describe('rewrapText', () => {
   it('wraps a long statement at the last space that fits', () => {
     const text = `data _null_;
@@ -170,38 +179,52 @@ run;`
     expect(rewrapText(text, config({ maxLineLength: 40 }))).toBe(text)
   })
 
-  it('leaves a %put statement alone, whose newline is a line of log output', () => {
+  it('breaks a %put with %trim, which swallows the newline it creates', () => {
     const text = `%put NOTE: the macro could not find the requested table and stopped;`
+    const output = rewrapText(text, config({ maxLineLength: 60 }))
 
-    expect(rewrapText(text, config({ maxLineLength: 20 }))).toBe(text)
+    expect(output).toBe(
+      `%put NOTE: the macro could not find the%str( )%trim(\n  )requested table and stopped;`
+    )
+    expect(withoutTrim(output)).toBe(text)
   })
 
-  it('leaves the &mD.put form alone, which resolves to %put at execution', () => {
+  it('breaks the &mD.put form the same way, since it resolves to %put', () => {
     const text = `%&mD.put NOTE: Creating direct (non META) connection to &libref;`
+    const output = rewrapText(text, config({ maxLineLength: 60 }))
 
-    expect(rewrapText(text, config({ maxLineLength: 20 }))).toBe(text)
+    expect(output).toContain('%str( )%trim(\n')
+    expect(withoutTrim(output)).toBe(text)
   })
 
-  it('leaves put and putlog statements alone, where a newline is an output line', () => {
+  it('breaks put and putlog, whose newline is an output line, without adding one', () => {
     const putlog = `    putlog "reading" libds= rc= count= anything else that runs long;`
-    const put = `  put "value" a b c d e f g h i j k l m n o p q r s t u v;`
+    const put = `  put "value" a b c d e f g h i j k l m n o p q r s t u v w x y z;`
 
-    expect(rewrapText(putlog, config({ maxLineLength: 20 }))).toBe(putlog)
-    expect(rewrapText(put, config({ maxLineLength: 20 }))).toBe(put)
+    ;[putlog, put].forEach((line) => {
+      const output = rewrapText(line, config({ maxLineLength: 60 }))
+
+      expect(output).toContain('%str( )%trim(\n')
+      expect(withoutTrim(output)).toBe(line)
+      expect(output.split('\n').every((piece) => piece.length <= 60)).toBe(true)
+    })
   })
 
-  it('leaves a put statement opened on a previous line alone to its semicolon', () => {
+  it('breaks a put statement opened on a previous line too', () => {
     const text = `data _null_;
   put aaaaaa bbbbbb cccccc
     dddddd eeeeee ffffff gggggg hhhhhh iiiiii jjjjjj;
 run;`
 
-    // The second line is more of the same put statement, so a break in it is
-    // another output line as well.
-    expect(rewrapText(text, config({ maxLineLength: 20 }))).toBe(text)
+    const output = rewrapText(text, config({ maxLineLength: 40 }))
+
+    // The second line is more of the same put statement, and it keeps its own
+    // indentation while gaining the %trim that keeps the line count.
+    expect(output.split('\n')[2]).toMatch(/^    dddddd .*%str\( \)%trim\($/)
+    expect(withoutTrim(output)).toBe(text)
   })
 
-  it('leaves a put in a THEN branch alone, and wraps the next statement', () => {
+  it('breaks a put in a THEN branch, and wraps the next statement', () => {
     const text = `data _null_;
   if found then put "one" two three four five six seven eight nine ten;
   set work.example (keep=first_name last_name age city country);
@@ -209,7 +232,12 @@ run;`
 
     const output = rewrapText(text, config({ maxLineLength: 40 }))
 
-    expect(output.split('\n')[1]).toBe(
+    expect(output.split('\n')[1]).toMatch(
+      /^  if found then put "one".*%str\( \)%trim\($/
+    )
+    // The statement the pass inserts resolves back to the one line it was,
+    // even though a later line was wrapped the ordinary way.
+    expect(withoutTrim(output).split('\n')[1]).toBe(
       '  if found then put "one" two three four five six seven eight nine ten;'
     )
     expect(output).toContain('  set work.example (keep=first_name\n')
@@ -309,13 +337,14 @@ run;`
     )
   })
 
-  it('leaves macro declarations alone, which the macro rules read as one statement', () => {
+  it('breaks a macro declaration before its parameter commas', () => {
     const declaration = `%macro example(first_parameter, second_parameter, third_parameter);`
     const mend = `%mend example;`
 
     expect(rewrapText(declaration, config({ maxLineLength: 40 }))).toBe(
-      declaration
+      `%macro example(first_parameter\n  , second_parameter, third_parameter);`
     )
+    // `%mend` has no parameters to break at.
     expect(rewrapText(mend, config({ maxLineLength: 10 }))).toBe(mend)
   })
 
