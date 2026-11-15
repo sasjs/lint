@@ -44,7 +44,7 @@ describe('getLintConfig', () => {
     expect(error).toBeInstanceOf(Error)
     expect(error.message).toMatch(/\.sasjslint is not valid JSON/)
     expect(error.message).toContain(
-      'https://cli.sasjs.io/sasjslint-schema.json'
+      'https://raw.githubusercontent.com/sasjs/lint/main/sasjslint-schema.json'
     )
   })
 

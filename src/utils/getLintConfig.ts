@@ -82,6 +82,16 @@ export async function getLintConfig(): Promise<LintConfig> {
 }
 
 /**
+ * Where the settings of a `.sasjslint` are documented.
+ *
+ * This is the schema itself, not the `cli.sasjs.io` address that redirects to
+ * it: an editor that will not follow a `$ref` to another host (VS Code does
+ * not) reports that one as untrusted and offers no completions.
+ */
+export const lintSchemaUrl =
+  'https://raw.githubusercontent.com/sasjs/lint/main/sasjslint-schema.json'
+
+/**
  * Reads the configuration file, turning a parse failure into a message that
  * names the file and says what to do about it. A raw `JSON.parse` error reads
  * `Unexpected token } in JSON at position 12`, which leaves the reader to work
@@ -97,7 +107,7 @@ export const parseLintConfig = (configuration: string, filePath: string) => {
       `${filePath} is not valid JSON (${reason}).\n` +
         'The file is read as strict JSON, so it cannot carry comments. ' +
         'Every setting, its type and its default are documented in the schema: ' +
-        'https://cli.sasjs.io/sasjslint-schema.json'
+        lintSchemaUrl
     )
   }
 }
