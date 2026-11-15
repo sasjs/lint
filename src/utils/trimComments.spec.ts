@@ -164,6 +164,18 @@ describe('trimComments', () => {
     })
   })
 
+  it('should read a masked quote in every masking call as data', () => {
+    for (const name of ['%str', '%bquote', '%quote', '%nrstr', '%nrbquote']) {
+      const line = `%put ${name}(%") ;`
+
+      expect(trimComments(line)).toEqual({
+        statement: line,
+        commentStarted: false,
+        quoteStarted: ''
+      })
+    }
+  })
+
   it('should read a masked quote outside a string as data', () => {
     expect(trimComments(`%let quote = %str(%");`)).toEqual({
       statement: `%let quote = %str(%");`,

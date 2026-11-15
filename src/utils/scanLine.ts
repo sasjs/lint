@@ -1,3 +1,5 @@
+import { maskingFunctionNames } from './maskingFunction'
+
 /**
  * Reads one line of a SAS program, carrying the state a break decision needs
  * from one physical line to the next.
@@ -37,8 +39,10 @@ export const cleanState = (): ScanState => ({
  * `Content-Type:   application/csv` where the macro meant one space - so no
  * space inside either form is a break point.
  */
-const maskStart =
-  /%n?r?(?:str|bquote|superq|quote|unquote)\s*\(|%q?sysfunc\s*\(/iy
+const maskStart = new RegExp(
+  `%${maskingFunctionNames}\\s*\\(|%q?sysfunc\\s*\\(`,
+  'iy'
+)
 
 /** A block comment's span on one line, as absolute column indices. */
 export interface CommentSpan {

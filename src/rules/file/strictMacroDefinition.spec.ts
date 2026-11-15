@@ -43,6 +43,22 @@ describe('strictMacroDefinition', () => {
     expect(strictMacroDefinition.test(content12)).toEqual([])
   })
 
+  it('should not report a documented parameter list after a quote masked by another masking call', () => {
+    const content = [
+      '%macro shows();',
+      `  %put %bquote(%") ;`,
+      '%mend shows;',
+      '',
+      '%macro documented(',
+      '  a /* first,',
+      '       second */',
+      ');',
+      '%mend documented;'
+    ].join('\n')
+
+    expect(strictMacroDefinition.test(content)).toEqual([])
+  })
+
   it('should not report a documented parameter list that follows a masked quote', () => {
     const content = [
       '%macro shows();',

@@ -6,8 +6,17 @@
  * double-quoted string it is written in. A scanner that follows strings or
  * comments has to skip such an argument whole: the quote inside it otherwise
  * flips its state and the rest of the file is read as string content.
+ *
+ * The names live here rather than in each scanner, so the formatter's line scan
+ * and the rules cannot disagree about which calls mask their argument.
  */
-export const maskingFunctionStart = /^%(nrstr|str)\s*\(/i
+export const maskingFunctionNames = 'n?r?(?:str|bquote|superq|quote|unquote)'
+
+/** Matches one of those calls, at the start of the supplied text. */
+export const maskingFunctionStart = new RegExp(
+  `^%${maskingFunctionNames}\\s*\\(`,
+  'i'
+)
 
 /**
  * Finds the end of a masking function's argument.

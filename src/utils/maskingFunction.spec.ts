@@ -1,12 +1,28 @@
 import { maskedArgumentEnd, maskingFunctionStart } from './maskingFunction'
 
 describe('maskingFunctionStart', () => {
-  it('should match the masking functions only', () => {
-    expect(maskingFunctionStart.test('%str(a)')).toBe(true)
-    expect(maskingFunctionStart.test('%nrstr(a)')).toBe(true)
+  it('should match every call whose argument is masked', () => {
+    const masked = [
+      '%str',
+      '%nrstr',
+      '%bquote',
+      '%nrbquote',
+      '%superq',
+      '%nrsuperq',
+      '%quote',
+      '%nrquote',
+      '%unquote'
+    ]
+
+    masked.forEach((name) =>
+      expect(maskingFunctionStart.test(`${name}(a)`)).toBe(true)
+    )
     expect(maskingFunctionStart.test('%STR (a)')).toBe(true)
-    expect(maskingFunctionStart.test('%quote(a)')).toBe(false)
-    expect(maskingFunctionStart.test('%superq(a)')).toBe(false)
+  })
+
+  it('should not match a call that does not mask its argument', () => {
+    expect(maskingFunctionStart.test('%sysfunc(a)')).toBe(false)
+    expect(maskingFunctionStart.test('%mf_foo(a)')).toBe(false)
   })
 })
 
