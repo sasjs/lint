@@ -4,6 +4,10 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getPosition } from '../../utils'
 import { getSeverity } from '../../utils/getSeverity'
+import {
+  maskedArgumentEnd,
+  maskingFunctionStart
+} from '../../utils/maskingFunction'
 
 const name = 'noXcmd'
 const description =
@@ -44,7 +48,9 @@ interface Construct {
  * Quotes are carried across lines, as the engine does: `x = "ab` / `cd";` is
  * one string, and only that reading stops the continuation from being linted as
  * code. An unterminated quote therefore hides the rest of the file rather than
- * reporting a construct that is really string content.
+ * reporting a construct that is really string content. A `%str` / `%nrstr`
+ * argument is data for the same reason - a masked quote in it must not end the
+ * string it sits in - so it is blanked whole.
  */
 const maskNonCode = (text: string) => {
   const characters = text.split('')
@@ -91,6 +97,22 @@ const maskNonCode = (text: string) => {
       blank(index)
       index++
       continue
+    }
+
+    // A masking argument is data: SAS resolves the trigger inside a quoted
+    // value and `%str` masks the quote in it, so reading one as a delimiter
+    // ends the string early and hides the code that follows behind it.
+    if (character === '%' && quote !== "'") {
+      const maskingFunction = maskingFunctionStart.exec(text.slice(index))
+
+      if (maskingFunction) {
+        const end = maskedArgumentEnd(text, index + maskingFunction[0].length)
+
+        for (let position = index; position < end; position++) blank(position)
+
+        index = end
+        continue
+      }
     }
 
     if (quote) {

@@ -3,6 +3,10 @@ import { FileLintRule } from '../../types/LintRule'
 import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getSeverity } from '../../utils/getSeverity'
+import {
+  maskedArgumentEnd,
+  maskingFunctionStart
+} from '../../utils/maskingFunction'
 
 const name = 'noSingleAsteriskComments'
 const description =
@@ -14,11 +18,6 @@ const message = 'Line contains a single asterisk comment'
  * terminated by `;;;;`, the others by a semicolon.
  */
 const dataSectionStart = /^(datalines4?|cards4?|parmcards4?)\s*;/i
-
-/**
- * Matches the functions whose argument is data rather than code.
- */
-const maskingFunctionStart = /^%(nrstr|str)\s*\(/i
 
 /**
  * Matches the procedures whose `submit` block holds another language, so SAS
@@ -101,32 +100,10 @@ const test = (value: string, config?: LintConfig): Diagnostic[] => {
       continue
     }
 
-    // Masking functions - the argument is data, not code. `%(` and `%)` are
-    // the escapes for literal parentheses inside the argument, so they do not
-    // affect the nesting depth.
+    // Masking functions - the argument is data, not code.
     const maskingFunction = maskingFunctionStart.exec(value.slice(index))
     if (maskingFunction) {
-      let depth = 0
-      let end = index + maskingFunction[0].length - 1
-      while (end < length) {
-        if (
-          value[end] === '%' &&
-          (value[end + 1] === '(' || value[end + 1] === ')')
-        ) {
-          end += 2
-          continue
-        }
-        if (value[end] === '(') depth++
-        else if (value[end] === ')') {
-          depth--
-          if (depth === 0) {
-            end++
-            break
-          }
-        }
-        end++
-      }
-      advanceTo(end)
+      advanceTo(maskedArgumentEnd(value, index + maskingFunction[0].length))
       continue
     }
 
