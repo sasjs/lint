@@ -3,7 +3,11 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { LintConfig } from '../types/LintConfig'
 import { KEYWORD_CASES } from '../types/KeywordCase'
-import { DefaultLintConfiguration, getLintConfig } from './getLintConfig'
+import {
+  DefaultLintConfiguration,
+  getLintConfig,
+  lintSchemaUrl
+} from './getLintConfig'
 
 const expectedFileLintRulesCount = 11
 const expectedLineLintRulesCount = 7
@@ -136,6 +140,21 @@ describe('DefaultLintConfiguration', () => {
     )
 
     expect(schema.properties.keywordCase.enum).toEqual([...KEYWORD_CASES])
+  })
+
+  it('should give itself the address it is fetched from', () => {
+    // An editor resolves a schema's references against `$id`, and reports a
+    // schema it cannot fetch as untrusted. The GitHub blob page is HTML, so the
+    // id has to be the raw document - and the same one `parseLintConfig` names,
+    // so a hover and the error message describe the same file.
+    const schema = JSON.parse(
+      readFileSync(
+        join(__dirname, '..', '..', 'sasjslint-schema.json'),
+        'utf-8'
+      )
+    )
+
+    expect(schema.$id).toEqual(lintSchemaUrl)
   })
 
   it('should match the default in the schema', () => {
