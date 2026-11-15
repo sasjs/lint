@@ -1,5 +1,4 @@
 import { LintConfig } from '../types'
-import { maskedArgumentEnd, maskingFunctionStart } from './maskingFunction'
 
 /**
  * A macro invocation found in a file, with the position of its `%` character.
@@ -38,6 +37,9 @@ const macroNameStart = /^%([a-z_][a-z0-9_]*)/i
 
 /** Matches the statements that open a data section. */
 const dataSectionStart = /^(datalines4?|cards4?|parmcards4?)\s*;/i
+
+/** Matches the functions whose argument is data rather than code. */
+const maskingFunctionStart = /^%(nrstr|str)\s*\(/i
 
 /** Matches the procedures whose `submit` block holds another language. */
 const embeddedLanguageProc = /^proc\s+(lua|groovy)\b/i
@@ -254,7 +256,28 @@ export const parseMacroCalls = (
       // an invocation the file defers is still reported at its own position.
       const maskingFunction = maskingFunctionStart.exec(text.slice(index))
       if (maskingFunction) {
-        const end = maskedArgumentEnd(text, index + maskingFunction[0].length)
+        // The extent of the argument comes from the parenthesis depth, with
+        // `%(` and `%)` treated as escapes rather than as delimiters.
+        let depth = 0
+        let end = index + maskingFunction[0].length - 1
+        while (end < length) {
+          if (
+            text[end] === '%' &&
+            (text[end + 1] === '(' || text[end + 1] === ')')
+          ) {
+            end += 2
+            continue
+          }
+          if (text[end] === '(') depth++
+          else if (text[end] === ')') {
+            depth--
+            if (depth === 0) {
+              end++
+              break
+            }
+          }
+          end++
+        }
 
         if (options?.includeMasked) {
           // The argument is scanned for `%name` tokens only, never as code: a
