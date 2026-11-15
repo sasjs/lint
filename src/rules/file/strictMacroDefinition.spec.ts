@@ -43,6 +43,25 @@ describe('strictMacroDefinition', () => {
     expect(strictMacroDefinition.test(content12)).toEqual([])
   })
 
+  it('should not report a documented parameter list that follows a masked quote', () => {
+    const content = [
+      '%macro shows();',
+      `  %put %str(  )"Required: %qsysfunc(compress(%superq(req), %str(%'%\")))" ;`,
+      '%mend shows;',
+      '',
+      '%macro documented(',
+      '  dataSet /* name of a data set,',
+      '             e.g. work.a */',
+      ', quiet = 0 /* 1 = silent */',
+      ')/secure',
+      `des = 'Documented macro, version 1.'`,
+      ';',
+      '%mend documented;'
+    ].join('\n')
+
+    expect(strictMacroDefinition.test(content)).toEqual([])
+  })
+
   it('should return an array with a single diagnostic when Macro definition has space in param', () => {
     const content = '%macro somemacro(va r1);'
     expect(strictMacroDefinition.test(content)).toEqual([

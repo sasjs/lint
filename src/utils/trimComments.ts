@@ -1,7 +1,9 @@
+import { maskedArgumentEnd, maskingFunctionStart } from './maskingFunction'
+
 /**
  * Removes the block comments from a statement, or from one line of a statement.
  *
- * The scan tracks two states the previous implementation did not:
+ * The scan tracks three states the previous implementation did not:
  *
  * - a quoted value, because SAS accepts both quote characters, so an opening
  *   comment marker inside a string is data rather than the start of a comment;
@@ -9,7 +11,15 @@
  *   as `commentStarted` so the caller carries it into the next line. The old
  *   implementation lost that state when the opening marker had no closing
  *   delimiter on the same line, and returned the comment's content as code
- *   (sasjs/lint#274).
+ *   (sasjs/lint#274);
+ * - the argument of a masking function (`%str` / `%nrstr`), which is skipped
+ *   whole. SAS resolves a macro trigger inside a double-quoted string, and
+ *   `%str(%")` masks the quote so that it does not end the string. Read as a
+ *   delimiter it flipped the quote state, and every line after it was taken for
+ *   string content - so the comments in a macro declaration that follows were
+ *   not removed, and its documented parameters were read as names with spaces.
+ *   A `%` inside a single-quoted string is text, so the skipped region only
+ *   starts where the macro processor would act on it.
  *
  * A quoted value is carried across lines too (`quoteStarted`), because a SAS
  * literal really does continue onto the next physical line: measured on a live
@@ -38,6 +48,20 @@ export const trimComments = (
       }
 
       continue
+    }
+
+    if (character === '%' && quote !== "'") {
+      const maskingFunction = maskingFunctionStart.exec(text.slice(index))
+
+      if (maskingFunction) {
+        // The masked text keeps its place in the statement and leaves the quote
+        // and comment state alone.
+        const end = maskedArgumentEnd(text, index + maskingFunction[0].length)
+
+        result += text.slice(index, end)
+        index = end - 1
+        continue
+      }
     }
 
     if (quote) {
