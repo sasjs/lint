@@ -9,9 +9,7 @@
  *
  * The names live here rather than in each scanner that skips a masking
  * argument, so the formatter's line scan, trimComments, noXcmd and
- * noSingleAsteriskComments cannot disagree about which calls mask. Two scanners
- * still declare their own set - parseMacroCalls and parseMacroCallArguments -
- * and are left alone deliberately: see the PR that added this file.
+ * noSingleAsteriskComments cannot disagree about which calls mask.
  */
 export const maskingFunctionNames = '(?:nr)?(?:str|bquote|superq|quote|unquote)'
 
