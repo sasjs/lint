@@ -1,3 +1,4 @@
+import { KEYWORD_CASES } from './KeywordCase'
 import { hasRequiredMacroOptions } from '../rules/file'
 import { LineEndings } from './LineEndings'
 import { LintConfig } from './LintConfig'
@@ -576,5 +577,25 @@ describe('LintConfig.override', () => {
       'error ',
       'todo'
     ])
+  })
+})
+
+describe('keywordCase', () => {
+  it('defaults to preserve', () => {
+    expect(new LintConfig({}).keywordCase).toEqual('preserve')
+  })
+
+  it('accepts every declared case', () => {
+    // Iterates the same list the constructor validates against, so a value added
+    // there is exercised here without this test being edited.
+    for (const value of KEYWORD_CASES) {
+      expect(new LintConfig({ keywordCase: value }).keywordCase).toEqual(value)
+    }
+  })
+
+  it('rejects anything else', () => {
+    expect(() => new LintConfig({ keywordCase: 'Title' })).toThrow(
+      /keywordCase/
+    )
   })
 })

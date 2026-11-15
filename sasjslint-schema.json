@@ -40,7 +40,8 @@
     "noXcmd": true,
     "requiredMacroOptions": [],
     "severityLevel": {},
-    "strictMacroDefinition": true
+    "strictMacroDefinition": true,
+    "keywordCase": "preserve"
   },
   "examples": [
     {
@@ -182,6 +183,14 @@
       "description": "Enforces a configurable multiple for the number of spaces for indentation. Shows a warning for lines that are not indented by a multiple of this number.",
       "default": 2,
       "examples": [2, 3, 4]
+    },
+    "keywordCase": {
+      "$id": "#/properties/keywordCase",
+      "type": "string",
+      "title": "keywordCase",
+      "description": "The case the formatter gives SAS keywords, once it is given a layout engine (see formatText). Applied by that engine's lexer: strings and comments are left alone, but a name it cannot tell from a keyword - a DATA step variable called label - is cased with it. Defaults to preserve.",
+      "enum": ["upper", "lower", "preserve"],
+      "default": "preserve"
     },
     "lowerCaseFileNames": {
       "$id": "#/properties/lowerCaseFileNames",
