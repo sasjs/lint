@@ -226,6 +226,40 @@ run;`
     expect(findings(`data _null_; infile myref; input; run;`)).toEqual([])
   })
 
+  it('reports an x statement that follows a masked quote in another masking call', () => {
+    expect(findings(`%let q = %bquote(%");\nx "ls";`)).toEqual([
+      expect.objectContaining({
+        message: 'OS command requires XCMD: x statement',
+        lineNumber: 2
+      })
+    ])
+  })
+
+  it('reports the code a masked argument carries', () => {
+    expect(findings(`%str(set; x "ls";)`)).toEqual([
+      expect.objectContaining({
+        message: 'OS command requires XCMD: x statement'
+      })
+    ])
+  })
+
+  it('reports an x statement that follows a masked quote', () => {
+    expect(findings(`%let q = %str(%");\nx "rm -rf /";`)).toEqual([
+      expect.objectContaining({
+        message: 'OS command requires XCMD: x statement',
+        lineNumber: 2
+      })
+    ])
+  })
+
+  it('reports an x statement that follows a masked quote inside a string', () => {
+    expect(findings(`%put "%str(%")"; x "ls";`)).toEqual([
+      expect.objectContaining({
+        message: 'OS command requires XCMD: x statement'
+      })
+    ])
+  })
+
   it('reports %sysexec but not a user macro whose name ends in sysexec', () => {
     expect(findings(`%mf_sysexec(myfile);`)).toEqual([])
     expect(findings(`%sysexec %str(ls);`)).toEqual([

@@ -4,6 +4,10 @@ import { LintRuleType } from '../../types/LintRuleType'
 import { Severity } from '../../types/Severity'
 import { getPosition } from '../../utils'
 import { getSeverity } from '../../utils/getSeverity'
+import {
+  maskedArgumentEnd,
+  maskingFunctionStart
+} from '../../utils/maskingFunction'
 
 const name = 'noXcmd'
 const description =
@@ -44,7 +48,10 @@ interface Construct {
  * Quotes are carried across lines, as the engine does: `x = "ab` / `cd";` is
  * one string, and only that reading stops the continuation from being linted as
  * code. An unterminated quote therefore hides the rest of the file rather than
- * reporting a construct that is really string content.
+ * reporting a construct that is really string content. A masking call's
+ * argument is data for the same reason - a masked quote in it must not end the
+ * string it sits in - so no quote opens there either, while the text itself
+ * stays visible to the patterns.
  */
 const maskNonCode = (text: string) => {
   const characters = text.split('')
@@ -53,6 +60,7 @@ const maskNonCode = (text: string) => {
   let inBlockComment = false
   let inCommentStatement = false
   let quote = ''
+  let maskedEnd = -1
   let index = 0
 
   const blank = (position: number) => {
@@ -62,6 +70,32 @@ const maskNonCode = (text: string) => {
   while (index < text.length) {
     const character = text[index]
     const next = text[index + 1]
+
+    // Inside a masking call's argument the characters are data rather than
+    // delimiters, so a quote or a comment marker there opens nothing. The text
+    // itself stays visible: it is what the program compiles once the masking is
+    // removed, and blanking it hid the commands this rule exists to report.
+    if (index < maskedEnd) {
+      if (quote) {
+        if (character !== '\n') characters[index] = '_'
+        index++
+        continue
+      }
+
+      if (character === ';') {
+        statementStarted = false
+        index++
+        continue
+      }
+
+      if (!/\s/.test(character)) {
+        if (!statementStarted) statementStarts.push(index)
+        statementStarted = true
+      }
+
+      index++
+      continue
+    }
 
     if (inBlockComment) {
       if (character === '*' && next === '/') {
@@ -91,6 +125,16 @@ const maskNonCode = (text: string) => {
       blank(index)
       index++
       continue
+    }
+
+    if (character === '%' && quote !== "'") {
+      const maskingFunction = maskingFunctionStart.exec(text.slice(index))
+
+      if (maskingFunction) {
+        maskedEnd = maskedArgumentEnd(text, index + maskingFunction[0].length)
+        index += maskingFunction[0].length
+        continue
+      }
     }
 
     if (quote) {

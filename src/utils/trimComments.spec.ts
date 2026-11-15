@@ -154,4 +154,49 @@ describe('trimComments', () => {
     expect(result.quoteStarted).toEqual("'")
     expect(result.statement).toEqual(`y = 'oops;`)
   })
+  it('should read a masked quote as data, so the string it sits in still closes', () => {
+    const line = `title "Required: %qsysfunc(compress(%superq(req), %str(%'%\")))" ;`
+
+    expect(trimComments(line)).toEqual({
+      statement: line,
+      commentStarted: false,
+      quoteStarted: ''
+    })
+  })
+
+  it('should read a masked quote in every masking call as data', () => {
+    for (const name of ['%str', '%bquote', '%quote', '%nrstr', '%nrbquote']) {
+      const line = `%put ${name}(%") ;`
+
+      expect(trimComments(line)).toEqual({
+        statement: line,
+        commentStarted: false,
+        quoteStarted: ''
+      })
+    }
+  })
+
+  it('should read a masked quote outside a string as data', () => {
+    expect(trimComments(`%let quote = %str(%");`)).toEqual({
+      statement: `%let quote = %str(%");`,
+      commentStarted: false,
+      quoteStarted: ''
+    })
+  })
+
+  it('should treat a comment marker inside a masked argument as data', () => {
+    expect(trimComments(`%put %str(/*);`)).toEqual({
+      statement: `%put %str(/*);`,
+      commentStarted: false,
+      quoteStarted: ''
+    })
+  })
+
+  it('should not mask a trigger inside a single-quoted string', () => {
+    expect(trimComments(`%let a = '%str(%\")';`)).toEqual({
+      statement: `%let a = '%str(%\")';`,
+      commentStarted: false,
+      quoteStarted: ''
+    })
+  })
 })
