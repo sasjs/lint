@@ -1,6 +1,7 @@
 export * from './Diagnostic'
 export * from './FormatResult'
 export * from './FormatOptions'
+export * from './KeywordCase'
 export * from './LintConfig'
 export * from './LintRule'
 export * from './LintRuleType'

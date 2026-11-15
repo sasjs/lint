@@ -166,4 +166,16 @@ describe('formatText', () => {
     )
     expect(output).toEqual('data foo;\nrun;\n')
   })
+
+  it('lets a reprint rejection through', async () => {
+    // The engine names what it could not do; swallowing that would return a
+    // buffer that looks formatted and is not.
+    const reprint = async () => {
+      throw new Error('SAS language data is missing: /nope/pubsdata/Procedures')
+    }
+
+    await expect(
+      formatText('data foo;\nrun;\n', new LintConfig({}), { reprint })
+    ).rejects.toThrow(/data is missing/)
+  })
 })

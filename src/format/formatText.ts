@@ -12,6 +12,13 @@ import { processText } from './shared'
  * them to the original text and reprinting afterwards would undo both. The lint
  * override comment travels with the text through the reprint (it is a comment),
  * so `keywordCase` from an `@sasjslint` line applies to the same buffer.
+ *
+ * A rejection from the engine is not caught: its message is the one that says why
+ * (`@sasjs/sas-language` names the data file it could not read, for example), and
+ * a formatter that swallowed it would return a buffer that looks formatted and is
+ * not. `formatFolder` is the one place that catches, because there a single
+ * refusal must not stop the walk - it collects them and raises them together once
+ * the tree is done.
  */
 export const formatText = async (
   text: string,
