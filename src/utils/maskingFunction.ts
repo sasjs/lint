@@ -7,11 +7,13 @@
  * comments has to skip such an argument whole: the quote inside it otherwise
  * flips its state and the rest of the file is read as string content.
  *
- * The names live here rather than in each scanner, so the formatter's line scan
- * and the rules cannot disagree about which calls mask their argument.
+ * The names live here rather than in each scanner that skips a masking
+ * argument, so the formatter's line scan, trimComments, noXcmd and
+ * noSingleAsteriskComments cannot disagree about which calls mask. Two scanners
+ * still declare their own set - parseMacroCalls and parseMacroCallArguments -
+ * and are left alone deliberately: see the PR that added this file.
  */
-export const maskingFunctionNames =
-  '(?:nr?)?(?:str|bquote|superq|quote|unquote)'
+export const maskingFunctionNames = '(?:nr)?(?:str|bquote|superq|quote|unquote)'
 
 /** Matches one of those calls, at the start of the supplied text. */
 export const maskingFunctionStart = new RegExp(

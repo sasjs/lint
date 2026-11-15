@@ -23,12 +23,17 @@ describe('maskingFunctionStart', () => {
   it('should not match a call that does not mask its argument', () => {
     expect(maskingFunctionStart.test('%sysfunc(a)')).toBe(false)
     expect(maskingFunctionStart.test('%mf_foo(a)')).toBe(false)
-    // The prefix is `n`, `nr` or nothing: SAS defines no `r`-prefixed masking
-    // call, and a user macro with one of those names masks nothing.
+    // The prefix is `nr` or nothing: SAS defines neither the `r`- nor the
+    // `n`-only forms, and a user macro with one of those names masks nothing.
     expect(maskingFunctionStart.test('%rstr(a)')).toBe(false)
     expect(maskingFunctionStart.test('%rquote(a)')).toBe(false)
     expect(maskingFunctionStart.test('%rbquote(a)')).toBe(false)
     expect(maskingFunctionStart.test('%rsuperq(a)')).toBe(false)
+    expect(maskingFunctionStart.test('%nstr(a)')).toBe(false)
+    expect(maskingFunctionStart.test('%nquote(a)')).toBe(false)
+    expect(maskingFunctionStart.test('%nbquote(a)')).toBe(false)
+    expect(maskingFunctionStart.test('%nsuperq(a)')).toBe(false)
+    expect(maskingFunctionStart.test('%nunquote(a)')).toBe(false)
   })
 })
 
