@@ -260,6 +260,26 @@ describe('formatFolder', () => {
     await deleteFolder(folder)
   })
 
+  it('reports a refusal that is not an Error by its value', async () => {
+    // `reprint` is the caller's function: throwing a string is legal, and the
+    // message must still carry what was thrown rather than "undefined".
+    const folder = path.join(__dirname, 'format-folder-thrown-string-test')
+    await createFolder(folder)
+    await createFile(path.join(folder, 'a.sas'), 'data a;\nrun;\n')
+
+    const reprint = async () => {
+      throw 'engine refused: not an Error'
+    }
+
+    await expect(
+      formatFolder(folder, new LintConfig({ hasDoxygenHeader: false }), {
+        reprint
+      })
+    ).rejects.toThrow(/engine refused: not an Error/)
+
+    await deleteFolder(folder)
+  })
+
   it('keeps walking the folder when a subfolder fails', async () => {
     // The subfolder catch is what stops one failing branch of the tree from
     // ending the walk around it - so the proof is a second subfolder, sorted

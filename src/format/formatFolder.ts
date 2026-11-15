@@ -12,12 +12,12 @@ import { formatFile } from './formatFile'
 /**
  * One line of the aggregate raised when a walk finishes with failures.
  *
- * `where: message` and nothing conditional: a fallback for a thrown value that is
- * not an Error is a branch no caller can reach, and an uncovered branch is a cost
- * in a file that holds a coverage floor.
+ * The engine is the caller's own function, so what it throws is not necessarily an
+ * Error - a string is enough - and `error.message` on one of those reads
+ * `undefined`, dropping the reason the rejection was passed on for.
  */
-const describeFailure = (where: string, error: Error) =>
-  `${where}: ${error.message}`
+const describeFailure = (where: string, error: unknown) =>
+  `${where}: ${error instanceof Error ? error.message : String(error)}`
 
 const excludeFolders = [
   '.git',
