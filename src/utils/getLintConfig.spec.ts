@@ -2,6 +2,7 @@ import * as fileModule from '@sasjs/utils/file'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { LintConfig } from '../types/LintConfig'
+import { KEYWORD_CASES } from '../types/KeywordCase'
 import { DefaultLintConfiguration, getLintConfig } from './getLintConfig'
 
 const expectedFileLintRulesCount = 11
@@ -121,6 +122,20 @@ describe('DefaultLintConfiguration', () => {
 
     expect(block).not.toBeNull()
     expect(JSON.parse(block![1])).toEqual(DefaultLintConfiguration)
+  })
+
+  it('should list the same keyword cases as the schema', () => {
+    // The type holds the accepted values and the schema repeats them because it is
+    // JSON. Adding a case to one and not the other leaves an editor hint that
+    // rejects what the linter accepts, and nothing else compares them.
+    const schema = JSON.parse(
+      readFileSync(
+        join(__dirname, '..', '..', 'sasjslint-schema.json'),
+        'utf-8'
+      )
+    )
+
+    expect(schema.properties.keywordCase.enum).toEqual([...KEYWORD_CASES])
   })
 
   it('should match the default in the schema', () => {

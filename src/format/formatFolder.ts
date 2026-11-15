@@ -9,6 +9,16 @@ import { listSasFiles } from '../utils/listSasFiles'
 import { FormatOptions } from '../types/FormatOptions'
 import { formatFile } from './formatFile'
 
+/**
+ * One line of the aggregate raised when a walk finishes with failures.
+ *
+ * `where: message` and nothing conditional: a fallback for a thrown value that is
+ * not an Error is a branch no caller can reach, and an uncovered branch is a cost
+ * in a file that holds a coverage floor.
+ */
+const describeFailure = (where: string, error: Error) =>
+  `${where}: ${error.message}`
+
 const excludeFolders = [
   '.git',
   '.github',
@@ -48,7 +58,7 @@ export const formatFolder = async (
     try {
       await formatFile(filePath, config, options)
     } catch (error: any) {
-      failures.push(`${filePath}: ${error?.message ?? error}`)
+      failures.push(describeFailure(filePath, error))
     }
   })
 
@@ -60,9 +70,7 @@ export const formatFolder = async (
     try {
       await formatFolder(path.join(folderPath, subFolder), config, options)
     } catch (error: any) {
-      failures.push(
-        `${path.join(folderPath, subFolder)}: ${error?.message ?? error}`
-      )
+      failures.push(describeFailure(path.join(folderPath, subFolder), error))
     }
   })
 
@@ -76,9 +84,11 @@ export const formatFolder = async (
 
   const updatedFilePaths: string[] = []
 
+  // Both maps come from lintFolder over the same file list, so every path in
+  // before is in after as well - a fallback there would be a branch no run reaches.
   Array.from(diagnosticsBeforeFormat.keys()).forEach((filePath) => {
-    const diagnosticsBefore = diagnosticsBeforeFormat.get(filePath) || []
-    const diagnosticsAfter = diagnosticsAfterFormat.get(filePath) || []
+    const diagnosticsBefore = diagnosticsBeforeFormat.get(filePath)!
+    const diagnosticsAfter = diagnosticsAfterFormat.get(filePath)!
 
     if (diagnosticsBefore.length !== diagnosticsAfter.length) {
       updatedFilePaths.push(filePath)

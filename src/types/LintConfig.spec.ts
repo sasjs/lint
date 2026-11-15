@@ -1,3 +1,4 @@
+import { KEYWORD_CASES } from './KeywordCase'
 import { hasRequiredMacroOptions } from '../rules/file'
 import { LineEndings } from './LineEndings'
 import { LintConfig } from './LintConfig'
@@ -584,8 +585,10 @@ describe('keywordCase', () => {
     expect(new LintConfig({}).keywordCase).toEqual('preserve')
   })
 
-  it('accepts the three cases', () => {
-    for (const value of ['upper', 'lower', 'preserve'] as const) {
+  it('accepts every declared case', () => {
+    // Iterates the same list the constructor validates against, so a value added
+    // there is exercised here without this test being edited.
+    for (const value of KEYWORD_CASES) {
       expect(new LintConfig({ keywordCase: value }).keywordCase).toEqual(value)
     }
   })

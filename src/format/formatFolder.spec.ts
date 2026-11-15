@@ -9,9 +9,7 @@ import {
 import { Diagnostic, LintConfig } from '../types'
 
 describe('formatFolder', () => {
-  // Two tests share a fixture folder and one of them used to create its
-  // sub-folder outside it, so a failed run left files that the next run walked.
-  // Each test now starts from nothing.
+  // These tests share fixture folders, so each starts from an empty one.
   beforeEach(async () => {
     for (const dir of ['format-folder-test', 'subfolder']) {
       await deleteFolder(path.join(__dirname, dir))
@@ -111,19 +109,15 @@ describe('formatFolder', () => {
   it('should use a custom configuration when provided', async () => {
     // The expectation follows the configuration this test passes: `crlf` line
     // endings, and `hasMacroNameInMend: false` leaving `%mend` without the macro
-    // name. It used to expect LF and `%mend somemacro;`, which is what the default
-    // configuration produces - the folder's configuration never reached the file,
-    // so the test was asserting the bug it was meant to cover.
+    // name.
     const content = `%macro somemacro();  \n%put 'hello';\n%mend;`
     const expectedContent = `/**\r\n  @file\r\n  @brief <Your brief here>\r\n\r\n  <h4> SAS Macros </h4>\r\n\r\n**/\r\n%macro somemacro();\r\n%put 'hello';\r\n%mend;\r\n`
     const expectedResult = {
       updatedFilePaths: [
         path.join(__dirname, 'format-folder-test', 'format-folder-test.sas')
       ],
-      // Five, not three: the counts are now measured with the configuration this
-      // test passes, so the rules it leaves on all report here. Before, they were
-      // measured against the default configuration, which disagreed with what the
-      // formatter had just done.
+      // Measured with the configuration this test passes, so every rule it leaves
+      // on reports here - the counts and the formatting have to agree.
       fixedDiagnosticsCount: 5,
       unfixedDiagnostics: new Map<string, Diagnostic[]>([
         [
@@ -245,8 +239,7 @@ describe('formatFolder', () => {
   })
 
   it('passes the layout engine and the configuration to every file', async () => {
-    // The engine used to stop at formatText: a caller formatting a folder or a
-    // project could not supply one, so keywordCase silently did nothing there.
+    // A caller formatting a tree supplies the engine; it reaches every file.
     const folder = path.join(__dirname, 'format-folder-engine-test')
     await createFolder(folder)
     await createFile(path.join(folder, 'a.sas'), 'data a;\nrun;\n')
@@ -267,17 +260,23 @@ describe('formatFolder', () => {
     await deleteFolder(folder)
   })
 
-  it('formats the rest of a folder when the engine refuses one file', async () => {
-    // A rejection used to escape formatFile and end the walk, leaving whatever
-    // had not been reached untouched. The tree is now finished and the failure is
-    // raised once, naming the file.
-    const folder = path.join(__dirname, 'format-folder-failure-test')
+  it('keeps walking the folder when a subfolder fails', async () => {
+    // The subfolder catch is what stops one failing branch of the tree from
+    // ending the walk around it - so the proof is a second subfolder, sorted
+    // after the failing one, whose file still gets formatted.
+    const folder = path.join(__dirname, 'format-folder-subfolder-test')
     await createFolder(folder)
-    await createFile(path.join(folder, 'good.sas'), 'data good;\nrun;\n')
-    await createFile(path.join(folder, 'bad.sas'), 'data bad;\nrun;\n')
+    await createFolder(path.join(folder, 'a-bad'))
+    await createFolder(path.join(folder, 'z-good'))
+    await createFile(path.join(folder, 'a-bad', 'bad.sas'), 'data bad;\nrun;\n')
+    // A defect the rules fix, so "the walk reached this file" is observable.
+    await createFile(
+      path.join(folder, 'z-good', 'good.sas'),
+      'data good;   \nrun;   \n'
+    )
 
     const reprint = async (text: string) => {
-      if (text.includes('bad')) throw new Error('the engine refused /bad.sas')
+      if (text.includes('bad')) throw new Error('the engine refused bad.sas')
       return text
     }
 
@@ -287,11 +286,35 @@ describe('formatFolder', () => {
       })
     ).rejects.toThrow(/bad\.sas/)
 
-    // The other file was still formatted: the header rule is off in this config,
-    // so the proof is that its trailing whitespace and macro syntax are untouched
-    // and its content is present - what matters is that the walk reached it.
+    const good = await readFile(path.join(folder, 'z-good', 'good.sas'))
+    expect(good).toEqual('data good;\nrun;\n')
+
+    await deleteFolder(folder)
+  })
+
+  it('formats the rest of a folder when the engine refuses one file', async () => {
+    // One refusing file must not decide the fate of the rest: the walk finishes
+    // and the failure is raised once, naming the file.
+    const folder = path.join(__dirname, 'format-folder-failure-test')
+    await createFolder(folder)
+    // A defect the rules fix, so "the walk reached this file" is observable.
+    await createFile(path.join(folder, 'good.sas'), 'data good;   \nrun;   \n')
+    await createFile(path.join(folder, 'bad.sas'), 'data bad;\nrun;\n')
+
+    const reprint = async (text: string) => {
+      if (text.includes('bad')) throw new Error('the engine refused /bad.sas')
+      return text
+    }
+
+    // The aggregate is what distinguishes this from a single file's rejection.
+    await expect(
+      formatFolder(folder, new LintConfig({ hasDoxygenHeader: false }), {
+        reprint
+      })
+    ).rejects.toThrow(/Could not format 1 file/)
+
     const good = await readFile(path.join(folder, 'good.sas'))
-    expect(good).toContain('data good;')
+    expect(good).toEqual('data good;\nrun;\n')
 
     await deleteFolder(folder)
   })

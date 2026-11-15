@@ -10,6 +10,7 @@ import { formatText } from './formatText'
  * Applies automatic formatting to the file at the given path.
  * @param {string} filePath - the path to the file to be formatted.
  * @param {LintConfig} configuration - an optional configuration. When not passed in, this is read from the .sasjslint file.
+ * @param {FormatOptions} options - an optional layout engine, used for the reprint pass.
  * @returns {Promise<FormatResult>} Resolves successfully when the file has been formatted.
  */
 export const formatFile = async (
