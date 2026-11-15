@@ -4,6 +4,90 @@ import { reflowComments } from './reflowComments'
 const config = (json: any) => new LintConfig(json)
 
 describe('reflowComments', () => {
+  it('wraps the prose of a header that holds a SAS Macros list, leaving the list alone', () => {
+    // The list is other rules' data - `noUnusedMacros` and `lowerCaseMacroNames`
+    // parse and rewrite it - so it stays byte-identical while the paragraph above
+    // it is wrapped like any other.
+    const text = `/**
+  @brief a header with a long description that runs well past the width
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @li mf_abort.sas
+**/
+data _null_;
+run;`
+
+    // Header lines are measured against max(maxLineLength, maxHeaderLineLength),
+    // so both have to be tightened for this fixture to be over the limit.
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a header with a long
+  description that runs well past the
+  width
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @li mf_abort.sas
+**/
+data _null_;
+run;`)
+  })
+
+  it('leaves the macros section at the next tag, and wraps what follows it', () => {
+    const text = `/**
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @version 9.4
+  @brief a description after the list that is long enough to wrap here
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @version 9.4
+  @brief a description after the list
+  that is long enough to wrap here
+**/
+data _null_;
+run;`)
+  })
+
+  it('wraps the prose around an @example body, leaving the body alone', () => {
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @example
+    %let x = 1;
+  @version 9.4
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @example
+    %let x = 1;
+  @version 9.4
+**/
+data _null_;
+run;`)
+  })
+
   it('wraps a comment paragraph and indents the continuation', () => {
     const text = `data _null_;
 /* the quick brown fox jumps over the lazy dog and keeps on

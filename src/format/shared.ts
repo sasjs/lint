@@ -2,6 +2,7 @@ import { LintConfig } from '../types'
 import { applyLintOverride } from '../utils/parseLintOverride'
 import { splitText } from '../utils/splitText'
 import { adjustLineLength, lineEndingOf } from './adjustLineLength'
+import { headerLayout } from './headerLayout'
 import { reflowComments } from './reflowComments'
 import { rewrapText } from './rewrapText'
 import { splitTrailingComments } from './splitTrailingComments'
@@ -38,7 +39,10 @@ export const processText = (text: string, config: LintConfig) => {
 
 const processOnce = (text: string, config: LintConfig): string => {
   const rewrapped = rewrapText(
-    splitTrailingComments(processContent(config, text), config),
+    headerLayout(
+      splitTrailingComments(processContent(config, text), config),
+      config
+    ),
     config
   )
   const processedText = adjustLineLength(

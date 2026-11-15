@@ -50,6 +50,9 @@ const lineOriented = /^(?:@li\b|@sasjslint\b|<|[-*+]\s|\d+[.)]\s|\||#|%|`)/i
 /** A tag whose body is code rather than prose. */
 const codeTag = /@(?:example|code|verbatim)\b/i
 
+/** Any other tag, which is where a code body ends. */
+const otherTag = /^\s*@(?!example|code|verbatim)\w/i
+
 /** The heading whose `@li` entries other rules read and rewrite. */
 const macrosHeading = /<h4>\s*SAS Macros\s*<\/h4>/i
 
@@ -331,10 +334,12 @@ export const reflowComments = (
       block.open < headerLinesCount ? headerLimit : configuration.maxLineLength
     const blockText = read.map((line) => line.raw).join('\n')
 
-    const refused =
-      macrosHeading.test(blockText) ||
-      codeTag.test(blockText) ||
-      read.some((line) => /@sasjslint\b/.test(line.content))
+    // The macros section is refused rather than the whole block that holds it:
+    // its `@li` entries are parsed and rewritten by other rules, and its
+    // continuation lines would end the list a reader sees, so those lines stay
+    // byte-identical - but a `@brief` or `@param` paragraph above them is prose
+    // like any other and is wrapped with the rest.
+    const refused = read.some((line) => /@sasjslint\b/.test(line.content))
 
     if (refused) continue
 
@@ -372,7 +377,53 @@ export const reflowComments = (
       paragraphIndent = -1
     }
 
+    let inMacrosSection = false
+    let inCodeSection = false
+
     read.forEach((line, index) => {
+      // The heading and the `@li` run under it are another rule's data: keep them
+      // exactly as they arrived. The section ends at the next tag or heading.
+      if (inMacrosSection) {
+        const endsSection =
+          line.content !== '' &&
+          startsParagraph.test(line.content) &&
+          !/^@li\b/i.test(line.content)
+
+        if (!endsSection) {
+          flush()
+          emitted.push(line.raw)
+          return
+        }
+
+        inMacrosSection = false
+      }
+
+      // A `@example` / `@code` / `@verbatim` body is data, not prose: leave it
+      // exactly as it arrived. It ends at the next tag.
+      if (inCodeSection) {
+        if (line.content !== '' && otherTag.test(line.content))
+          inCodeSection = false
+        else {
+          flush()
+          emitted.push(line.raw)
+          return
+        }
+      }
+
+      if (codeTag.test(line.content)) {
+        flush()
+        emitted.push(line.raw)
+        inCodeSection = true
+        return
+      }
+
+      if (macrosHeading.test(line.content)) {
+        flush()
+        emitted.push(line.raw)
+        inMacrosSection = true
+        return
+      }
+
       if (line.content === '') {
         flush()
         emitted.push(line.raw)
