@@ -167,7 +167,7 @@ If creating a new value, use `{lineEnding}` instead of `\n`, eg as follows:
 
 The case the formatter gives SAS keywords. `preserve` leaves them as written, which is what the printer does when nothing is asked of it; `upper` and `lower` rewrite them.
 
-It is a formatting setting rather than a rule - casing is a house style, and reporting it on every line would bury the rules that describe defects - and it takes effect when the formatter is given a layout engine. Every caller with a SAS printer supplies one (`@sasjs/sas-language` is where ours comes from), because the words worth changing are the ones that engine's lexer identifies: strings, comments and identifiers are left alone, and a name the lexer cannot tell from a keyword - a DATA step variable called `label` - is cased with it.
+It is a formatting setting rather than a rule - casing is a house style, and reporting it on every line would bury the rules that describe defects - and it takes effect when the formatter is given a layout engine. Every caller with a SAS printer supplies one (`@sasjs/sas-language` is where ours comes from), because the words worth changing are the ones that engine's lexer identifies. Strings and comments are left alone; a name the lexer cannot tell from a keyword - a DATA step variable called `label` - is cased with it.
 
 - Default: preserve
 

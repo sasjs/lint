@@ -188,7 +188,7 @@
       "$id": "#/properties/keywordCase",
       "type": "string",
       "title": "keywordCase",
-      "description": "The case the formatter gives SAS keywords. Applied by the reprint engine the caller supplies (see formatText): strings, comments and identifiers are left alone.",
+      "description": "The case the formatter gives SAS keywords, once it is given a layout engine (see formatText). Applied by that engine's lexer: strings and comments are left alone, but a name it cannot tell from a keyword - a DATA step variable called label - is cased with it. Defaults to preserve.",
       "enum": ["upper", "lower", "preserve"],
       "default": "preserve"
     },
