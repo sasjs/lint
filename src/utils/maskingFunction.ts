@@ -10,7 +10,8 @@
  * The names live here rather than in each scanner, so the formatter's line scan
  * and the rules cannot disagree about which calls mask their argument.
  */
-export const maskingFunctionNames = 'n?r?(?:str|bquote|superq|quote|unquote)'
+export const maskingFunctionNames =
+  '(?:nr?)?(?:str|bquote|superq|quote|unquote)'
 
 /** Matches one of those calls, at the start of the supplied text. */
 export const maskingFunctionStart = new RegExp(
