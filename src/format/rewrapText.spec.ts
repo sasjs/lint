@@ -332,6 +332,44 @@ run;`
     )
   })
 
+  it('prefers a semicolon, which ends a statement, over a break inside one', () => {
+    // From sasjs/core: a `%put` followed by a `%*` comment. Breaking after the
+    // `;` needs no `%trim(` machinery at all, because nothing is being cut in
+    // half.
+    expect(
+      rewrapText(
+        `      %put %mf_loc(POF); %*location of PlatformObjectFramework tools;`,
+        config({ maxLineLength: 60 })
+      )
+    ).toBe(
+      `      %put %mf_loc(POF);\n        %*location of PlatformObjectFramework tools;`
+    )
+
+    // The same preference in ordinary code: one statement per line.
+    expect(
+      rewrapText(
+        `  call symputx("a",1); call symputx("b",2); call symputx("c",3);`,
+        config({ maxLineLength: 60 })
+      )
+    ).toBe(
+      `  call symputx("a",1); call symputx("b",2);\n    call symputx("c",3);`
+    )
+  })
+
+  it('falls back to a %trim break when no statement boundary fits', () => {
+    // The first statement alone overruns the limit, so the boundary after it is
+    // out of reach; the break inside it carries `%trim(`, and the second
+    // statement still starts a line of its own.
+    expect(
+      rewrapText(
+        `  %put NOTE: a statement that is far too long to fit in forty; %put ok;`,
+        config({ maxLineLength: 40 })
+      )
+    ).toBe(
+      `  %put NOTE: a statement that is%trim(\n    ) far too long to fit in forty;\n    %put ok;`
+    )
+  })
+
   it('breaks a put in a THEN branch, and wraps the next statement', () => {
     const text = `data _null_;
   if found then put "one" two three four five six seven eight nine ten;

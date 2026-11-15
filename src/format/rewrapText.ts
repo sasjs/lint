@@ -86,6 +86,26 @@ const lastBreakBefore = (
   return fallback
 }
 
+/**
+ * The break points that sit at a statement boundary - the space immediately
+ * after a `;` in the code view.
+ *
+ * A newline there is always inert: the statement has ended, so no `%trim(` is
+ * needed, no macro variable value can gain whitespace and no `put` can gain an
+ * output line. They are therefore preferred over a break inside a statement,
+ * which is why `%let a=1; %let b=2;` breaks between the two statements rather
+ * than in the middle of the second one.
+ *
+ * @param {string} code - the line with literals and comments blanked, so the
+ *   `;` inside a quoted value is not a boundary.
+ * @param {number[]} positions - the line's safe break points.
+ * @returns {number[]} the break points that follow a terminator.
+ */
+const statementBoundaries = (code: string, positions: number[]): number[] =>
+  positions.filter((position) =>
+    code.slice(0, position).trimEnd().endsWith(';')
+  )
+
 /** The index of the first safe break point at or after `minimum`. */
 const firstPositionAtLeast = (positions: number[], minimum: number): number => {
   let low = 0
@@ -220,7 +240,8 @@ const splitWithTrim = (
   limit: number,
   multiple: number,
   positions: number[],
-  from: number
+  from: number,
+  boundaries: number[]
 ): string[] | null => {
   const indent = /^\s*/.exec(line)![0]
   const continuationIndent = continuationIndentFor(indent, multiple)
@@ -237,6 +258,28 @@ const splitWithTrim = (
       pieces.push((pieces.length ? prefix : '') + tail)
 
       return pieces.length > 1 ? pieces : null
+    }
+
+    // A statement boundary is the cheapest break there is: the text above ends
+    // with its `;`, so nothing has to be swallowed and the piece carries no
+    // `%trim(` machinery. Take it when it fits, and fall back to a break inside
+    // the statement only when none does.
+    const boundary = boundaries.filter(
+      (position) =>
+        position > start && prefix.length + position - start <= limit
+    )
+
+    if (boundary.length) {
+      const at = boundary[boundary.length - 1]
+
+      pieces.push(
+        pieces.length ? prefix + line.slice(start, at) : line.slice(0, at)
+      )
+      start = at + 1
+      textFrom = start
+      prefix = continuationIndent
+
+      continue
     }
 
     // The piece carries the prefix, the text up to the space it breaks at,
@@ -284,7 +327,8 @@ const wrapLine = (
   line: string,
   limit: number,
   multiple: number,
-  positions: number[]
+  positions: number[],
+  boundaries: number[]
 ): string[] | null => {
   const indent = /^\s*/.exec(line)![0]
   const continuationIndent = continuationIndentFor(indent, multiple)
@@ -297,7 +341,13 @@ const wrapLine = (
     // A continuation line carries its indentation, so it has that much less
     // room than the line it replaces.
     const maximum = first ? limit : start + limit - continuationWidth
-    const cut = lastBreakBefore(line, positions, maximum, start)
+    // A statement boundary first: it ends a whole statement, so the line reads
+    // as SAS rather than as a slice of one.
+    const boundary = lastBreakBefore(line, boundaries, maximum, start)
+    const cut =
+      boundary >= 0
+        ? boundary
+        : lastBreakBefore(line, positions, maximum, start)
 
     // No break point fits: the tail stays on one line and the caller leaves the
     // whole line as it is.
@@ -399,6 +449,10 @@ export const rewrapText = (text: string, configuration: LintConfig): string => {
       : breakAwareState(scanned.code, breakAwareOpen)
     breakAwareOpen = breakAware.open
 
+    // Break points that sit at a statement boundary, which the wrap and the
+    // `%trim(` break both prefer.
+    const boundaries = statementBoundaries(scanned.code, scanned.positions)
+
     // Trailing spaces are another rule's finding: a line whose content fits is
     // left for that fix rather than wrapped into a blank continuation.
     const fits = line.trimEnd().length <= configuration.maxLineLength
@@ -419,7 +473,8 @@ export const rewrapText = (text: string, configuration: LintConfig): string => {
                 configuration.maxLineLength,
                 multiple,
                 scanned.positions,
-                putTextStart(line)
+                putTextStart(line),
+                boundaries
               )
             : scanned.hasComment
               ? null
@@ -427,7 +482,8 @@ export const rewrapText = (text: string, configuration: LintConfig): string => {
                   line,
                   configuration.maxLineLength,
                   multiple,
-                  scanned.positions
+                  scanned.positions,
+                  boundaries
                 )
 
     if (!wrapped) {
