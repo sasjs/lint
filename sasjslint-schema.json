@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/sasjs/lint/blob/main/sasjslint-schema.json",
+  "$id": "https://raw.githubusercontent.com/sasjs/lint/main/sasjslint-schema.json",
   "type": "object",
   "title": "SASjs Lint Config File",
   "description": "The SASjs Lint Config file provides the settings for customising SAS code style in your project. A SAS file can override these settings for itself with a `@sasjslint` block in its Doxygen header.",
