@@ -190,7 +190,9 @@ One constraint is not visible from the files: **publish.yml cannot be renamed**,
 
 ## What to work on
 
-The formatter applies these fixes today: `%mend` macro names, a Doxygen header template, adding undeclared macros to the `<h4> SAS Macros </h4>` section, removing unused macros from it, trailing spaces, and line endings (including a missing final newline) when [`lineEndings`](../README.md#lineendings) is configured.
+The formatter applies these fixes today: `%mend` macro names, a Doxygen header template, adding undeclared macros to the `<h4> SAS Macros </h4>` section, removing unused macros from it, trailing spaces, line endings (including a missing final newline) when [`lineEndings`](../README.md#lineendings) is configured, breaking a line that exceeds `maxLineLength` at whitespace, reflowing comment prose, and raising the file's own `@sasjslint` exception for a line neither pass can shorten.
+
+Those last two live in `src/format/reflowComments.ts` and `src/format/adjustLineLength.ts`, and both run from `processText` after `rewrapText` - in that order, because the exception excuses only what the two wrapping passes leave behind.
 
 Fixes not yet implemented, roughly in order of usefulness:
 
