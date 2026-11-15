@@ -3,9 +3,9 @@
  *
  * Inside the parentheses a quote, a semicolon or a comment marker is data
  * rather than syntax, so `%str(%")` is one masked quote - not the end of the
- * double-quoted string it is written in. Every scanner that follows strings or
- * comments has to skip such an argument whole, or the quote inside it flips its
- * state and the rest of the file is read as string content.
+ * double-quoted string it is written in. A scanner that follows strings or
+ * comments has to skip such an argument whole: the quote inside it otherwise
+ * flips its state and the rest of the file is read as string content.
  */
 export const maskingFunctionStart = /^%(nrstr|str)\s*\(/i
 
