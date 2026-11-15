@@ -578,3 +578,21 @@ describe('LintConfig.override', () => {
     ])
   })
 })
+
+describe('keywordCase', () => {
+  it('defaults to preserve', () => {
+    expect(new LintConfig({}).keywordCase).toEqual('preserve')
+  })
+
+  it('accepts the three cases', () => {
+    for (const value of ['upper', 'lower', 'preserve'] as const) {
+      expect(new LintConfig({ keywordCase: value }).keywordCase).toEqual(value)
+    }
+  })
+
+  it('rejects anything else', () => {
+    expect(() => new LintConfig({ keywordCase: 'Title' })).toThrow(
+      /keywordCase/
+    )
+  })
+})

@@ -133,4 +133,37 @@ describe('formatText', () => {
     expect(output).toContain('@li mf_used.sas')
     expect(output).toContain('@li mf_unused.sas')
   })
+
+  it('reprints first and applies the rules to its output', async () => {
+    // The engine is the caller's: lint carries no SAS printer of its own. What
+    // this asserts is the contract - called once, with the configured casing, and
+    // before the rules, so a trailing space the engine leaves is still removed.
+    const calls: Array<{ text: string; keywordCase: string }> = []
+    const reprint = async (text: string, options: { keywordCase: string }) => {
+      calls.push({ text, keywordCase: options.keywordCase })
+      return 'data foo;   \nrun;'
+    }
+
+    const output = await formatText(
+      'DATA foo;   \nRUN;',
+      new LintConfig({ keywordCase: 'lower', hasDoxygenHeader: false }),
+      { reprint }
+    )
+
+    expect(calls).toEqual([
+      { text: 'DATA foo;   \nRUN;', keywordCase: 'lower' }
+    ])
+    expect(output).toEqual('data foo;\nrun;')
+  })
+
+  it('does not reprint when no engine is supplied', async () => {
+    // The behaviour a caller without @sasjs/sas-language sees, unchanged.
+    const text = 'data foo;\nrun;\n'
+    const output = await formatText(
+      text,
+      new LintConfig({ hasDoxygenHeader: false }),
+      {}
+    )
+    expect(output).toEqual('data foo;\nrun;\n')
+  })
 })

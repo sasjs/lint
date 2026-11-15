@@ -71,6 +71,15 @@ export class LintConfig {
   readonly ignoredLibnames: string[] = []
   readonly ignoredMacros: string[] = []
   readonly bannedStrings: string[] = []
+  /**
+   * Case the formatter gives keywords, when a reprint engine is supplied.
+   *
+   * The setting lives here because that is where a house style is decided; the
+   * words themselves come from the engine's lexer. It is not a lint rule: casing
+   * is a formatting choice, and reporting it on every line would drown the rules
+   * that describe defects.
+   */
+  readonly keywordCase: 'upper' | 'lower' | 'preserve' = 'preserve'
 
   constructor(json?: any) {
     this.source = json ?? {}
@@ -107,6 +116,16 @@ export class LintConfig {
           )
         }
       })
+    }
+
+    if (json?.keywordCase !== undefined) {
+      const value = json.keywordCase
+      if (value !== 'upper' && value !== 'lower' && value !== 'preserve') {
+        throw new Error(
+          `Property "keywordCase" can only be "upper", "lower" or "preserve".`
+        )
+      }
+      this.keywordCase = value
     }
 
     if (json?.noTrailingSpaces !== false) {

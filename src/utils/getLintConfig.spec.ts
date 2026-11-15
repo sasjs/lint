@@ -90,6 +90,8 @@ describe('DefaultLintConfiguration', () => {
               return {}
             case 'lineEndings':
               return 'off'
+            case 'keywordCase':
+              return 'preserve'
             default:
               return 1
           }

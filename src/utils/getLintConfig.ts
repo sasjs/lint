@@ -30,6 +30,7 @@ export const DefaultLintConfiguration = {
   ignoredLibnames: [],
   ignoredMacros: [...defaultIgnoredMacros],
   indentationMultiple: 2,
+  keywordCase: 'preserve',
   lineEndings: LineEndings.OFF,
   lowerCaseFileNames: true,
   lowerCaseMacroNames: true,

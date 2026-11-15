@@ -2,9 +2,9 @@ import { createFile, readFile } from '@sasjs/utils/file'
 import { lintFile } from '../lint'
 import { FormatResult } from '../types'
 import { LintConfig } from '../types/LintConfig'
-import { applyLintOverride } from '../utils/parseLintOverride'
 import { getLintConfig } from '../utils/getLintConfig'
-import { processText } from './shared'
+import { FormatOptions } from '../types/FormatOptions'
+import { formatText } from './formatText'
 
 /**
  * Applies automatic formatting to the file at the given path.
@@ -14,7 +14,8 @@ import { processText } from './shared'
  */
 export const formatFile = async (
   filePath: string,
-  configuration?: LintConfig
+  configuration?: LintConfig,
+  options: FormatOptions = {}
 ): Promise<FormatResult> => {
   const config = configuration || (await getLintConfig())
   const diagnosticsBeforeFormat = await lintFile(filePath, config)
@@ -22,7 +23,7 @@ export const formatFile = async (
 
   const text = await readFile(filePath)
 
-  const formattedText = processText(text, applyLintOverride(text, config))
+  const formattedText = await formatText(text, config, options)
 
   await createFile(filePath, formattedText)
 
