@@ -105,7 +105,9 @@ export const scanLine = (line: string, state: ScanState): ScannedLine => {
         index++
         continue
       }
-      if (character === ' ') positions.push(index)
+      // A space inside a block comment is prose, not a break point: the
+      // contract above states it, and no caller wants one - the wrap refuses a
+      // comment-bearing line and `reflowComments` owns its text.
       continue
     }
 
