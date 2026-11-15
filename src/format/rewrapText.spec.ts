@@ -356,6 +356,41 @@ run;`
     )
   })
 
+  it('measures the first piece from the start of the line, indent included', () => {
+    // The second boundary sits at 38 and its piece would BE 38 characters, so it
+    // is out of reach at a limit of 36 even though the text after the indent is
+    // only 36. Measuring from the first non-space accepted it and emitted a line
+    // that still raised the rule.
+    expect(
+      rewrapText(
+        `  put "one" "two"; put "three" "four"; put "five" "six";`,
+        config({ maxLineLength: 36 })
+      )
+    ).toBe(`  put "one" "two";\n    put "three" "four";\n    put "five" "six";`)
+
+    // At 36 the first statement ends exactly on the limit, so it is taken and
+    // the second starts a line of its own.
+    expect(
+      rewrapText(
+        `  %put NOTE: a long first statement; %put second statement here;`,
+        config({ maxLineLength: 36 })
+      )
+    ).toBe(
+      `  %put NOTE: a long first statement;\n    %put second statement here;`
+    )
+
+    // One character less and that statement no longer fits, so the break falls
+    // inside it and carries `%trim(`.
+    expect(
+      rewrapText(
+        `  %put NOTE: a long first statement; %put second statement here;`,
+        config({ maxLineLength: 35 })
+      )
+    ).toBe(
+      `  %put NOTE: a long first%trim(\n    ) statement;\n    %put second statement here;`
+    )
+  })
+
   it('falls back to a %trim break when no statement boundary fits', () => {
     // The first statement alone overruns the limit, so the boundary after it is
     // out of reach; the break inside it carries `%trim(`, and the second

@@ -264,9 +264,14 @@ const splitWithTrim = (
     // with its `;`, so nothing has to be swallowed and the piece carries no
     // `%trim(` machinery. Take it when it fits, and fall back to a break inside
     // the statement only when none does.
+    // The first piece is emitted from column 0, so it is measured from there;
+    // a later one carries the prefix and starts at `start`. Measuring the first
+    // piece from `start` accepts one up to `limit + indent.length` characters
+    // and leaves a line that still raises `maxLineLength`.
+    const boundaryFrom = pieces.length ? start : 0
     const boundary = boundaries.filter(
       (position) =>
-        position > start && prefix.length + position - start <= limit
+        position > start && prefix.length + position - boundaryFrom <= limit
     )
 
     if (boundary.length) {
