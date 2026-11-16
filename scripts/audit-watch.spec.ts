@@ -56,16 +56,16 @@ const run = (args: string[], env = process.env) => {
   }
 }
 
-const runFixture = (value: unknown, gate = true) => {
+const runFixture = (value: unknown, gate = false) => {
   const dir = mkdtempSync(path.join(tmpdir(), 'audit-watch-'))
   const fixture = path.join(dir, 'audit.json')
   writeFileSync(fixture, JSON.stringify(value))
   return run([...(gate ? ['--gate'] : []), `--audit-json=${fixture}`])
 }
 
-describe.each([true, false])('full audit (gate=%s)', (gate) => {
+describe('full audit', () => {
   it('passes a clean report', () => {
-    expect(runFixture(report({}, 0), gate).code).toBe(0)
+    expect(runFixture(report({}, 0)).code).toBe(0)
   })
 
   it.each([
@@ -88,7 +88,7 @@ describe.each([true, false])('full audit (gate=%s)', (gate) => {
       'node_modules/jest-config/node_modules/deepmerge'
     ]
   ])('fails on %s', (_label, id, name, node) => {
-    const result = runFixture(advisory(id, name, node), gate)
+    const result = runFixture(advisory(id, name, node))
     expect(result.code).toBe(1)
     expect(result.output).toContain(id)
   })
@@ -104,8 +104,7 @@ describe.each([true, false])('full audit (gate=%s)', (gate) => {
           }
         },
         1
-      ),
-      gate
+      )
     )
     expect(result.code).toBe(1)
   })
@@ -115,8 +114,21 @@ describe.each([true, false])('full audit (gate=%s)', (gate) => {
     { error: { code: 'EAUDIT', summary: 'audit failed' } },
     report({}, 1)
   ])('fails closed on an invalid report', (value) => {
-    expect(runFixture(value, gate).code).toBe(1)
+    expect(runFixture(value).code).toBe(1)
   })
+
+  it.each([
+    ['clean', report({}, 0)],
+    [
+      'vulnerable',
+      advisory('GHSA-gcqx-w48m-w2h4', 'deepmerge', 'node_modules/deepmerge')
+    ]
+  ])(
+    'accepts the legacy --gate flag without changing a %s audit',
+    (_label, value) => {
+      expect(runFixture(value, true)).toEqual(runFixture(value))
+    }
+  )
 })
 
 describe('npm audit execution', () => {

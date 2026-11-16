@@ -1,8 +1,10 @@
 /**
  * Full-tree npm audit, including dev dependencies, with no exemptions. Both the
  * build's --gate invocation and the scheduled watch fail on every vulnerability.
+ * --gate is accepted as a legacy no-op: both invocations run the same audit.
  * build.yml and audit-watch.yml still describe the retired deepmerge exemption;
- * those workflow comments need a follow-up by someone with workflow permission.
+ * the watch step name and issue title also refer to it. Correct these workflow
+ * labels and comments in a follow-up with workflow-write permission.
  *
  * --audit-json=<path> supplies a fixture for tests, never an environment variable.
  */
