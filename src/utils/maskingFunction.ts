@@ -1,5 +1,5 @@
 /**
- * The macro functions whose argument SAS masks.
+ * The macro functions whose argument SAS carries as masked data.
  *
  * Inside the parentheses a quote, a semicolon or a comment marker is data
  * rather than syntax, so `%str(%")` is one masked quote - not the end of the
@@ -7,22 +7,39 @@
  * comments has to skip such an argument whole: the quote inside it otherwise
  * flips its state and the rest of the file is read as string content.
  *
- * The names live here rather than in each scanner that skips a masking
- * argument, so the formatter's line scan, trimComments, noXcmd and
- * noSingleAsteriskComments cannot disagree about which calls mask.
+ * These are the calls that mask their argument (`%str`, `%nrstr`, `%bquote`,
+ * `%nrbquote`, `%quote`, `%nrquote`) or take a name whose value arrives masked
+ * (`%superq`, `%nrsuperq`, `%unquote`). The `%q*` forms are a different family
+ * and are NOT in this list: they quote the value they return, while their
+ * argument is ordinary macro text in which a quote is still a delimiter - so a
+ * scanner that tracks string or comment state must follow the quotes there
+ * rather than step over them. That is why trimComments, noXcmd and
+ * noSingleAsteriskComments enter through this list; see
+ * `argumentTextFunctionNames` for the scanners that only need an argument's end.
+ *
+ * The names live here rather than in each scanner so those scanners cannot
+ * disagree about which calls mask, and the formatter's line scan shares them.
  */
 export const maskingFunctionNames = '(?:nr)?(?:str|bquote|superq|quote|unquote)'
 
 /**
- * The `%q*` functions. SAS hands their argument to a DATA step function rather
- * than resolving it as macro code, so a comma or a quote in it is data - the
- * same reason to step over a masking call's argument, and they belong beside
- * the masking names in a scanner that does that.
+ * The `%q*` functions, which return their result quoted.
+ *
+ * Their argument is resolved like any other macro argument - a quote in it is
+ * still a delimiter - but it is the argument of one function call, so a comma
+ * in it belongs to that call rather than separating macro parameters. A scanner
+ * that splits a parameter list, or that only has to find where an argument
+ * ends, steps over it; one that tracks string or comment state does not.
  */
 export const quotingFunctionNames =
   'qsysfunc|qcmpres|qleft|qlowcase|qscan|qsubstr|qtrim|qupcase|qverify'
 
-/** Every call whose argument a scanner has to step over rather than read. */
+/**
+ * Every call whose argument is one value rather than a parameter list: the
+ * masking calls, whose argument is masked data, and the `%q*` forms, whose
+ * argument is a single function argument. Use this to find where an argument
+ * ends; use `maskingFunctionNames` to decide whether its content is data.
+ */
 export const argumentTextFunctionNames = `${maskingFunctionNames}|${quotingFunctionNames}`
 
 /** Matches one of those calls, at the start of the supplied text. */
