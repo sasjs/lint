@@ -52,6 +52,19 @@ describe('parseMacroCallArguments', () => {
     expect(args.parameters).toHaveLength(2)
   })
 
+  it('keeps a comma inside a %q* argument in one parameter', () => {
+    const args = firstCall('%kw(a=%qscan(x, y), b=2);')!
+
+    expect(args.parameters).toHaveLength(2)
+  })
+
+  it('does not open a quote from a masked one in an nr-form mask', () => {
+    const args = firstCall('%kw(a=%nrbquote(%"), b=2);')!
+
+    expect(args.unclosed).toBeNull()
+    expect(args.parameters).toHaveLength(2)
+  })
+
   it('treats %( and %) as literal parenthesis inside a mask', () => {
     const args = firstCall('%kw(a=%str(%(x, y%)), b=2);')!
 
