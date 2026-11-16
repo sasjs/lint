@@ -1,4 +1,5 @@
 import { LintConfig } from '../types'
+import { applyLintOverride } from '../utils/parseLintOverride'
 import { adjustLineLength } from './adjustLineLength'
 
 const config = (json: any) => new LintConfig(json)
@@ -24,6 +25,139 @@ ${unbreakable}
 **/
 ${unbreakable}
 `)
+  })
+
+  it('raises a directive that already spans several lines, rather than adding a second', () => {
+    // `getLintOverride` reads the first directive it finds, so a second one this
+    // pass appended is dead: the long line it excused stays reported.
+    const text = `/**
+  @file
+  @sasjslint {
+    "maxHeaderLineLength": 60
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+    )
+
+    // The whole header: one directive holding the raised limit, and no leftover
+    // lines from the object it replaced.
+    expect(output).toEqual(`/**
+  @file
+  @sasjslint {"maxHeaderLineLength": 90}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('leaves a multi-line directive alone when it already covers the line', () => {
+    // Through the pipeline this pass runs in, `processOnce` hands it the
+    // configuration with the file's own override already applied, so a limit that
+    // is already high enough raises nothing and the object stays as written.
+    const text = `/**
+  @file
+  @sasjslint {
+    "maxHeaderLineLength": 120
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        applyLintOverride(
+          text,
+          config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+        )
+      )
+    ).toEqual(text)
+  })
+
+  it('reads the tag case-sensitively, as the reader does', () => {
+    // `@SASJSLINT {` is not a directive to `getLintOverride`, so treating one as a
+    // range made the pass return the file unchanged - no exception written at all.
+    // It is prose to both, so the exception is appended as it was before this pass
+    // learned to rewrite a directive.
+    const text = `/**
+  @file
+  @SASJSLINT {"maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+    )
+
+    expect(output).toContain('@SASJSLINT {"maxHeaderLineLength": 60}')
+    expect(output).toContain('  @sasjslint {"maxHeaderLineLength": 90}')
+  })
+
+  it('does not read a prose mention of the tag as the directive', () => {
+    // The reader requires the tag to start a line with `{` after it. A `@brief`
+    // that mentions it is prose: taking it as the range start scans to the real
+    // directive's closing brace and replaces every header line in between, which
+    // is a silent, permanent deletion of @brief, @param and @version.
+    const text = `/**
+  @file
+  @brief Sends the settlement, and documents the @sasjslint directive here
+  @param libin input library
+  @version 9.4
+  @sasjslint {
+    "maxHeaderLineLength": 60
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      applyLintOverride(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    )
+
+    expect(output).toEqual(`/**
+  @file
+  @brief Sends the settlement, and documents the @sasjslint directive here
+  @param libin input library
+  @version 9.4
+  @sasjslint {"maxHeaderLineLength": 90}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('writes the exception when the only mention of the tag is prose', () => {
+    // The loose predicate suppressed the write here: a header whose only mention
+    // is prose was returned unchanged, without the exception it needs.
+    const text = `/**
+  @brief Sends the settlement, and documents the @sasjslint directive here
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+    )
+
+    expect(output).toContain('@sasjslint {"maxHeaderLineLength": 90}')
+    expect(output).toContain('@brief Sends the settlement')
   })
 
   it('raises maxHeaderLineLength for a header line, leaving maxLineLength alone', () => {
@@ -283,6 +417,49 @@ ${unbreakable}
     expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
   })
 
+  it('reads an escaped quote in the object, and indents a directive at column 0', () => {
+    // The scan tracks string state and escapes as `getLintOverride` does, so a
+    // `\"` inside a value does not end the object early; a directive written at
+    // column 0 takes the header's indent when it is rewritten.
+    const text = `/**
+@sasjslint {"note": "say \\"hi\\"", "maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @sasjslint {"note": "say \\"hi\\"", "maxHeaderLineLength": 90}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('leaves an unterminated directive alone', () => {
+    // An object that never closes is the author's to fix: the linter reports it,
+    // and rewriting it would discard what they were trying to say.
+    const text = `/**
+  @file
+  @sasjslint {"maxLineLength": 40
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(text)
+  })
+
   it('leaves an exception that does not parse alone', () => {
     const text = `/**
   @file
@@ -292,6 +469,115 @@ ${unbreakable}
 `
 
     expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
+  it('keeps the text that shares the closing line of the directive', () => {
+    // The tag line is rebuilt from the merged object, so anything after the
+    // object's closing brace on that line - a trailing comment here - has to be
+    // carried through rather than deleted.
+    const text = `/**
+  @file
+  @sasjslint {"maxLineLength": 60}  // see below
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @file
+  @sasjslint {"maxLineLength": 60, "maxHeaderLineLength": 90}  // see below
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('keeps the header closer when the directive shares its line', () => {
+    // A directive written on the header's closing line: rebuilding the tag line
+    // without the text that followed the object would take `**/` with it and
+    // leave the comment unterminated.
+    const text = `/**
+  @file
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+  @sasjslint {"maxLineLength": 60}  **/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @file
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+  @sasjslint {"maxLineLength": 60, "maxHeaderLineLength": 90}  **/
+run;
+`)
+  })
+
+  it('leaves an object that does not close inside the header alone', () => {
+    // The reader reads the same span, so it cannot see this object either. The
+    // tag must not be rewritten while the rest of the object stays where it is.
+    const text = `/**
+  @file
+  @sasjslint {"maxLineLength": 60
+**/
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
+  it('leaves a directive alone when the reader and this pass disagree about it', () => {
+    // `startsDirective` accepts any non-word characters before the tag, so a `{{`
+    // in front of it opens a scan this pass counts from, while the reader starts
+    // at the tag's own brace and parses an object. The two disagree about where
+    // the object ends, so there is no range to rewrite: touching the tag line
+    // would delete the `{{` and leave the object the reader saw half-replaced.
+    const text = `/**
+  @file
+  {{ @sasjslint {"maxLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
+  it("writes its exception when the author's tag has its brace on the next line", () => {
+    // The reader takes the object only when the brace is on the tag's line, and
+    // this pass reads the tag the same way, so the author's split directive is
+    // prose to both: the exception it writes is the one `getLintOverride` then
+    // reads, where rewriting the split line would have produced a dead directive.
+    const text = `/**
+  @file
+  @sasjslint
+  {"maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toEqual(`/**
+  @file
+  @sasjslint
+  {"maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+
+  @sasjslint {"maxHeaderLineLength": 90}
+**/
+run;
+`)
   })
 
   it('does nothing when the limit is off, or the text is empty', () => {

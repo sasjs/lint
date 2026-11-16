@@ -53,6 +53,15 @@ describe('getLintOverride', () => {
     ).toBeNull()
   })
 
+  it('does not read an override whose brace is on the next line', () => {
+    // The passes that rewrite a directive test one line at a time, so a reader
+    // that honoured this shape would honour an override no pass can see - and
+    // the pass would append a second directive the reader never reaches.
+    const text = withHeader('  @sasjslint\n  {"maxHeaderLineLength": 60}')
+
+    expect(getLintOverride(text, new LintConfig())).toBeNull()
+  })
+
   it('should return null when there is no header', () => {
     expect(getLintOverride('%mf_trim()', new LintConfig())).toBeNull()
   })

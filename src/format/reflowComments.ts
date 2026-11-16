@@ -5,6 +5,7 @@ import {
   getDataSectionsDetail
 } from '../utils/getDataSectionsDetail'
 import { getHeaderLinesCount } from '../utils/getHeaderLinesCount'
+import { startsDirective } from '../utils/parseLintOverride'
 import { cleanState, scanLine } from '../utils/scanLine'
 import { indentationMultipleOf } from './longLines'
 import { splitWithTerminators } from './rewrapText'
@@ -50,12 +51,74 @@ const lineOriented = /^(?:@li\b|@sasjslint\b|<|[-*+]\s|\d+[.)]\s|\||#|%|`)/i
 /** A tag whose body is code rather than prose. */
 const codeTag = /@(?:example|code|verbatim)\b/i
 
+/** Any other tag, which is where a code body ends. */
+const otherTag = /^\s*@(?!example|code|verbatim)\w/i
+
 /** The heading whose `@li` entries other rules read and rewrite. */
 const macrosHeading = /<h4>\s*SAS Macros\s*<\/h4>/i
 
 /** The width of a line's leading whitespace. */
 const indentOf = (text: string): number => /^\s*/.exec(text)![0].length
 
+/**
+ * The lines a `@sasjslint` override occupies.
+ *
+ * `getLintOverride` reads a *balanced* JSON object starting at the tag, so the
+ * object is allowed to span lines. Those lines are the override's data and are
+ * emitted verbatim: a wrap inside a string value would leave an object the
+ * reader can no longer parse, and the file would silently lose its overrides.
+ *
+ * @param read - the block's lines, in order
+ * @returns the indices to emit untouched
+ */
+const directiveLineIndices = (read: CommentLine[]): Set<number> => {
+  const reserved = new Set<number>()
+
+  read.forEach((line, start) => {
+    // The reader's own predicate: a prose line that merely mentions the tag must
+    // not open a scan, or every line between it and the real directive is emitted
+    // verbatim and the prose it holds is never wrapped.
+    if (reserved.has(start) || !startsDirective(line.content)) return
+
+    let depth = 0
+    let opened = false
+    let inString = false
+    let escaped = false
+    let closed = false
+    let end = start
+
+    for (let index = start; index < read.length && !closed; index++) {
+      for (const char of read[index].content) {
+        if (inString) {
+          if (escaped) escaped = false
+          else if (char === '\\') escaped = true
+          else if (char === '"') inString = false
+          continue
+        }
+
+        if (char === '"') inString = true
+        else if (char === '{') {
+          depth++
+          opened = true
+        } else if (char === '}' && opened && --depth === 0) {
+          end = index
+          closed = true
+          break
+        }
+      }
+    }
+
+    // An object that never closes inside the block is one the reader cannot see
+    // either, but its lines are still the author's data: reserving only the tag
+    // line would reflow the rest of it as prose, and a wrap inside a string value
+    // changes what the object says.
+    const last = closed ? end : read.length - 1
+
+    for (let index = start; index <= last; index++) reserved.add(index)
+  })
+
+  return reserved
+}
 /**
  * Wraps one paragraph's words into lines that fit, or returns `null` when a
  * word is longer than the room its line has - there is no break inside a word,
@@ -279,11 +342,12 @@ const readBlock = (
  * reflowing the rest - is what leaves a header ragged. A `@brief` or `@param`
  * line is prose, so it carries the lines that follow it.
  *
- * Blocks that are left entirely alone: one sharing a line with code, one inside
- * a `datalines` record, one holding a `@example` / `@code` / `@verbatim` body,
- * the `<h4> SAS Macros </h4>` section - whose entries other rules read and
- * rewrite - and any block holding a `@sasjslint` tag, whose object has to stay
- * on the line the tag opens.
+ * A block is reflowed section by section: the data-bearing parts are emitted
+ * verbatim where they sit, and the prose around them is wrapped. That covers the
+ * `<h4> SAS Macros </h4>` list, whose entries other rules read and rewrite, an
+ * `@example` / `@code` / `@verbatim` body, and a `@sasjslint` object, which may
+ * span lines. A block that shares a line with code, or that sits inside a
+ * `datalines` record, is left alone in full.
  *
  * A paragraph is reflowed only when every line of the result fits, so the pass
  * never raises the diagnostic count: a word longer than the limit - a URL,
@@ -329,14 +393,11 @@ export const reflowComments = (
     const { read, contentIndent } = readBlock(lines, block, multiple)
     const limit =
       block.open < headerLinesCount ? headerLimit : configuration.maxLineLength
-    const blockText = read.map((line) => line.raw).join('\n')
 
-    const refused =
-      macrosHeading.test(blockText) ||
-      codeTag.test(blockText) ||
-      read.some((line) => /@sasjslint\b/.test(line.content))
-
-    if (refused) continue
+    // Each section is emitted verbatim where it sits, and the prose around it is
+    // wrapped: the macros list's `@li` entries are parsed and rewritten by other
+    // rules, and a continuation line would end the list a reader sees, but a
+    // `@brief` or `@param` paragraph above them is prose like any other.
 
     emitTo(block.open)
 
@@ -372,7 +433,66 @@ export const reflowComments = (
       paragraphIndent = -1
     }
 
+    let inMacrosSection = false
+    let inCodeSection = false
+    const directiveLines = directiveLineIndices(read)
+
     read.forEach((line, index) => {
+      // The heading and the `@li` run under it are another rule's data: keep them
+      // exactly as they arrived. The section ends at the next tag or heading.
+      if (inMacrosSection) {
+        const endsSection =
+          line.content !== '' &&
+          startsParagraph.test(line.content) &&
+          !/^@li\b/i.test(line.content)
+
+        if (!endsSection) {
+          flush()
+          emitted.push(line.raw)
+          return
+        }
+
+        inMacrosSection = false
+      }
+
+      // A `@example` / `@code` / `@verbatim` body is data, not prose: this pass
+      // does not reflow it, and hands it on as it arrived. Earlier passes in the
+      // same run have already laid it out - `headerLayout` gives it the header's
+      // unit indent - so "as it arrived" is not "as the author wrote it", and the
+      // printer is what removed the indentation the author did write.
+      if (inCodeSection) {
+        if (line.content !== '' && otherTag.test(line.content))
+          inCodeSection = false
+        else {
+          flush()
+          emitted.push(line.raw)
+          return
+        }
+      }
+
+      if (codeTag.test(line.content)) {
+        flush()
+        emitted.push(line.raw)
+        inCodeSection = true
+        return
+      }
+
+      if (macrosHeading.test(line.content)) {
+        flush()
+        emitted.push(line.raw)
+        inMacrosSection = true
+        return
+      }
+
+      // The directive and the object it introduces belong to `adjustLineLength`
+      // and to the reader that parses them; they are emitted exactly as they
+      // arrived, however many lines the object spans.
+      if (directiveLines.has(index)) {
+        flush()
+        emitted.push(line.raw)
+        return
+      }
+
       if (line.content === '') {
         flush()
         emitted.push(line.raw)

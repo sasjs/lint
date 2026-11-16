@@ -91,6 +91,8 @@ A file can adjust the configuration for itself, with a `@sasjslint` block in its
 **/
 ```
 
+The object has to open on the tag's line - the `{` comes straight after `@sasjslint`, as above. The object itself may continue over as many lines as it needs, but a `@sasjslint` with its `{` on the next line is not an override: the formatter rewrites a directive into that one-line shape, and a form a rewrite cannot reach is refused by the reader too, so the two never disagree about what the file's exception is.
+
 The block holds a JSON object that is merged over the resolved `.sasjslint`:
 
 - scalars replace, so a file can switch a rule off, switch one on, or raise a limit for itself;

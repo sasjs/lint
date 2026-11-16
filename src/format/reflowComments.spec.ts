@@ -4,6 +4,114 @@ import { reflowComments } from './reflowComments'
 const config = (json: any) => new LintConfig(json)
 
 describe('reflowComments', () => {
+  it('wraps the prose of a header that holds a SAS Macros list, leaving the list alone', () => {
+    // The list is other rules' data - `noUnusedMacros` and `lowerCaseMacroNames`
+    // parse and rewrite it - so it stays byte-identical while the paragraph above
+    // it is wrapped like any other.
+    const text = `/**
+  @brief a header with a long description that runs well past the width
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @li mf_abort.sas
+**/
+data _null_;
+run;`
+
+    // Header lines are measured against max(maxLineLength, maxHeaderLineLength),
+    // so both have to be tightened for this fixture to be over the limit.
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a header with a long
+  description that runs well past the
+  width
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @li mf_abort.sas
+**/
+data _null_;
+run;`)
+  })
+
+  it('leaves the macros section at the next tag, and wraps what follows it', () => {
+    const text = `/**
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @version 9.4
+  @brief a description after the list that is long enough to wrap here
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  <h4> SAS Macros </h4>
+  @li mf_existds.sas
+  @version 9.4
+  @brief a description after the list
+  that is long enough to wrap here
+**/
+data _null_;
+run;`)
+  })
+
+  it('wraps prose around a @sasjslint directive, leaving the directive alone', () => {
+    // The directive is one line and adjustLineLength owns it; the prose beside it
+    // is prose like any other.
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @sasjslint {"maxLineLength": 150}
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @sasjslint {"maxLineLength": 150}
+**/
+data _null_;
+run;`)
+  })
+
+  it('wraps the prose around an @example body, leaving the body alone', () => {
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @example
+    %let x = 1;
+  @version 9.4
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @example
+    %let x = 1;
+  @version 9.4
+**/
+data _null_;
+run;`)
+  })
+
   it('wraps a comment paragraph and indents the continuation', () => {
     const text = `data _null_;
 /* the quick brown fox jumps over the lazy dog and keeps on
@@ -128,6 +236,129 @@ run;`
         config({ maxLineLength: 40, maxHeaderLineLength: 40 })
       )
     ).toBe(text)
+  })
+
+  it('leaves a multi-line @sasjslint object exactly as written', () => {
+    // `getLintOverride` reads a balanced object starting at the tag, so an
+    // override may span lines. Reflowing its continuation lines as prose can wrap
+    // inside a string value, which leaves an object nothing can parse - the file
+    // would lose its overrides and the run would look clean.
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @sasjslint {
+    "maxLineLength": 150,
+    "maxHeaderLineLength": 150,
+    "ignoredMacros": ["webout", "mf_abort"]
+  }
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @sasjslint {
+    "maxLineLength": 150,
+    "maxHeaderLineLength": 150,
+    "ignoredMacros": ["webout", "mf_abort"]
+  }
+**/
+data _null_;
+run;`)
+  })
+
+  it('does not end a @sasjslint object at a brace inside a string', () => {
+    // The scan tracks string state and escapes exactly as `getLintOverride`'s
+    // reader does: a `}` inside a value, or a `\"` that would otherwise close the
+    // string, must not be read as the end of the object.
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @sasjslint {
+    "note": "say \\"hi\\" to the } brace",
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @sasjslint {
+    "note": "say \\"hi\\" to the } brace",
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`)
+  })
+
+  it('reserves an object that never closes, to the end of the block', () => {
+    // An unclosed object cannot be read, but its lines are still data: reserving
+    // the tag line alone reflows the rest as prose, and a wrap inside a string
+    // value changes what the object says.
+    const text = `/**
+  @brief a description that is long enough to wrap at this limit for sure
+  @sasjslint {"maxLineLength": 150, "description": "this value continues here
+  and here and here with more words that would be wrapped as prose"
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 60, maxHeaderLineLength: 60 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long enough to wrap at this
+  limit for sure
+  @sasjslint {"maxLineLength": 150, "description": "this value continues here
+  and here and here with more words that would be wrapped as prose"
+**/
+data _null_;
+run;`)
+  })
+
+  it('wraps the prose above a directive, even when a line mentions the tag', () => {
+    // The scan must open only on the reader's own predicate. A `@brief` that
+    // mentions the tag used to open it, and every line up to the real directive's
+    // closing brace was emitted verbatim - so the prose was silently left unwrapped.
+    const text = `/**
+  @brief a description that mentions the @sasjslint directive and is long enough to wrap
+  @param libin input library
+  @sasjslint {
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 60, maxHeaderLineLength: 60 })
+      )
+    ).toEqual(`/**
+  @brief a description that mentions the @sasjslint
+  directive and is long enough to wrap
+  @param libin input library
+  @sasjslint {
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`)
   })
 
   it('leaves a @sasjslint tag alone, whose object must stay on its line', () => {

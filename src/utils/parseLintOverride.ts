@@ -4,12 +4,34 @@ import { splitText } from './splitText'
 
 /**
  * The tag that introduces a per-file override, with the object that must follow
- * it. The tag has to start a header line, and the `{` has to come immediately
- * after it, so a `@brief` that mentions the syntax in prose, a longer tag such
- * as `@sasjslintFoo`, and a tag with something else after it are all left alone
+ * it. The tag has to start a header line, and the `{` has to come on that same
+ * line, so a `@brief` that mentions the syntax in prose, a longer tag such as
+ * `@sasjslintFoo`, and a tag with something else after it are all left alone
  * rather than read as an override.
+ *
+ * Same line, not merely "somewhere after": the passes that rewrite a directive
+ * test one line at a time, so a reader that accepted the brace on the next line
+ * would honour an override no pass can see - and the pass would then append a
+ * second directive the reader never reaches.
+ *
+ * One source string, two readers: the whole-header scan needs `m` so `^` matches
+ * at every line, a single line does not.
  */
-const marker = /^[^\w]*@sasjslint\s*\{/m
+const DIRECTIVE = '^[^\\w]*@sasjslint[ \\t]*\\{'
+const marker = new RegExp(DIRECTIVE, 'm')
+const lineMarker = new RegExp(DIRECTIVE)
+
+/**
+ * Whether a line opens a `@sasjslint` directive - the reader's own test, exported
+ * so the passes that rewrite a directive cannot drift from the one that reads it.
+ *
+ * No `i` flag, deliberately: the reader is case sensitive, so a pass that accepted
+ * `@SASJSLINT` would open a range whose object the reader then returns null for.
+ *
+ * @param line - one line, without its terminator
+ * @returns `true` when the line starts a directive
+ */
+export const startsDirective = (line: string): boolean => lineMarker.test(line)
 
 /**
  * Reads a balanced JSON object from `start`, honouring strings and escapes so
