@@ -253,7 +253,9 @@ export const parseMacroCalls = (
       // the function name is skipped and the argument is scanned in place, so
       // an invocation the file defers is still reported at its own position.
       const maskingFunction = maskingFunctionStart.exec(text.slice(index))
-      if (maskingFunction) {
+      // %unquote resolves its argument instead of masking it. Other scanners use
+      // the shared matcher as a lexical boundary, so exclude it only here.
+      if (maskingFunction && !/^%unquote\s*\(/i.test(maskingFunction[0])) {
         const end = maskedArgumentEnd(text, index + maskingFunction[0].length)
 
         if (options?.includeMasked) {

@@ -9,7 +9,10 @@
  *
  * These are the calls that mask their argument (`%str`, `%nrstr`, `%bquote`,
  * `%nrbquote`, `%quote`, `%nrquote`) or take a name whose value arrives masked
- * (`%superq`, `%nrsuperq`, `%unquote`). The `%q*` forms are a different family
+ * (`%superq`, `%nrsuperq`). `%unquote` is retained as a lexical boundary for
+ * the existing formatting and comment scanners, but it resolves its argument;
+ * callers that scan invocations must not treat that argument as masked.
+ * The `%q*` forms are a different family
  * and are NOT in this list: they quote the value they return, while their
  * argument is ordinary macro text in which a quote is still a delimiter - so a
  * scanner that tracks string or comment state must follow the quotes there
