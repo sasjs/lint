@@ -12,6 +12,19 @@ import { splitText } from './splitText'
 const marker = /^[^\w]*@sasjslint\s*\{/m
 
 /**
+ * Whether a line opens a `@sasjslint` directive - the reader's own test, exported
+ * so the passes that rewrite a directive cannot drift from the one that reads it.
+ *
+ * No `i` flag, deliberately: the reader is case sensitive, so a pass that accepted
+ * `@SASJSLINT` would open a range whose object the reader then returns null for.
+ *
+ * @param line - one line, without its terminator
+ * @returns `true` when the line starts a directive
+ */
+export const startsDirective = (line: string): boolean =>
+  /^[^\w]*@sasjslint\s*\{/.test(line)
+
+/**
  * Reads a balanced JSON object from `start`, honouring strings and escapes so
  * a brace inside a value does not end the scan early.
  */

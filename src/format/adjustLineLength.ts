@@ -5,7 +5,7 @@ import {
   getDataSectionsDetail
 } from '../utils/getDataSectionsDetail'
 import { getHeaderLinesCount } from '../utils/getHeaderLinesCount'
-import { getLintOverride } from '../utils/parseLintOverride'
+import { getLintOverride, startsDirective } from '../utils/parseLintOverride'
 import { cleanState, noScan, scanLine } from '../utils/scanLine'
 import { breakAwareState, macroComment, macroDeclaration } from './longLines'
 import { splitWithTerminators } from './rewrapText'
@@ -25,8 +25,6 @@ type LengthKey = 'maxLineLength' | 'maxHeaderLineLength' | 'maxDataLineLength'
  * @param headerLinesCount - how many of them the header holds
  * @returns the first and last line of the directive, or null when there is none
  */
-const directiveStart = /^[^\w]*@sasjslint\s*\{/i
-
 const directiveRange = (
   lines: string[],
   headerLinesCount: number
@@ -36,7 +34,7 @@ const directiveRange = (
     // straight after it. A prose line that merely mentions the tag is not a
     // directive, and treating one as the start of the range scans to the *real*
     // directive's closing brace - deleting every header line in between.
-    if (!directiveStart.test(lines[start])) continue
+    if (!startsDirective(lines[start])) continue
 
     let depth = 0
     let opened = false

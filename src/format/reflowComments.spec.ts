@@ -303,6 +303,37 @@ data _null_;
 run;`)
   })
 
+  it('wraps the prose above a directive, even when a line mentions the tag', () => {
+    // The scan must open only on the reader's own predicate. A `@brief` that
+    // mentions the tag used to open it, and every line up to the real directive's
+    // closing brace was emitted verbatim - so the prose was silently left unwrapped.
+    const text = `/**
+  @brief a description that mentions the @sasjslint directive and is long enough to wrap
+  @param libin input library
+  @sasjslint {
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 60, maxHeaderLineLength: 60 })
+      )
+    ).toEqual(`/**
+  @brief a description that mentions the @sasjslint
+  directive and is long enough to wrap
+  @param libin input library
+  @sasjslint {
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`)
+  })
+
   it('leaves a @sasjslint tag alone, whose object must stay on its line', () => {
     const text = `/**
   @file

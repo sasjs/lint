@@ -81,6 +81,28 @@ run;
     ).toEqual(text)
   })
 
+  it('reads the tag case-sensitively, as the reader does', () => {
+    // `@SASJSLINT {` is not a directive to `getLintOverride`, so treating one as a
+    // range made the pass return the file unchanged - no exception written at all.
+    // It is prose to both, so the exception is appended as it was before this pass
+    // learned to rewrite a directive.
+    const text = `/**
+  @file
+  @SASJSLINT {"maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+    )
+
+    expect(output).toContain('@SASJSLINT {"maxHeaderLineLength": 60}')
+    expect(output).toContain('  @sasjslint {"maxHeaderLineLength": 90}')
+  })
+
   it('does not read a prose mention of the tag as the directive', () => {
     // The reader requires the tag to start a line with `{` after it. A `@brief`
     // that mentions it is prose: taking it as the range start scans to the real

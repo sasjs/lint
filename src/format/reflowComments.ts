@@ -5,6 +5,7 @@ import {
   getDataSectionsDetail
 } from '../utils/getDataSectionsDetail'
 import { getHeaderLinesCount } from '../utils/getHeaderLinesCount'
+import { startsDirective } from '../utils/parseLintOverride'
 import { cleanState, scanLine } from '../utils/scanLine'
 import { indentationMultipleOf } from './longLines'
 import { splitWithTerminators } from './rewrapText'
@@ -74,7 +75,10 @@ const directiveLineIndices = (read: CommentLine[]): Set<number> => {
   const reserved = new Set<number>()
 
   read.forEach((line, start) => {
-    if (reserved.has(start) || !/@sasjslint\b/i.test(line.content)) return
+    // The reader's own predicate: a prose line that merely mentions the tag must
+    // not open a scan, or every line between it and the real directive is emitted
+    // verbatim and the prose it holds is never wrapped.
+    if (reserved.has(start) || !startsDirective(line.content)) return
 
     let depth = 0
     let opened = false
