@@ -21,7 +21,7 @@
  * noSingleAsteriskComments enter through this list; see
  * `argumentTextFunctionNames` for the scanners that only need an argument's end.
  *
- * Callers needing actual masking semantics should use dataMaskingFunctionStart,
+ * Callers needing actual masking semantics should use dataMaskingFunctionNames,
  * rather than treating this boundary list as a list of masking functions.
  */
 // Calls that mask their argument or take a name whose value arrives masked.
@@ -29,12 +29,6 @@ export const dataMaskingFunctionNames = '(?:nr)?(?:str|bquote|superq|quote)'
 
 /** The legacy lexical boundary set includes resolved unquote forms. */
 export const maskingFunctionNames = `(?:${dataMaskingFunctionNames}|(?:nr)?unquote)`
-
-/** Matches actual data-masking calls, not the additional lexical boundaries. */
-export const dataMaskingFunctionStart = new RegExp(
-  `^%${dataMaskingFunctionNames}\\s*\\(`,
-  'i'
-)
 
 /**
  * Invocation scanner policy: actual masks plus the historical `%nrunquote`
@@ -61,7 +55,7 @@ export const quotingFunctionNames =
  * Every call whose argument is one value rather than a parameter list: the
  * legacy lexical boundaries and the `%q*` forms, whose arguments are treated
  * as a single function argument. Use this to find where an argument
- * ends; use `dataMaskingFunctionStart` to decide whether its content is data.
+ * ends; use `dataMaskingFunctionNames` to decide whether its content is data.
  */
 export const argumentTextFunctionNames = `${maskingFunctionNames}|${quotingFunctionNames}`
 

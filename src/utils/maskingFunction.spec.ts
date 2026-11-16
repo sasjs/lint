@@ -1,6 +1,6 @@
 import {
   argumentTextFunctionNames,
-  dataMaskingFunctionStart,
+  dataMaskingFunctionNames,
   maskedArgumentEnd,
   maskingFunctionStart
 } from './maskingFunction'
@@ -53,8 +53,12 @@ describe('maskingFunctionStart', () => {
   })
 })
 
-describe('dataMaskingFunctionStart', () => {
+describe('dataMaskingFunctionNames', () => {
   it('distinguishes masking calls from the existing unquote boundaries', () => {
+    const dataMaskingFunctionStart = new RegExp(
+      `^%${dataMaskingFunctionNames}\\s*\\(`,
+      'i'
+    )
     for (const name of [
       'str',
       'nrstr',

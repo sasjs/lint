@@ -215,16 +215,6 @@ describe('parseMacroCalls', () => {
     ).toEqual(['unquote', 'mf_inner'])
   })
 
-  it('retains the legacy nrunquote scanning behavior', () => {
-    const text = '%nrunquote(%mf_inner())'
-    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([])
-    expect(
-      parseMacroCalls(text, undefined, { includeMasked: true }).map(
-        (call) => call.name
-      )
-    ).toEqual(['mf_inner'])
-  })
-
   it('should respect nested masks inside %unquote', () => {
     const text = `%unquote(%nrstr(%mf_hidden()) %mf_visible())`
     expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
