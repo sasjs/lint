@@ -135,6 +135,44 @@ describe('parseMacroCalls', () => {
     ).toEqual(['put'])
   })
 
+  it.each(['bquote', 'nrbquote', 'quote', 'nrquote', 'superq', 'unquote'])(
+    'should treat the argument of %s as masked text',
+    (name) => {
+      const text = `%put %${name}(%"); %mf_after();`
+      expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+        'put',
+        'mf_after'
+      ])
+    }
+  )
+
+  it('should keep a masked quote from turning the next comment into code', () => {
+    const text = `%put %bquote(%"); * %mf_hidden(); %mf_after();`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+      'put',
+      'mf_after'
+    ])
+  })
+
+  it('should scan a bquote argument only when includeMasked is set', () => {
+    const text = `%put %bquote(%" %mf_inner()); %mf_after();`
+    expect(
+      parseMacroCalls(text, undefined, { includeMasked: true }).map(
+        (call) => call.name
+      )
+    ).toEqual(['put', 'mf_inner', 'mf_after'])
+  })
+
+  it('should not skip ordinary q-function arguments as masked data', () => {
+    const text = `%put %qscan(%mf_inner(), 1); %mf_after();`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+      'put',
+      'qscan',
+      'mf_inner',
+      'mf_after'
+    ])
+  })
+
   it('should handle the escaped parentheses of a masking function', () => {
     const text = `%put %str(%));`
 
