@@ -1,4 +1,5 @@
 import { getIndex } from './getIndex'
+import { maskedArgumentEnd, maskingFunctionNames } from './maskingFunction'
 import { MacroCall } from './parseMacroCalls'
 
 /**
@@ -36,10 +37,14 @@ export interface MacroCallArguments {
 /**
  * The functions whose argument is text rather than code. A comma or a quote
  * inside one belongs to the value, so the scan steps over the whole argument
- * instead of reading it.
+ * instead of reading it. The masking names are shared with the scanners that
+ * skip the same arguments; the `%q*` forms sit beside them because their
+ * argument is handed to a DATA step function.
  */
-const maskingFunction =
-  /%(nrstr|str|bquote|quote|superq|qsysfunc|qcmpres|qleft|qlowcase|qscan|qsubstr|qtrim|qupcase|qverify)\s*\(/iy
+const maskingFunction = new RegExp(
+  `%(?:${maskingFunctionNames}|qsysfunc|qcmpres|qleft|qlowcase|qscan|qsubstr|qtrim|qupcase|qverify)\\s*\\(`,
+  'iy'
+)
 
 /**
  * A parameter that opens with `name=`, which is what makes it a keyword one.
@@ -58,26 +63,8 @@ const keywordParameter = /^\s*(?:&+[a-z_][a-z0-9_.]*|[a-z_][a-z0-9_]*)\s*=/i
 const leadingComment = /^(?:\s*\/\*[\s\S]*?\*\/)*\s*/
 
 /** Index one past the `)` that closes a masking function's argument. */
-const skipMasked = (text: string, openParen: number): number => {
-  let depth = 1
-  let index = openParen + 1
-
-  while (index < text.length && depth) {
-    // `%(` and `%)` are literal parenthesis inside a masked argument.
-    if (
-      text[index] === '%' &&
-      (text[index + 1] === '(' || text[index + 1] === ')')
-    ) {
-      index += 2
-      continue
-    }
-    if (text[index] === '(') depth++
-    if (text[index] === ')') depth--
-    index++
-  }
-
-  return index
-}
+const skipMasked = (text: string, openParen: number): number =>
+  maskedArgumentEnd(text, openParen + 1)
 
 /**
  * True when a parameter opens with a masking function whose argument is
