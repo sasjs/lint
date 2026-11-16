@@ -8,8 +8,14 @@ import { splitText } from './splitText'
  * after it, so a `@brief` that mentions the syntax in prose, a longer tag such
  * as `@sasjslintFoo`, and a tag with something else after it are all left alone
  * rather than read as an override.
+ *
+ * One source string, two readers: the whole-header scan needs `m` so `^` matches
+ * at every line, a single line does not - and a pass that recognised the tag by
+ * any other test would open a range whose object this reader never sees.
  */
-const marker = /^[^\w]*@sasjslint\s*\{/m
+const DIRECTIVE = '^[^\\w]*@sasjslint\\s*\\{'
+const marker = new RegExp(DIRECTIVE, 'm')
+const lineMarker = new RegExp(DIRECTIVE)
 
 /**
  * Whether a line opens a `@sasjslint` directive - the reader's own test, exported
@@ -21,8 +27,7 @@ const marker = /^[^\w]*@sasjslint\s*\{/m
  * @param line - one line, without its terminator
  * @returns `true` when the line starts a directive
  */
-export const startsDirective = (line: string): boolean =>
-  /^[^\w]*@sasjslint\s*\{/.test(line)
+export const startsDirective = (line: string): boolean => lineMarker.test(line)
 
 /**
  * Reads a balanced JSON object from `start`, honouring strings and escapes so

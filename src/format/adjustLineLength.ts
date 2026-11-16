@@ -14,21 +14,31 @@ import { splitWithTerminators } from './rewrapText'
 type LengthKey = 'maxLineLength' | 'maxHeaderLineLength' | 'maxDataLineLength'
 
 /**
- * The header lines a `@sasjslint` directive occupies.
+ * The header lines a `@sasjslint` directive occupies, and the text that shares its
+ * last line.
  *
- * The object may span lines - `getLintOverride` reads a balanced one - so matching
- * the tag line alone misses it, and appending the exception as a second directive
- * leaves the file carrying two: `getLintOverride` reads the first, so the one this
- * pass wrote is dead and the long line it excused stays reported.
+ * The object may span lines - `getLintOverride` reads a balanced one over this same
+ * header span - so matching the tag line alone misses it, and appending the
+ * exception as a second directive leaves the file carrying two: the reader takes
+ * the first, so the one this pass wrote is dead and the long line it excused stays
+ * reported.
+ *
+ * `end` is `null` when the tag opens an object that does not close inside the
+ * header: that is not a shape this pass may rewrite, because the reader cannot see
+ * the object either, and replacing the tag line would leave the author's object
+ * orphaned.
  *
  * @param lines - the file's lines, without their terminators
  * @param headerLinesCount - how many of them the header holds
- * @returns the first and last line of the directive, or null when there is none
+ * @returns the directive's lines, or null when there is no tag
  */
 const directiveRange = (
   lines: string[],
   headerLinesCount: number
-): { start: number; end: number } | null => {
+):
+  | { start: number; end: number; trailing: string }
+  | { start: number; end: null }
+  | null => {
   for (let start = 0; start < headerLinesCount; start++) {
     // The reader's own predicate: the tag starts the line and the object opens
     // straight after it. A prose line that merely mentions the tag is not a
@@ -42,7 +52,11 @@ const directiveRange = (
     let escaped = false
 
     for (let index = start; index < headerLinesCount; index++) {
-      for (const char of lines[index]) {
+      const line = lines[index]
+
+      for (let at = 0; at < line.length; at++) {
+        const char = line[at]
+
         if (inString) {
           if (escaped) escaped = false
           else if (char === '\\') escaped = true
@@ -55,11 +69,13 @@ const directiveRange = (
           depth++
           opened = true
         } else if (char === '}' && opened && --depth === 0)
-          return { start, end: index }
+          // Whatever shares the closing line - a trailing comment, the header
+          // closer - is not the object's and is carried through untouched.
+          return { start, end: index, trailing: line.slice(at + 1) }
       }
     }
 
-    return { start, end: start }
+    return { start, end: null }
   }
 
   return null
@@ -186,9 +202,10 @@ export const adjustLineLength = (
   const override = getLintOverride(text, configuration)
   const range = directiveRange(lines, headerLinesCount)
 
-  // A tag that does not parse is reported by the linter and belongs to its
-  // author: rewriting it would discard whatever they were trying to say.
-  if (range && !override) return text
+  // A directive whose object the reader cannot see - because it does not close
+  // inside the header - or cannot parse is reported by the linter and belongs to
+  // its author: rewriting the tag would leave the rest of that object behind.
+  if (range && (range.end === null || !override)) return text
 
   const merged = { ...(override ?? {}) }
   raised.forEach((key) => {
@@ -201,15 +218,19 @@ export const adjustLineLength = (
       .join(', ') +
     '}'
 
-  if (range) {
+  if (range && range.end !== null) {
     // The whole directive becomes one line holding everything that has to be
-    // raised: one directive is all `getLintOverride` reads.
+    // raised: one directive is all `getLintOverride` reads. Its indent is the
+    // tag's, and anything that shared the closing line - a trailing comment, the
+    // header closer - is put back where it was.
     const indent = /^\s*/.exec(lines[range.start])![0] || '  '
     const out: string[] = lines
       .slice(0, range.start)
       .map((line, index) => line + entries[index].ending)
 
-    out.push(`${indent}@sasjslint ${json}${entries[range.start].ending}`)
+    out.push(
+      `${indent}@sasjslint ${json}${range.trailing}${entries[range.start].ending}`
+    )
 
     lines.slice(range.end + 1).forEach((line, index) => {
       out.push(line + entries[range.end + 1 + index].ending)

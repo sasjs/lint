@@ -33,10 +33,10 @@ const leadingStar = /^\*\s?/
  *
  * A header written in the star style - `/**\n * @file\n *\/` - is converted to the
  * template's shape: the star is stripped and the body is indented by the unit.
- * Keeping the stars was tried and is wrong, not merely a matter of taste: the rules
- * that read the `<h4> SAS Macros </h4>` list do not recognise a starred `@li` entry
- * as a declaration, so every pass appended another copy of every macro the file
- * uses. One shape is also what lets a second run change nothing.
+ * The star style is not kept: the rules that read the `<h4> SAS Macros </h4>`
+ * list do not recognise a starred `@li` entry as a declaration, so every pass
+ * would append another copy of every macro the file uses. One shape is also what
+ * lets a second run change nothing.
  *
  * A `@example` / `@code` / `@verbatim` body gets the same treatment as any other
  * line. By the time this pass runs the printer has already flattened the body's

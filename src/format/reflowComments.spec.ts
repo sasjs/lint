@@ -303,6 +303,33 @@ data _null_;
 run;`)
   })
 
+  it('reserves an object that never closes, to the end of the block', () => {
+    // An unclosed object cannot be read, but its lines are still data: reserving
+    // the tag line alone reflows the rest as prose, and a wrap inside a string
+    // value changes what the object says.
+    const text = `/**
+  @brief a description that is long enough to wrap at this limit for sure
+  @sasjslint {"maxLineLength": 150, "description": "this value continues here
+  and here and here with more words that would be wrapped as prose"
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 60, maxHeaderLineLength: 60 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long enough to wrap at this
+  limit for sure
+  @sasjslint {"maxLineLength": 150, "description": "this value continues here
+  and here and here with more words that would be wrapped as prose"
+**/
+data _null_;
+run;`)
+  })
+
   it('wraps the prose above a directive, even when a line mentions the tag', () => {
     // The scan must open only on the reader's own predicate. A `@brief` that
     // mentions the tag used to open it, and every line up to the real directive's

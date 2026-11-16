@@ -471,6 +471,89 @@ ${unbreakable}
     expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
   })
 
+  it('keeps the text that shares the closing line of the directive', () => {
+    // The tag line is rebuilt from the merged object, so anything after the
+    // object's closing brace on that line - a trailing comment here - has to be
+    // carried through rather than deleted.
+    const text = `/**
+  @file
+  @sasjslint {"maxLineLength": 60}  // see below
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @file
+  @sasjslint {"maxLineLength": 60, "maxHeaderLineLength": 90}  // see below
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('keeps the header closer when the directive shares its line', () => {
+    // A directive written on the header's closing line: rebuilding the tag line
+    // without the text that followed the object would take `**/` with it and
+    // leave the comment unterminated.
+    const text = `/**
+  @file
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+  @sasjslint {"maxLineLength": 60}  **/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @file
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+  @sasjslint {"maxLineLength": 60, "maxHeaderLineLength": 90}  **/
+run;
+`)
+  })
+
+  it('leaves an object that does not close inside the header alone', () => {
+    // The reader reads the same span, so it cannot see this object either. The
+    // tag must not be rewritten while the rest of the object stays where it is.
+    const text = `/**
+  @file
+  @sasjslint {"maxLineLength": 60
+**/
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
+  it('leaves a directive alone when the reader and this pass disagree about it', () => {
+    // `startsDirective` accepts any non-word characters before the tag, so a `{{`
+    // in front of it opens a scan this pass counts from, while the reader starts
+    // at the tag's own brace and parses an object. The two disagree about where
+    // the object ends, so there is no range to rewrite: touching the tag line
+    // would delete the `{{` and leave the object the reader saw half-replaced.
+    const text = `/**
+  @file
+  {{ @sasjslint {"maxLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
   it('does nothing when the limit is off, or the text is empty', () => {
     const text = `/**
   @file

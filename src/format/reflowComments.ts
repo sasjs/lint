@@ -108,7 +108,13 @@ const directiveLineIndices = (read: CommentLine[]): Set<number> => {
       }
     }
 
-    for (let index = start; index <= end; index++) reserved.add(index)
+    // An object that never closes inside the block is one the reader cannot see
+    // either, but its lines are still the author's data: reserving only the tag
+    // line would reflow the rest of it as prose, and a wrap inside a string value
+    // changes what the object says.
+    const last = closed ? end : read.length - 1
+
+    for (let index = start; index <= last; index++) reserved.add(index)
   })
 
   return reserved
@@ -336,11 +342,12 @@ const readBlock = (
  * reflowing the rest - is what leaves a header ragged. A `@brief` or `@param`
  * line is prose, so it carries the lines that follow it.
  *
- * Blocks that are left entirely alone: one sharing a line with code, one inside
- * a `datalines` record, one holding a `@example` / `@code` / `@verbatim` body,
- * the `<h4> SAS Macros </h4>` section - whose entries other rules read and
- * rewrite - and a `@sasjslint` line, whose object has to stay
- * on the line the tag opens.
+ * A block is reflowed section by section: the data-bearing parts are emitted
+ * verbatim where they sit, and the prose around them is wrapped. That covers the
+ * `<h4> SAS Macros </h4>` list, whose entries other rules read and rewrite, an
+ * `@example` / `@code` / `@verbatim` body, and a `@sasjslint` object, which may
+ * span lines. A block that shares a line with code, or that sits inside a
+ * `datalines` record, is left alone in full.
  *
  * A paragraph is reflowed only when every line of the result fits, so the pass
  * never raises the diagnostic count: a word longer than the limit - a URL,
@@ -387,14 +394,10 @@ export const reflowComments = (
     const limit =
       block.open < headerLinesCount ? headerLimit : configuration.maxLineLength
 
-    // The macros section is refused rather than the whole block that holds it:
-    // its `@li` entries are parsed and rewritten by other rules, and its
-    // continuation lines would end the list a reader sees, so those lines stay
-    // byte-identical - but a `@brief` or `@param` paragraph above them is prose
-    // like any other and is wrapped with the rest.
-    // Nothing is refused for the whole block any more: a header may carry a
-    // `@sasjslint` directive, a macro list and a code body, and each is handled
-    // where it sits - so the prose around them is still wrapped.
+    // Each section is emitted verbatim where it sits, and the prose around it is
+    // wrapped: the macros list's `@li` entries are parsed and rewritten by other
+    // rules, and a continuation line would end the list a reader sees, but a
+    // `@brief` or `@param` paragraph above them is prose like any other.
 
     emitTo(block.open)
 
