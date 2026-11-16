@@ -1,17 +1,18 @@
 /**
- * The macro functions whose argument SAS carries as masked data.
+ * Macro-function argument boundaries used by the existing lexical scanners.
  *
- * Inside the parentheses a quote, a semicolon or a comment marker is data
+ * Inside a masking call's parentheses a quote, semicolon or comment marker is data
  * rather than syntax, so `%str(%")` is one masked quote - not the end of the
  * double-quoted string it is written in. A scanner that follows strings or
  * comments has to skip such an argument whole: the quote inside it otherwise
  * flips its state and the rest of the file is read as string content.
  *
- * These are the calls that mask their argument (`%str`, `%nrstr`, `%bquote`,
+ * These include calls that mask their argument (`%str`, `%nrstr`, `%bquote`,
  * `%nrbquote`, `%quote`, `%nrquote`) or take a name whose value arrives masked
  * (`%superq`, `%nrsuperq`). `%unquote` is retained as a lexical boundary for
- * the existing formatting and comment scanners, but it resolves its argument;
- * callers that scan invocations must not treat that argument as masked.
+ * existing formatting and comment scanners even though it resolves its argument.
+ * The legacy matcher also accepts `%nrunquote`; keep that spelling here for
+ * compatibility, not as a claim that SAS defines it.
  * The `%q*` forms are a different family
  * and are NOT in this list: they quote the value they return, while their
  * argument is ordinary macro text in which a quote is still a delimiter - so a
@@ -20,10 +21,29 @@
  * noSingleAsteriskComments enter through this list; see
  * `argumentTextFunctionNames` for the scanners that only need an argument's end.
  *
- * The names live here rather than in each scanner so those scanners cannot
- * disagree about which calls mask, and the formatter's line scan shares them.
+ * Callers needing actual masking semantics should use dataMaskingFunctionStart,
+ * rather than treating this boundary list as a list of masking functions.
  */
-export const maskingFunctionNames = '(?:nr)?(?:str|bquote|superq|quote|unquote)'
+// Calls that mask their argument or take a name whose value arrives masked.
+export const dataMaskingFunctionNames = '(?:nr)?(?:str|bquote|superq|quote)'
+
+/** The legacy lexical boundary set includes resolved unquote forms. */
+export const maskingFunctionNames = `(?:${dataMaskingFunctionNames}|(?:nr)?unquote)`
+
+/** Matches actual data-masking calls, not the additional lexical boundaries. */
+export const dataMaskingFunctionStart = new RegExp(
+  `^%${dataMaskingFunctionNames}\\s*\\(`,
+  'i'
+)
+
+/**
+ * Invocation scanner policy: actual masks plus the historical `%nrunquote`
+ * boundary. `%unquote` itself is resolved and must be scanned as code.
+ */
+export const callScannerMaskingFunctionStart = new RegExp(
+  `^%(?:${dataMaskingFunctionNames}|nrunquote)\\s*\\(`,
+  'i'
+)
 
 /**
  * The `%q*` functions, which return their result quoted.
@@ -39,9 +59,9 @@ export const quotingFunctionNames =
 
 /**
  * Every call whose argument is one value rather than a parameter list: the
- * masking calls, whose argument is masked data, and the `%q*` forms, whose
- * argument is a single function argument. Use this to find where an argument
- * ends; use `maskingFunctionNames` to decide whether its content is data.
+ * legacy lexical boundaries and the `%q*` forms, whose arguments are treated
+ * as a single function argument. Use this to find where an argument
+ * ends; use `dataMaskingFunctionStart` to decide whether its content is data.
  */
 export const argumentTextFunctionNames = `${maskingFunctionNames}|${quotingFunctionNames}`
 

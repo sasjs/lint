@@ -1,11 +1,12 @@
 import {
   argumentTextFunctionNames,
+  dataMaskingFunctionStart,
   maskedArgumentEnd,
   maskingFunctionStart
 } from './maskingFunction'
 
 describe('maskingFunctionStart', () => {
-  it('should match every call whose argument is masked', () => {
+  it('should match the legacy lexical boundaries', () => {
     const masked = [
       '%str',
       '%nrstr',
@@ -49,6 +50,28 @@ describe('maskingFunctionStart', () => {
     expect(maskingFunctionStart.test('%nbquote(a)')).toBe(false)
     expect(maskingFunctionStart.test('%nsuperq(a)')).toBe(false)
     expect(maskingFunctionStart.test('%nunquote(a)')).toBe(false)
+  })
+})
+
+describe('dataMaskingFunctionStart', () => {
+  it('distinguishes masking calls from the existing unquote boundaries', () => {
+    for (const name of [
+      'str',
+      'nrstr',
+      'bquote',
+      'nrbquote',
+      'quote',
+      'nrquote',
+      'superq',
+      'nrsuperq'
+    ]) {
+      expect(dataMaskingFunctionStart.test(`%${name} (a)`)).toBe(true)
+    }
+    expect(maskingFunctionStart.test('%unquote (a)')).toBe(true)
+    expect(dataMaskingFunctionStart.test('%unquote (a)')).toBe(false)
+    expect(dataMaskingFunctionStart.test('%nrunquote (a)')).toBe(false)
+    expect(dataMaskingFunctionStart.test('%qscan(a)')).toBe(false)
+    expect(dataMaskingFunctionStart.test('%STRANGE(a)')).toBe(false)
   })
 })
 

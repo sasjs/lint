@@ -1,5 +1,8 @@
 import { LintConfig } from '../types'
-import { maskedArgumentEnd, maskingFunctionStart } from './maskingFunction'
+import {
+  callScannerMaskingFunctionStart,
+  maskedArgumentEnd
+} from './maskingFunction'
 
 /**
  * A macro invocation found in a file, with the position of its `%` character.
@@ -252,10 +255,10 @@ export const parseMacroCalls = (
       // not affect the nesting depth. When the caller asks for masked text,
       // the function name is skipped and the argument is scanned in place, so
       // an invocation the file defers is still reported at its own position.
-      const maskingFunction = maskingFunctionStart.exec(text.slice(index))
-      // %unquote resolves its argument instead of masking it. Other scanners use
-      // the shared matcher as a lexical boundary, so exclude it only here.
-      if (maskingFunction && !/^%unquote\s*\(/i.test(maskingFunction[0])) {
+      const maskingFunction = callScannerMaskingFunctionStart.exec(
+        text.slice(index)
+      )
+      if (maskingFunction) {
         const end = maskedArgumentEnd(text, index + maskingFunction[0].length)
 
         if (options?.includeMasked) {
