@@ -192,6 +192,14 @@ describe('trimComments', () => {
     })
   })
 
+  it('preserves the existing unquote lexical boundary', () => {
+    expect(trimComments('%put %unquote(/*);')).toEqual({
+      statement: '%put %unquote(/*);',
+      commentStarted: false,
+      quoteStarted: ''
+    })
+  })
+
   it('should not mask a trigger inside a single-quoted string', () => {
     expect(trimComments(`%let a = '%str(%\")';`)).toEqual({
       statement: `%let a = '%str(%\")';`,

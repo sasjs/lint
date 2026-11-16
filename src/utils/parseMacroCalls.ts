@@ -1,4 +1,8 @@
 import { LintConfig } from '../types'
+import {
+  callScannerMaskingFunctionStart,
+  maskedArgumentEnd
+} from './maskingFunction'
 
 /**
  * A macro invocation found in a file, with the position of its `%` character.
@@ -20,7 +24,7 @@ export interface MacroCall {
 export interface MacroCallScanOptions {
   /**
    * Reports the invocations written inside the argument of a masking function
-   * (`%str` / `%nrstr`).
+   * (for example `%str`, `%nrstr` and `%bquote`).
    *
    * The argument is text while the masking function runs, but the caller
    * normally unquotes it later: `%mp_assert(iftrue=%str(%mf_existds(work.x)=1))`
@@ -37,9 +41,6 @@ const macroNameStart = /^%([a-z_][a-z0-9_]*)/i
 
 /** Matches the statements that open a data section. */
 const dataSectionStart = /^(datalines4?|cards4?|parmcards4?)\s*;/i
-
-/** Matches the functions whose argument is data rather than code. */
-const maskingFunctionStart = /^%(nrstr|str)\s*\(/i
 
 /** Matches the procedures whose `submit` block holds another language. */
 const embeddedLanguageProc = /^proc\s+(lua|groovy)\b/i
@@ -109,8 +110,8 @@ const findNameTokens = (
  * single-quoted strings, so a double-quoted string is scanned as code while a
  * single-quoted string is opaque. Invocations inside block comments, macro
  * comments, comment statements, data sections and embedded-language `submit`
- * blocks are excluded. The argument of a masking function (`%str` / `%nrstr`)
- * is excluded unless the caller asks for it with `includeMasked`.
+ * blocks are excluded. The argument of a masking function (such as `%str` or
+ * `%bquote`) is excluded unless the caller asks for it with `includeMasked`.
  *
  * Every `%name` token is reported, including the macro language keywords and
  * the macros that ship with SAS. Callers decide which names are interesting.
@@ -254,30 +255,11 @@ export const parseMacroCalls = (
       // not affect the nesting depth. When the caller asks for masked text,
       // the function name is skipped and the argument is scanned in place, so
       // an invocation the file defers is still reported at its own position.
-      const maskingFunction = maskingFunctionStart.exec(text.slice(index))
+      const maskingFunction = callScannerMaskingFunctionStart.exec(
+        text.slice(index)
+      )
       if (maskingFunction) {
-        // The extent of the argument comes from the parenthesis depth, with
-        // `%(` and `%)` treated as escapes rather than as delimiters.
-        let depth = 0
-        let end = index + maskingFunction[0].length - 1
-        while (end < length) {
-          if (
-            text[end] === '%' &&
-            (text[end + 1] === '(' || text[end + 1] === ')')
-          ) {
-            end += 2
-            continue
-          }
-          if (text[end] === '(') depth++
-          else if (text[end] === ')') {
-            depth--
-            if (depth === 0) {
-              end++
-              break
-            }
-          }
-          end++
-        }
+        const end = maskedArgumentEnd(text, index + maskingFunction[0].length)
 
         if (options?.includeMasked) {
           // The argument is scanned for `%name` tokens only, never as code: a

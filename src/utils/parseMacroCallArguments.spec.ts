@@ -58,6 +58,14 @@ describe('parseMacroCallArguments', () => {
     expect(args.parameters).toHaveLength(2)
   })
 
+  it('keeps a comma inside an unquote boundary in one parameter', () => {
+    const args = firstCall('%kw(a=%unquote(one, two), b=2);')!
+    expect(args.parameters.map((p) => p.text)).toEqual([
+      'a=%unquote(one, two)',
+      ' b=2'
+    ])
+  })
+
   it('does not open a quote from a masked one in an nr-form mask', () => {
     const args = firstCall('%kw(a=%nrbquote(%"), b=2);')!
 

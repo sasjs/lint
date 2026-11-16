@@ -48,6 +48,24 @@ describe('parseMacroCalls', () => {
     ).toEqual(['bar', 'qux'])
   })
 
+  it('should find the real closing delimiter of a block comment', () => {
+    const text = `/* an * asterisk / slash %mf_hidden() */ %mf_after()`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual(['mf_after'])
+  })
+
+  it('should recognize consecutive comment statements', () => {
+    const text = `* first; * %mf_hidden(); %mf_after()`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual(['mf_after'])
+  })
+
+  it('should associate an opening parenthesis only immediately after a quoted name', () => {
+    const calls = parseMacroCalls(`'%mf_pattern text (x) %mf_call  (x)'`)
+    expect(calls.map(({ name, hasParen }) => [name, hasParen])).toEqual([
+      ['mf_pattern', false],
+      ['mf_call', true]
+    ])
+  })
+
   it('should ignore invocations inside macro comments', () => {
     const text = `%* %foo;\n%bar();`
 
@@ -127,12 +145,92 @@ describe('parseMacroCalls', () => {
     ).toEqual(['put', 'mf_foo'])
   })
 
+  it('should not classify a call between apostrophes in a double-quoted string as quoted', () => {
+    const calls = parseMacroCalls(`%put "'%mf_a()'";`)
+    expect(calls.map(({ name, quoted }) => [name, quoted])).toEqual([
+      ['put', undefined],
+      ['mf_a', undefined]
+    ])
+  })
+
+  it('should not treat a block comment marker in double quotes as a comment', () => {
+    const text = `%put "/* %mf_inner() */";`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+      'put',
+      'mf_inner'
+    ])
+  })
+
   it('should ignore the argument of a masking function', () => {
     const text = `%put %str(%foo);`
 
     expect(
       parseMacroCalls(text, new LintConfig()).map((call) => call.name)
     ).toEqual(['put'])
+  })
+
+  it.each(['bquote', 'nrbquote', 'quote', 'nrquote', 'superq'])(
+    'should treat the argument of %s as masked text',
+    (name) => {
+      const text = `%put %${name}(%"); %mf_after();`
+      expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+        'put',
+        'mf_after'
+      ])
+    }
+  )
+
+  it('should keep a masked quote from turning the next comment into code', () => {
+    const text = `%put %bquote(%"); * %mf_hidden(); %mf_after();`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+      'put',
+      'mf_after'
+    ])
+  })
+
+  it('should scan a bquote argument only when includeMasked is set', () => {
+    const text = `%put %bquote(%" %mf_inner()); %mf_after();`
+    expect(
+      parseMacroCalls(text, undefined, { includeMasked: true }).map(
+        (call) => call.name
+      )
+    ).toEqual(['put', 'mf_inner', 'mf_after'])
+  })
+
+  it('should scan macro calls inside %unquote in both scan modes', () => {
+    const text = `%put %UnQuOtE(\n  %mf_inner()\n); %mf_after();`
+    for (const includeMasked of [false, true]) {
+      const calls = parseMacroCalls(text, undefined, { includeMasked })
+      expect(
+        calls.map(
+          (call) => `${call.name}@${call.lineNumber}:${call.startColumnNumber}`
+        )
+      ).toEqual(['put@1:1', 'UnQuOtE@1:6', 'mf_inner@2:3', 'mf_after@3:4'])
+    }
+  })
+
+  it('should scan macro calls inside %unquote with whitespace before its parenthesis', () => {
+    expect(
+      parseMacroCalls(`%unquote \n (%mf_inner())`).map((call) => call.name)
+    ).toEqual(['unquote', 'mf_inner'])
+  })
+
+  it('should respect nested masks inside %unquote', () => {
+    const text = `%unquote(%nrstr(%mf_hidden()) %mf_visible())`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+      'unquote',
+      'mf_visible'
+    ])
+  })
+
+  it('should not skip ordinary q-function arguments as masked data', () => {
+    const text = `%put %qscan(%mf_inner(), 1); %mf_after();`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+      'put',
+      'qscan',
+      'mf_inner',
+      'mf_after'
+    ])
   })
 
   it('should handle the escaped parentheses of a masking function', () => {

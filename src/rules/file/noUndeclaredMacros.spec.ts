@@ -15,6 +15,18 @@ describe('noUndeclaredMacros - test', () => {
     expect(noUndeclaredMacros.test(text, new LintConfig())).toEqual([])
   })
 
+  it('should report an undeclared call evaluated inside %unquote', () => {
+    const text = `/**
+  @file
+  @brief test
+**/
+%put %unquote(%mf_missing());`
+    const diagnostics = noUndeclaredMacros.test(text, new LintConfig())
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0].message).toContain('mf_missing')
+    expect(diagnostics[0].lineNumber).toBe(5)
+  })
+
   it('should report a macro that is only invoked inside a single-quoted string', () => {
     const text = `/**
   @file
