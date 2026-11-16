@@ -238,6 +238,71 @@ run;`
     ).toBe(text)
   })
 
+  it('leaves a multi-line @sasjslint object exactly as written', () => {
+    // `getLintOverride` reads a balanced object starting at the tag, so an
+    // override may span lines. Reflowing its continuation lines as prose can wrap
+    // inside a string value, which leaves an object nothing can parse - the file
+    // would lose its overrides and the run would look clean.
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @sasjslint {
+    "maxLineLength": 150,
+    "maxHeaderLineLength": 150,
+    "ignoredMacros": ["webout", "mf_abort"]
+  }
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @sasjslint {
+    "maxLineLength": 150,
+    "maxHeaderLineLength": 150,
+    "ignoredMacros": ["webout", "mf_abort"]
+  }
+**/
+data _null_;
+run;`)
+  })
+
+  it('does not end a @sasjslint object at a brace inside a string', () => {
+    // The scan tracks string state and escapes exactly as `getLintOverride`'s
+    // reader does: a `}` inside a value, or a `\"` that would otherwise close the
+    // string, must not be read as the end of the object.
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @sasjslint {
+    "note": "say \\"hi\\" to the } brace",
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @sasjslint {
+    "note": "say \\"hi\\" to the } brace",
+    "maxLineLength": 150
+  }
+**/
+data _null_;
+run;`)
+  })
+
   it('leaves a @sasjslint tag alone, whose object must stay on its line', () => {
     const text = `/**
   @file

@@ -60,6 +60,56 @@ const macrosHeading = /<h4>\s*SAS Macros\s*<\/h4>/i
 const indentOf = (text: string): number => /^\s*/.exec(text)![0].length
 
 /**
+ * The lines a `@sasjslint` override occupies.
+ *
+ * `getLintOverride` reads a *balanced* JSON object starting at the tag, so the
+ * object is allowed to span lines. Those lines are the override's data and are
+ * emitted verbatim: a wrap inside a string value would leave an object the
+ * reader can no longer parse, and the file would silently lose its overrides.
+ *
+ * @param read - the block's lines, in order
+ * @returns the indices to emit untouched
+ */
+const directiveLineIndices = (read: CommentLine[]): Set<number> => {
+  const reserved = new Set<number>()
+
+  read.forEach((line, start) => {
+    if (reserved.has(start) || !/@sasjslint\b/i.test(line.content)) return
+
+    let depth = 0
+    let opened = false
+    let inString = false
+    let escaped = false
+    let closed = false
+    let end = start
+
+    for (let index = start; index < read.length && !closed; index++) {
+      for (const char of read[index].content) {
+        if (inString) {
+          if (escaped) escaped = false
+          else if (char === '\\') escaped = true
+          else if (char === '"') inString = false
+          continue
+        }
+
+        if (char === '"') inString = true
+        else if (char === '{') {
+          depth++
+          opened = true
+        } else if (char === '}' && opened && --depth === 0) {
+          end = index
+          closed = true
+          break
+        }
+      }
+    }
+
+    for (let index = start; index <= end; index++) reserved.add(index)
+  })
+
+  return reserved
+}
+/**
  * Wraps one paragraph's words into lines that fit, or returns `null` when a
  * word is longer than the room its line has - there is no break inside a word,
  * so the paragraph is left as the author wrote it.
@@ -378,6 +428,7 @@ export const reflowComments = (
 
     let inMacrosSection = false
     let inCodeSection = false
+    const directiveLines = directiveLineIndices(read)
 
     read.forEach((line, index) => {
       // The heading and the `@li` run under it are another rule's data: keep them
@@ -426,9 +477,10 @@ export const reflowComments = (
         return
       }
 
-      // The directive is one line and belongs to `adjustLineLength`, which merges
-      // into it; it is emitted exactly as it arrived.
-      if (/@sasjslint\b/.test(line.content)) {
+      // The directive and the object it introduces belong to `adjustLineLength`
+      // and to the reader that parses them; they are emitted exactly as they
+      // arrived, however many lines the object spans.
+      if (directiveLines.has(index)) {
         flush()
         emitted.push(line.raw)
         return
