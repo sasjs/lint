@@ -4,16 +4,20 @@ import { splitText } from './splitText'
 
 /**
  * The tag that introduces a per-file override, with the object that must follow
- * it. The tag has to start a header line, and the `{` has to come immediately
- * after it, so a `@brief` that mentions the syntax in prose, a longer tag such
- * as `@sasjslintFoo`, and a tag with something else after it are all left alone
+ * it. The tag has to start a header line, and the `{` has to come on that same
+ * line, so a `@brief` that mentions the syntax in prose, a longer tag such as
+ * `@sasjslintFoo`, and a tag with something else after it are all left alone
  * rather than read as an override.
  *
+ * Same line, not merely "somewhere after": the passes that rewrite a directive
+ * test one line at a time, so a reader that accepted the brace on the next line
+ * would honour an override no pass can see - and the pass would then append a
+ * second directive the reader never reaches.
+ *
  * One source string, two readers: the whole-header scan needs `m` so `^` matches
- * at every line, a single line does not - and a pass that recognised the tag by
- * any other test would open a range whose object this reader never sees.
+ * at every line, a single line does not.
  */
-const DIRECTIVE = '^[^\\w]*@sasjslint\\s*\\{'
+const DIRECTIVE = '^[^\\w]*@sasjslint[ \\t]*\\{'
 const marker = new RegExp(DIRECTIVE, 'm')
 const lineMarker = new RegExp(DIRECTIVE)
 

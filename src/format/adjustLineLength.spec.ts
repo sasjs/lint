@@ -554,6 +554,32 @@ run;
     expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
   })
 
+  it("writes its exception when the author's tag has its brace on the next line", () => {
+    // The reader takes the object only when the brace is on the tag's line, and
+    // this pass reads the tag the same way, so the author's split directive is
+    // prose to both: the exception it writes is the one `getLintOverride` then
+    // reads, where rewriting the split line would have produced a dead directive.
+    const text = `/**
+  @file
+  @sasjslint
+  {"maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toEqual(`/**
+  @file
+  @sasjslint
+  {"maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+
+  @sasjslint {"maxHeaderLineLength": 90}
+**/
+run;
+`)
+  })
+
   it('does nothing when the limit is off, or the text is empty', () => {
     const text = `/**
   @file
