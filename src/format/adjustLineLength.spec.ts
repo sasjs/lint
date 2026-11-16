@@ -26,6 +26,55 @@ ${unbreakable}
 `)
   })
 
+  it('raises a directive that already spans several lines, rather than adding a second', () => {
+    // `getLintOverride` reads the first directive it finds, so a second one this
+    // pass appended is dead: the long line it excused stays reported.
+    const text = `/**
+  @file
+  @sasjslint {
+    "maxHeaderLineLength": 60
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+    )
+
+    // The whole header: one directive holding the raised limit, and no leftover
+    // lines from the object it replaced.
+    expect(output).toEqual(`/**
+  @file
+  @sasjslint {"maxHeaderLineLength": 90}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('leaves a multi-line directive alone when it already covers the line', () => {
+    // A hand-written object is its author's layout, and there is nothing to say.
+    const text = `/**
+  @file
+  @sasjslint {
+    "maxHeaderLineLength": 120
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(text)
+  })
+
   it('raises maxHeaderLineLength for a header line, leaving maxLineLength alone', () => {
     const text = `/**
   @file
@@ -281,6 +330,49 @@ ${unbreakable}
 `
 
     expect(adjustLineLength(text, config({ maxLineLength: 40 }))).toBe(text)
+  })
+
+  it('reads an escaped quote in the object, and indents a directive at column 0', () => {
+    // The scan tracks string state and escapes as `getLintOverride` does, so a
+    // `\"` inside a value does not end the object early; a directive written at
+    // column 0 takes the header's indent when it is rewritten.
+    const text = `/**
+@sasjslint {"note": "say \\"hi\\"", "maxHeaderLineLength": 60}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @sasjslint {"note": "say \\"hi\\"", "maxHeaderLineLength": 90}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('leaves an unterminated directive alone', () => {
+    // An object that never closes is the author's to fix: the linter reports it,
+    // and rewriting it would discard what they were trying to say.
+    const text = `/**
+  @file
+  @sasjslint {"maxLineLength": 40
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    expect(
+      adjustLineLength(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(text)
   })
 
   it('leaves an exception that does not parse alone', () => {

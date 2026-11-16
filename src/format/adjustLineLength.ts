@@ -10,11 +10,56 @@ import { cleanState, noScan, scanLine } from '../utils/scanLine'
 import { breakAwareState, macroComment, macroDeclaration } from './longLines'
 import { splitWithTerminators } from './rewrapText'
 
-/** The line that carries a file's own lint configuration. */
-const overrideTag = /^(\s*)@sasjslint\s*(\{.*\})\s*$/
-
 /** The three limits a long line can be excused by, and the key each one lives in. */
 type LengthKey = 'maxLineLength' | 'maxHeaderLineLength' | 'maxDataLineLength'
+
+/**
+ * The header lines a `@sasjslint` directive occupies.
+ *
+ * The object may span lines - `getLintOverride` reads a balanced one - so matching
+ * the tag line alone misses it, and appending the exception as a second directive
+ * leaves the file carrying two: `getLintOverride` reads the first, so the one this
+ * pass wrote is dead and the long line it excused stays reported.
+ *
+ * @param lines - the file's lines, without their terminators
+ * @param headerLinesCount - how many of them the header holds
+ * @returns the first and last line of the directive, or null when there is none
+ */
+const directiveRange = (
+  lines: string[],
+  headerLinesCount: number
+): { start: number; end: number } | null => {
+  for (let start = 0; start < headerLinesCount; start++) {
+    if (!/@sasjslint\b/i.test(lines[start])) continue
+
+    let depth = 0
+    let opened = false
+    let inString = false
+    let escaped = false
+
+    for (let index = start; index < headerLinesCount; index++) {
+      for (const char of lines[index]) {
+        if (inString) {
+          if (escaped) escaped = false
+          else if (char === '\\') escaped = true
+          else if (char === '"') inString = false
+          continue
+        }
+
+        if (char === '"') inString = true
+        else if (char === '{') {
+          depth++
+          opened = true
+        } else if (char === '}' && opened && --depth === 0)
+          return { start, end: index }
+      }
+    }
+
+    return { start, end: start }
+  }
+
+  return null
+}
 
 /**
  * Raises the file's own `@sasjslint` exception so that the lines the passes
@@ -135,13 +180,18 @@ export const adjustLineLength = (
   if (!raised.length) return text
 
   const override = getLintOverride(text, configuration)
-  const existing = lines
-    .slice(0, headerLinesCount)
-    .find((line) => overrideTag.test(line))
+  const range = directiveRange(lines, headerLinesCount)
 
   // A tag that does not parse is reported by the linter and belongs to its
   // author: rewriting it would discard whatever they were trying to say.
-  if (existing && !override) return text
+  if (range && !override) return text
+
+  // Nothing to write when the file already states what this pass would say. That
+  // is also what leaves a hand-written multi-line object as its author wrote it.
+  const settled = raised.every(
+    (key) => (override?.[key] ?? configuration[key]) >= needed[key]
+  )
+  if (settled) return text
 
   const merged = { ...(override ?? {}) }
   raised.forEach((key) => {
@@ -154,15 +204,21 @@ export const adjustLineLength = (
       .join(', ') +
     '}'
 
-  if (existing) {
-    const match = overrideTag.exec(existing)!
-    if (match[2] === json) return text
+  if (range) {
+    // The whole directive becomes one line holding everything that has to be
+    // raised: one directive is all `getLintOverride` reads.
+    const indent = /^\s*/.exec(lines[range.start])![0] || '  '
+    const out: string[] = lines
+      .slice(0, range.start)
+      .map((line, index) => line + entries[index].ending)
 
-    const at = lines.indexOf(existing)
-    const rewritten = [...lines]
-    rewritten[at] = `${match[1]}@sasjslint ${json}`
+    out.push(`${indent}@sasjslint ${json}${entries[range.start].ending}`)
 
-    return rewritten.map((line, index) => line + entries[index].ending).join('')
+    lines.slice(range.end + 1).forEach((line, index) => {
+      out.push(line + entries[range.end + 1 + index].ending)
+    })
+
+    return out.join('')
   }
 
   // No exception yet: write one as the last content line of the header, which
