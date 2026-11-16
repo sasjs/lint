@@ -231,6 +231,41 @@ describe('headerLayout', () => {
     expect(headerLayout(once, config())).toEqual(once)
   })
 
+  it('converts tagless marked prose with an indented unmarked continuation', () => {
+    const text = `/**\n * prose one\n   continued\n * prose two\n   * a nested bullet\n */\ndata _null_;\nrun;\n`
+    const once = headerLayout(text, config())
+    expect(once).toEqual(
+      `/**\n  prose one\n    continued\n  prose two\n    * a nested bullet\n**/\ndata _null_;\nrun;\n`
+    )
+    expect(headerLayout(once, config())).toEqual(once)
+
+    const single = `/**\n * prose one\n   continued\n */\ndata _null_;\nrun;\n`
+    const singleOnce = headerLayout(single, config())
+    expect(singleOnce).toEqual(
+      `/**\n  prose one\n    continued\n**/\ndata _null_;\nrun;\n`
+    )
+    expect(headerLayout(singleOnce, config())).toEqual(singleOnce)
+  })
+
+  it('preserves an outdented unmarked line rather than guessing a marker style', () => {
+    const text = header(` * prose\nunmarked at margin\n`)
+    const once = headerLayout(text, config())
+    expect(once).toEqual(header(`  * prose\n unmarked at margin\n`))
+    expect(headerLayout(once, config())).toEqual(once)
+  })
+
+  it('accepts a tab after a tagless marker before the margin', () => {
+    const text = header(`*\tprose one\n*\tprose two\n`)
+    const once = headerLayout(text, config())
+    expect(once).toEqual(header(`  prose one\n  prose two\n`))
+    expect(headerLayout(once, config())).toEqual(once)
+  })
+
+  it('keeps tab-indented tagless bullets at the template margin', () => {
+    const text = header(`\t*\tfirst bullet\n\t*\tsecond bullet\n`)
+    expect(headerLayout(text, config())).toEqual(text)
+  })
+
   it('keeps tagless bullet lists written at the template margin', () => {
     const text = header(`  * first bullet\n  * second bullet\n`)
     expect(headerLayout(text, config())).toEqual(text)

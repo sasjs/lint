@@ -9,28 +9,34 @@ const closingMarker = /^\s*\*+\/\s*$/
 /** The opening line of a doxygen header, and the only one this pass owns. */
 const openingMarker = /^\s*\/\*\*/
 
-/**
- * Whether the body uses star-style markers. All tag lines must be marked;
- * without tags, require multiple consistently marked lines left of the unit.
- * The latter is ambiguous, so a tagless list at the template margin is kept.
- * A continuation without a marker does not stop a tagged body being starred.
- */
-const isStarredBody = (bodyLines: string[], unit: number): boolean => {
-  const tagLines = bodyLines.filter((line) => /^\s*(?:\*+\s*)?@/.test(line))
-
-  if (!tagLines.length) {
-    // Without tags, only consistently marked lines left of the unit can signal
-    // star style; a template-indented bullet list must remain punctuation.
-    return (
-      bodyLines.length > 1 &&
-      bodyLines.every((line) => {
-        const match = /^( *)\*(?:\s|$)/.exec(line)
-        return match !== null && match[1].length < unit
-      })
-    )
+/** Measure leading indentation, counting a tab as one indentation unit. */
+const indentWidth = (line: string, unit: number): number => {
+  let width = 0
+  for (const character of line) {
+    if (character === ' ') width += 1
+    else if (character === '\t') width += unit
+    else break
   }
+  return width
+}
 
-  return tagLines.every((line) => /^\s*\*+\s*@/.test(line))
+/** Marker column for an unambiguously indented continuation in a tagless body. */
+const taglessMarkerColumn = (
+  lines: string[],
+  unit: number
+): number | undefined => {
+  if (lines.length < 2) return undefined
+  const first = /^([ \t]*)\*(?:\s|$)/.exec(lines[0])
+  if (!first) return undefined
+  const column = indentWidth(first[1], unit)
+  if (column >= unit) return undefined
+  const consistent = lines.every((line) => {
+    const marker = /^([ \t]*)\*(?:\s|$)/.exec(line)
+    return marker && indentWidth(marker[1], unit) === column
+      ? true
+      : indentWidth(line, unit) > column
+  })
+  return consistent ? column : undefined
 }
 
 /**
@@ -78,10 +84,12 @@ const isStarredBody = (bodyLines: string[], unit: number): boolean => {
  * star of an emphasis, including on the body's first line. The body is then
  * moved as a block, measured from its least-indented tag, so every tag reaches
  * the unit or beyond and everything else keeps its offset from them.
- * Without tags, consistently space-marked nonblank lines before the unit are
- * treated as star style; tab-prefixed markers or an unmarked continuation do not
- * trigger conversion. An indented tagless bullet list is preserved. Such
- * prose-only cases are inherently ambiguous.
+ * Without tags, a marker before the unit on the first line and at least one
+ * further nonblank line signal star style if other lines are at that marker
+ * column or indented further. Only stars at that column are removed; indented
+ * bullets are retained. This is ambiguous: a list before the unit looks the
+ * same as marked prose. A tab counts as one unit, so a tab-prefixed star is at
+ * the template margin and is kept rather than mistaken for a marker.
  *
  * A file that does not open with a doxygen comment is returned unchanged. The
  * header region is found by `getHeaderLinesCount`, which accepts any `/*`, and an
@@ -113,29 +121,6 @@ export const headerLayout = (
 
   const unit = indentationMultipleOf(configuration)
 
-  /**
-   * The width of a line's leading whitespace, counting a tab as one indentation
-   * unit. Measured in characters a tab is a single column, so a tab-indented
-   * body reads as narrower than the unit and the shift padded a space in front
-   * of the tab - leaving the header at neither indentationMultiple nor the
-   * indentation its author wrote.
-   */
-  const indentWidth = (line: string): number => {
-    let width = 0
-
-    for (const character of line) {
-      if (character === ' ') {
-        width += 1
-      } else if (character === '\t') {
-        width += unit
-      } else {
-        break
-      }
-    }
-
-    return width
-  }
-
   const bodyLines = entries
     .slice(0, headerLinesCount)
     .map((entry) => entry.line)
@@ -144,19 +129,18 @@ export const headerLayout = (
         line.trim() && !openingMarker.test(line) && !closingMarker.test(line)
     )
 
-  // The star style is read from the body's tags: a header written that way marks
-  // its tags with a star, and a starred `@li` is not an entry the macros rule
-  // reads - which is the state this conversion exists to prevent.
-  const starred = isStarredBody(bodyLines, unit)
+  const originalTags = bodyLines.filter((line) => /^\s*(?:\*+\s*)?@/.test(line))
+  const starred =
+    originalTags.length > 0 &&
+    originalTags.every((line) => /^\s*\*+\s*@/.test(line))
+  const taglessColumn = originalTags.length
+    ? undefined
+    : taglessMarkerColumn(bodyLines, unit)
 
   /**
-   * The marker as it is written on a line: the star, and the space after it.
-   *
-   * In a starred body every line is marked, so that pattern is removed from all
-   * of them - a sample or a paragraph keeps the offset it was written at, and
-   * nothing is left starred. In a body that only carries a stray star, the star
-   * is a marker only in front of a tag; anywhere else it is punctuation, a
-   * bullet or the opening star of an emphasis, and it stays.
+   * Tagged star-style bodies lose each line's marker; other tagged bodies only
+   * lose markers before tags. For tagless bodies only stars at the detected
+   * marker column are removed, preserving more-indented bullets.
    */
   const marker = starred ? /^(\s*)\*+(?=\s|@|$)\s?/ : /^(\s*)\*+(?=\s*@)\s?/
 
@@ -167,15 +151,23 @@ export const headerLayout = (
    * up one column left of where it was written (the space that followed the star
    * is gone with it).
    */
-  const bodyOf = (line: string) => line.replace(marker, '$1')
+  const bodyOf = (line: string) => {
+    if (taglessColumn !== undefined) {
+      const match = /^([ \t]*)\*(?:\s|$)/.exec(line)
+      return match && indentWidth(match[1], unit) === taglessColumn
+        ? match[1] + line.slice(match[0].length)
+        : line
+    }
+    return line.replace(marker, '$1')
+  }
 
   // Ignore non-tag outdents such as blockquotes, but ensure a later tag written
   // further left than the first still reaches the unit in the same pass.
   const converted = bodyLines.map(bodyOf)
   const tagLines = converted.filter((line) => /^\s*@/.test(line))
   const bodyIndent = tagLines.length
-    ? Math.min(...tagLines.map(indentWidth))
-    : indentWidth(converted.length ? converted[0] : '')
+    ? Math.min(...tagLines.map((line) => indentWidth(line, unit)))
+    : indentWidth(converted.length ? converted[0] : '', unit)
 
   // Move only when a tag (or the first line of a tagless body) is below the
   // unit; all body lines retain their relative offsets.
