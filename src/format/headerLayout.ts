@@ -9,6 +9,9 @@ const closingMarker = /^\s*\*+\/\s*$/
 /** The opening line of a doxygen header, and the only one this pass owns. */
 const openingMarker = /^\s*\/\*\*/
 
+/** A leading star, which is how the star style marks every body line. */
+const leadingStar = /^\*\s?/
+
 /**
  * Gives a file header back the shape a reader expects.
  *
@@ -28,11 +31,18 @@ const openingMarker = /^\s*\/\*\*/
  * - leaves blank lines blank rather than filling them with spaces, and the
  *   opening line untouched.
  *
- * A `@example` / `@code` / `@verbatim` body gets the same unit indent as any other
+ * A header written in the star style - `/**\n * @file\n *\/` - is converted to the
+ * template's shape: the star is stripped and the body is indented by the unit.
+ * Keeping the stars was tried and is wrong, not merely a matter of taste: the rules
+ * that read the `<h4> SAS Macros </h4>` list do not recognise a starred `@li` entry
+ * as a declaration, so every pass appended another copy of every macro the file
+ * uses. One shape is also what lets a second run change nothing.
+ *
+ * A `@example` / `@code` / `@verbatim` body gets the same treatment as any other
  * line. By the time this pass runs the printer has already flattened the body's
- * *inner* indentation, so the nesting an author wrote is gone before this code
- * sees it and trimming what is left loses nothing further - which is why there is
- * no special case for a code body here. The relative structure of a code sample
+ * *inner* indentation, so the nesting an author wrote is gone before this code sees
+ * it and trimming what is left loses nothing further - which is why there is no
+ * special case for a code body here. The relative structure of a code sample
  * therefore does not survive a format: that is a limitation of the printer, not a
  * choice made in this file.
  *
@@ -41,8 +51,8 @@ const openingMarker = /^\s*\/\*\*/
  * ordinary block comment is not this pass's to lay out - least of all to have its
  * ` *\/` rewritten to `**\/`.
  *
- * Idempotent: a header already in this shape comes back unchanged, which the
- * caller relies on because its passes run until the text stops changing.
+ * Idempotent: a header already in this shape comes back unchanged, which the caller
+ * relies on because its passes run until the text stops changing.
  *
  * @param text - the text to lay out
  * @param configuration - provides `indentationMultiple` and the header boundary
@@ -75,7 +85,11 @@ export const headerLayout = (
 
     if (closingMarker.test(line)) return '**/' + entry.ending
 
-    return indent + line.trim() + entry.ending
+    // A star-style line loses its star, and a star that stood alone becomes a blank
+    // line rather than one with trailing space.
+    const content = line.trim().replace(leadingStar, '')
+
+    return (content ? indent + content : '') + entry.ending
   })
 
   return laidOut.join('')

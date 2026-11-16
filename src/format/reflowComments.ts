@@ -285,7 +285,7 @@ const readBlock = (
  * Blocks that are left entirely alone: one sharing a line with code, one inside
  * a `datalines` record, one holding a `@example` / `@code` / `@verbatim` body,
  * the `<h4> SAS Macros </h4>` section - whose entries other rules read and
- * rewrite - and any block holding a `@sasjslint` tag, whose object has to stay
+ * rewrite - and a `@sasjslint` line, whose object has to stay
  * on the line the tag opens.
  *
  * A paragraph is reflowed only when every line of the result fits, so the pass
@@ -339,9 +339,9 @@ export const reflowComments = (
     // continuation lines would end the list a reader sees, so those lines stay
     // byte-identical - but a `@brief` or `@param` paragraph above them is prose
     // like any other and is wrapped with the rest.
-    const refused = read.some((line) => /@sasjslint\b/.test(line.content))
-
-    if (refused) continue
+    // Nothing is refused for the whole block any more: a header may carry a
+    // `@sasjslint` directive, a macro list and a code body, and each is handled
+    // where it sits - so the prose around them is still wrapped.
 
     emitTo(block.open)
 
@@ -424,6 +424,14 @@ export const reflowComments = (
         flush()
         emitted.push(line.raw)
         inMacrosSection = true
+        return
+      }
+
+      // The directive is one line and belongs to `adjustLineLength`, which merges
+      // into it; it is emitted exactly as it arrived.
+      if (/@sasjslint\b/.test(line.content)) {
+        flush()
+        emitted.push(line.raw)
         return
       }
 

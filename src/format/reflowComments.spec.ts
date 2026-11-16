@@ -62,6 +62,30 @@ data _null_;
 run;`)
   })
 
+  it('wraps prose around a @sasjslint directive, leaving the directive alone', () => {
+    // The directive is one line and adjustLineLength owns it; the prose beside it
+    // is prose like any other.
+    const text = `/**
+  @brief a description that is long enough to be wrapped by this pass
+  @sasjslint {"maxLineLength": 150}
+**/
+data _null_;
+run;`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @brief a description that is long
+  enough to be wrapped by this pass
+  @sasjslint {"maxLineLength": 150}
+**/
+data _null_;
+run;`)
+  })
+
   it('wraps the prose around an @example body, leaving the body alone', () => {
     const text = `/**
   @brief a description that is long enough to be wrapped by this pass

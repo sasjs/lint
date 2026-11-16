@@ -55,6 +55,16 @@ describe('headerLayout', () => {
     )
   })
 
+  it('converts the star style to the template shape, stars and closer included', () => {
+    // Keeping the stars was tried first and is wrong: the rules that read the macros
+    // list do not recognise a starred `@li`, so each pass appended another copy.
+    const text = `/**\n * @file a.sas\n * @brief b\n *\n *\/\ndata _null_;\nrun;\n`
+
+    expect(headerLayout(text, config())).toEqual(
+      `/**\n  @file a.sas\n  @brief b\n\n**/\ndata _null_;\nrun;\n`
+    )
+  })
+
   it('returns empty text unchanged', () => {
     expect(headerLayout('', config())).toEqual('')
   })
