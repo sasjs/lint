@@ -71,6 +71,14 @@ describe('headerLayout', () => {
     )
   })
 
+  it('trims trailing whitespace from body lines without changing their relative indentation', () => {
+    const text = `/**\r\n@file a.sas  \r\n    continuation\t \r\n**/\r\ndata _null_;  \r\n`
+    const expected = `/**\r\n  @file a.sas\r\n      continuation\r\n**/\r\ndata _null_;  \r\n`
+
+    expect(headerLayout(text, config())).toEqual(expected)
+    expect(headerLayout(expected, config())).toEqual(expected)
+  })
+
   it('keeps the relative indentation of a body that is already indented', () => {
     const text = header(`  @file a.sas\n  @param [in] x\n      continued\n`)
 

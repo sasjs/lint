@@ -49,11 +49,13 @@ const isStarredBody = (bodyLines: string[], unit: number): boolean => {
  *   than that, read through `indentationMultipleOf` so the setting behaves here
  *   as it does in every sibling pass (0 means "the default", not "no indent");
  * - puts the closing marker back at column 0 as `**\/`;
+ * - trims trailing whitespace from nonblank body lines while preserving their
+ *   leading indentation;
  * - leaves blank lines blank rather than filling them with spaces, and the
  *   opening line untouched.
  *
  * The body is moved as a block: every line keeps its indentation relative to the
- * first body line, so a hanging `@param` continuation, the entries under a
+ * others, so a hanging `@param` continuation, the entries under a
  * `<h4>`, and the indented code samples a doxygen reader renders as code all
  * survive. Indenting each line by the unit instead - what this pass used to do -
  * flattens exactly that structure, and a code sample that loses its relative
@@ -75,10 +77,11 @@ const isStarredBody = (bodyLines: string[], unit: number): boolean => {
  * a `*` anywhere else is punctuation: a bullet, a prose line, or the opening
  * star of an emphasis, including on the body's first line. The body is then
  * moved as a block, measured from its least-indented tag, so every tag reaches
- * the unit or beyond and everything else keeps its offset from them. Without
- * tags, consistently marked lines before the unit are treated as star style;
- * an indented tagless bullet list is preserved. Such prose-only cases are
- * inherently ambiguous.
+ * the unit or beyond and everything else keeps its offset from them.
+ * Without tags, consistently space-marked nonblank lines before the unit are
+ * treated as star style; tab-prefixed markers or an unmarked continuation do not
+ * trigger conversion. An indented tagless bullet list is preserved. Such
+ * prose-only cases are inherently ambiguous.
  *
  * A file that does not open with a doxygen comment is returned unchanged. The
  * header region is found by `getHeaderLinesCount`, which accepts any `/*`, and an
@@ -187,7 +190,7 @@ export const headerLayout = (
 
     if (closingMarker.test(line)) return '**/' + entry.ending
 
-    const body = bodyOf(line)
+    const body = bodyOf(line).trimEnd()
 
     // A star that stood alone becomes a blank line rather than one with trailing
     // space.
