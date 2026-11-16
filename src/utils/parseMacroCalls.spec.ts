@@ -145,6 +145,22 @@ describe('parseMacroCalls', () => {
     ).toEqual(['put', 'mf_foo'])
   })
 
+  it('should not classify a call between apostrophes in a double-quoted string as quoted', () => {
+    const calls = parseMacroCalls(`%put "'%mf_a()'";`)
+    expect(calls.map(({ name, quoted }) => [name, quoted])).toEqual([
+      ['put', undefined],
+      ['mf_a', undefined]
+    ])
+  })
+
+  it('should not treat a block comment marker in double quotes as a comment', () => {
+    const text = `%put "/* %mf_inner() */";`
+    expect(parseMacroCalls(text).map((call) => call.name)).toEqual([
+      'put',
+      'mf_inner'
+    ])
+  })
+
   it('should ignore the argument of a masking function', () => {
     const text = `%put %str(%foo);`
 
@@ -191,6 +207,12 @@ describe('parseMacroCalls', () => {
         )
       ).toEqual(['put@1:1', 'UnQuOtE@1:6', 'mf_inner@2:3', 'mf_after@3:4'])
     }
+  })
+
+  it('should scan macro calls inside %unquote with whitespace before its parenthesis', () => {
+    expect(
+      parseMacroCalls(`%unquote \n (%mf_inner())`).map((call) => call.name)
+    ).toEqual(['unquote', 'mf_inner'])
   })
 
   it('should respect nested masks inside %unquote', () => {
