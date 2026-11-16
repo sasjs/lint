@@ -1,4 +1,8 @@
-import { maskedArgumentEnd, maskingFunctionStart } from './maskingFunction'
+import {
+  argumentTextFunctionNames,
+  maskedArgumentEnd,
+  maskingFunctionStart
+} from './maskingFunction'
 
 describe('maskingFunctionStart', () => {
   it('should match every call whose argument is masked', () => {
@@ -18,6 +22,17 @@ describe('maskingFunctionStart', () => {
       expect(maskingFunctionStart.test(`${name}(a)`)).toBe(true)
     )
     expect(maskingFunctionStart.test('%STR (a)')).toBe(true)
+  })
+
+  it('should keep the %q* forms out of the mask set and in the argument-text set', () => {
+    const argumentText = new RegExp(
+      `^(?:${argumentTextFunctionNames})\\s*\\(`,
+      'i'
+    )
+
+    expect(maskingFunctionStart.test('%qscan(a)')).toBe(false)
+    expect(argumentText.test('qscan(a)')).toBe(true)
+    expect(argumentText.test('nrstr(a)')).toBe(true)
   })
 
   it('should not match a call that does not mask its argument', () => {

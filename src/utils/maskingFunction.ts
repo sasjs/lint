@@ -13,6 +13,18 @@
  */
 export const maskingFunctionNames = '(?:nr)?(?:str|bquote|superq|quote|unquote)'
 
+/**
+ * The `%q*` functions. SAS hands their argument to a DATA step function rather
+ * than resolving it as macro code, so a comma or a quote in it is data - the
+ * same reason to step over a masking call's argument, and they belong beside
+ * the masking names in a scanner that does that.
+ */
+export const quotingFunctionNames =
+  'qsysfunc|qcmpres|qleft|qlowcase|qscan|qsubstr|qtrim|qupcase|qverify'
+
+/** Every call whose argument a scanner has to step over rather than read. */
+export const argumentTextFunctionNames = `${maskingFunctionNames}|${quotingFunctionNames}`
+
 /** Matches one of those calls, at the start of the supplied text. */
 export const maskingFunctionStart = new RegExp(
   `^%${maskingFunctionNames}\\s*\\(`,

@@ -1,5 +1,5 @@
 import { getIndex } from './getIndex'
-import { maskedArgumentEnd, maskingFunctionNames } from './maskingFunction'
+import { argumentTextFunctionNames, maskedArgumentEnd } from './maskingFunction'
 import { MacroCall } from './parseMacroCalls'
 
 /**
@@ -37,12 +37,10 @@ export interface MacroCallArguments {
 /**
  * The functions whose argument is text rather than code. A comma or a quote
  * inside one belongs to the value, so the scan steps over the whole argument
- * instead of reading it. The masking names are shared with the scanners that
- * skip the same arguments; the `%q*` forms sit beside them because their
- * argument is handed to a DATA step function.
+ * instead of reading it.
  */
 const maskingFunction = new RegExp(
-  `%(?:${maskingFunctionNames}|qsysfunc|qcmpres|qleft|qlowcase|qscan|qsubstr|qtrim|qupcase|qverify)\\s*\\(`,
+  `%(?:${argumentTextFunctionNames})\\s*\\(`,
   'iy'
 )
 
