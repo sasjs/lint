@@ -49,8 +49,8 @@ const indentWidth = (line: string, unit: number): number => {
  * indent stops being a code sample.
  *
  * A header written in the star style - `/**\n * @file\n *\/` - is converted to the
- * template's shape: the star is replaced by the indentation it stood in for, and
- * the body is then moved like any other. The star style is not kept: the rules
+ * template's shape: the star marker is removed while the line's leading
+ * whitespace remains, and the body is then moved like any other. The rules
  * that read the `<h4> SAS Macros </h4>` list do not recognise a starred `@li`
  * entry as a declaration, so every pass would append another copy of every macro
  * the file uses. One shape is also what lets a second run change nothing.
@@ -66,7 +66,8 @@ const indentWidth = (line: string, unit: number): number => {
  * moved as a block, measured from its least-indented tag, so every tag reaches
  * the unit or beyond and everything else keeps its offset from them.
  * Without tags, starred prose is indistinguishable from a bullet list, so no
- * stars are removed. The first body line determines the block shift; trailing
+ * stars are removed, even a lone star. The first nonblank body line determines
+ * the block shift; later outdents are preserved, not forced to the unit. Trailing
  * whitespace and the closing marker are handled as for tagged headers.
  *
  * A file that does not open with a doxygen comment is returned unchanged. The
@@ -149,8 +150,8 @@ export const headerLayout = (
 
     const body = bodyOf(line).trimEnd()
 
-    // A star that stood alone becomes a blank line rather than one with trailing
-    // space.
+    // A removed marker can leave an empty line; do not add shift spaces to it.
+    // A lone star remains content in a tagless or mixed-style body.
     return (body.trim() ? shift + body : '') + entry.ending
   })
 

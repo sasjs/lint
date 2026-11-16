@@ -222,6 +222,22 @@ describe('headerLayout', () => {
     expect(headerLayout(once, config())).toEqual(once)
   })
 
+  it('preserves a lone star in a tagless body', () => {
+    // It could be an empty bullet rather than a decorative separator.
+    const text = `/**\n * first\n *\n * second\n */\ndata _null_;\nrun;\n`
+    const expected = `/**\n  * first\n  *\n  * second\n**/\ndata _null_;\nrun;\n`
+    const once = headerLayout(text, config())
+    expect(once).toEqual(expected)
+    expect(headerLayout(once, config())).toEqual(once)
+  })
+
+  it('preserves outdented tagless bullets and blockquotes', () => {
+    const text = header(`  intro\n * bullet\n> outdented quote\n`)
+    const once = headerLayout(text, config())
+    expect(once).toEqual(text)
+    expect(headerLayout(once, config())).toEqual(once)
+  })
+
   it('preserves ambiguous tagless bullets before the template margin', () => {
     const text = `/**\n * first bullet\n * second bullet\n */\ndata _null_;\nrun;\n`
     const expected = `/**\n  * first bullet\n  * second bullet\n**/\ndata _null_;\nrun;\n`
