@@ -1,18 +1,13 @@
 import { LintConfig } from '../types'
 import { getHeaderLinesCount } from '../utils/getHeaderLinesCount'
+import { indentationMultipleOf } from './longLines'
 import { splitWithTerminators } from './rewrapText'
 
 /** The line that closes a doxygen header, however the printer or the author left it. */
 const closingMarker = /^\s*\*+\/\s*$/
 
-/** The opening line of a doxygen header. */
+/** The opening line of a doxygen header, and the only one this pass owns. */
 const openingMarker = /^\s*\/\*\*/
-
-/** A tag whose body is code rather than prose, so its lines are left as written. */
-const codeTag = /^\s*@(?:example|code|verbatim)\b/i
-
-/** Any other tag, which is where a code body ends. */
-const otherTag = /^\s*@(?!example|code|verbatim)\w/i
 
 /**
  * Gives a file header back the shape a reader expects.
@@ -26,13 +21,25 @@ const otherTag = /^\s*@(?!example|code|verbatim)\w/i
  *
  * So this pass, over the header region only:
  *
- * - indents every body line by `indentationMultiple`, which is the template's own
- *   indentation and a setting the project already has for nesting;
- * - leaves a `@example` / `@code` / `@verbatim` body exactly as written, because
- *   indentation there is part of what is being illustrated;
+ * - indents every body line by `indentationMultiple`, read through
+ *   `indentationMultipleOf` so the setting behaves here as it does in every
+ *   sibling pass (0 means "the default", not "no indent");
  * - puts the closing marker back at column 0 as `**\/`;
  * - leaves blank lines blank rather than filling them with spaces, and the
  *   opening line untouched.
+ *
+ * A `@example` / `@code` / `@verbatim` body gets the same unit indent as any other
+ * line. By the time this pass runs the printer has already flattened the body's
+ * *inner* indentation, so the nesting an author wrote is gone before this code
+ * sees it and trimming what is left loses nothing further - which is why there is
+ * no special case for a code body here. The relative structure of a code sample
+ * therefore does not survive a format: that is a limitation of the printer, not a
+ * choice made in this file.
+ *
+ * A file that does not open with a doxygen comment is returned unchanged. The
+ * header region is found by `getHeaderLinesCount`, which accepts any `/*`, and an
+ * ordinary block comment is not this pass's to lay out - least of all to have its
+ * ` *\/` rewritten to `**\/`.
  *
  * Idempotent: a header already in this shape comes back unchanged, which the
  * caller relies on because its passes run until the text stops changing.
@@ -52,8 +59,12 @@ export const headerLayout = (
   if (!headerLinesCount) return text
 
   const entries = splitWithTerminators(text)
-  const indent = ' '.repeat(configuration.indentationMultiple)
-  let inCode = false
+
+  // `getHeaderLinesCount` takes any `/*`, so the first line decides whether this
+  // is a doxygen header at all.
+  if (!openingMarker.test(entries[0].line)) return text
+
+  const indent = ' '.repeat(indentationMultipleOf(configuration))
 
   const laidOut = entries.map((entry, index) => {
     if (index >= headerLinesCount) return entry.line + entry.ending
@@ -63,21 +74,6 @@ export const headerLayout = (
     if (!line.trim() || openingMarker.test(line)) return line + entry.ending
 
     if (closingMarker.test(line)) return '**/' + entry.ending
-
-    if (codeTag.test(line)) {
-      inCode = true
-
-      return indent + line.trim() + entry.ending
-    }
-
-    if (inCode) {
-      if (otherTag.test(line)) inCode = false
-      // The printer has already flattened the body's inner indentation, so what
-      // is left to do is give its lines the header's unit indent rather than
-      // leave them at column 0 - the relative structure a reader had is gone
-      // before this pass sees the text.
-      else return indent + line.trim() + entry.ending
-    }
 
     return indent + line.trim() + entry.ending
   })

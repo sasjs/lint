@@ -398,8 +398,11 @@ export const reflowComments = (
         inMacrosSection = false
       }
 
-      // A `@example` / `@code` / `@verbatim` body is data, not prose: leave it
-      // exactly as it arrived. It ends at the next tag.
+      // A `@example` / `@code` / `@verbatim` body is data, not prose: this pass
+      // does not reflow it, and hands it on as it arrived. Earlier passes in the
+      // same run have already laid it out - `headerLayout` gives it the header's
+      // unit indent - so "as it arrived" is not "as the author wrote it", and the
+      // printer is what removed the indentation the author did write.
       if (inCodeSection) {
         if (line.content !== '' && otherTag.test(line.content))
           inCodeSection = false
