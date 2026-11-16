@@ -332,7 +332,6 @@ export const reflowComments = (
     const { read, contentIndent } = readBlock(lines, block, multiple)
     const limit =
       block.open < headerLinesCount ? headerLimit : configuration.maxLineLength
-    const blockText = read.map((line) => line.raw).join('\n')
 
     // The macros section is refused rather than the whole block that holds it:
     // its `@li` entries are parsed and rewritten by other rules, and its
