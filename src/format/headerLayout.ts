@@ -20,25 +20,6 @@ const indentWidth = (line: string, unit: number): number => {
   return width
 }
 
-/** Marker column for an unambiguously indented continuation in a tagless body. */
-const taglessMarkerColumn = (
-  lines: string[],
-  unit: number
-): number | undefined => {
-  if (lines.length < 2) return undefined
-  const first = /^([ \t]*)\*(?:\s|$)/.exec(lines[0])
-  if (!first) return undefined
-  const column = indentWidth(first[1], unit)
-  if (column >= unit) return undefined
-  const consistent = lines.every((line) => {
-    const marker = /^([ \t]*)\*(?:\s|$)/.exec(line)
-    return marker && indentWidth(marker[1], unit) === column
-      ? true
-      : indentWidth(line, unit) > column
-  })
-  return consistent ? column : undefined
-}
-
 /**
  * Gives a file header back the shape a reader expects.
  *
@@ -84,12 +65,9 @@ const taglessMarkerColumn = (
  * star of an emphasis, including on the body's first line. The body is then
  * moved as a block, measured from its least-indented tag, so every tag reaches
  * the unit or beyond and everything else keeps its offset from them.
- * Without tags, a marker before the unit on the first line and at least one
- * further nonblank line signal star style if other lines are at that marker
- * column or indented further. Only stars at that column are removed; indented
- * bullets are retained. This is ambiguous: a list before the unit looks the
- * same as marked prose. A tab counts as one unit, so a tab-prefixed star is at
- * the template margin and is kept rather than mistaken for a marker.
+ * Without tags, starred prose is indistinguishable from a bullet list, so no
+ * stars are removed. The first body line determines the block shift; trailing
+ * whitespace and the closing marker are handled as for tagged headers.
  *
  * A file that does not open with a doxygen comment is returned unchanged. The
  * header region is found by `getHeaderLinesCount`, which accepts any `/*`, and an
@@ -133,14 +111,9 @@ export const headerLayout = (
   const starred =
     originalTags.length > 0 &&
     originalTags.every((line) => /^\s*\*+\s*@/.test(line))
-  const taglessColumn = originalTags.length
-    ? undefined
-    : taglessMarkerColumn(bodyLines, unit)
-
   /**
    * Tagged star-style bodies lose each line's marker; other tagged bodies only
-   * lose markers before tags. For tagless bodies only stars at the detected
-   * marker column are removed, preserving more-indented bullets.
+   * lose markers before tags. Tagless bodies retain their stars.
    */
   const marker = starred ? /^(\s*)\*+(?=\s|@|$)\s?/ : /^(\s*)\*+(?=\s*@)\s?/
 
@@ -151,15 +124,7 @@ export const headerLayout = (
    * up one column left of where it was written (the space that followed the star
    * is gone with it).
    */
-  const bodyOf = (line: string) => {
-    if (taglessColumn !== undefined) {
-      const match = /^([ \t]*)\*(?:\s|$)/.exec(line)
-      return match && indentWidth(match[1], unit) === taglessColumn
-        ? match[1] + line.slice(match[0].length)
-        : line
-    }
-    return line.replace(marker, '$1')
-  }
+  const bodyOf = (line: string) => line.replace(marker, '$1')
 
   // Ignore non-tag outdents such as blockquotes, but ensure a later tag written
   // further left than the first still reaches the unit in the same pass.

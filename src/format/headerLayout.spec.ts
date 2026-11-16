@@ -222,27 +222,35 @@ describe('headerLayout', () => {
     expect(headerLayout(once, config())).toEqual(once)
   })
 
-  it('converts a consistently starred prose-only header', () => {
+  it('preserves ambiguous tagless bullets before the template margin', () => {
+    const text = `/**\n * first bullet\n * second bullet\n */\ndata _null_;\nrun;\n`
+    const expected = `/**\n  * first bullet\n  * second bullet\n**/\ndata _null_;\nrun;\n`
+    const once = headerLayout(text, config())
+    expect(once).toEqual(expected)
+    expect(headerLayout(once, config())).toEqual(once)
+  })
+
+  it('preserves stars in a consistently starred prose-only header', () => {
     const text = `/**\n * just a prose header\n * second line\n */\ndata _null_;\nrun;\n`
     const once = headerLayout(text, config())
     expect(once).toEqual(
-      `/**\n  just a prose header\n  second line\n**/\ndata _null_;\nrun;\n`
+      `/**\n  * just a prose header\n  * second line\n**/\ndata _null_;\nrun;\n`
     )
     expect(headerLayout(once, config())).toEqual(once)
   })
 
-  it('converts tagless marked prose with an indented unmarked continuation', () => {
+  it('preserves tagless stars and relative indentation with an unmarked continuation', () => {
     const text = `/**\n * prose one\n   continued\n * prose two\n   * a nested bullet\n */\ndata _null_;\nrun;\n`
     const once = headerLayout(text, config())
     expect(once).toEqual(
-      `/**\n  prose one\n    continued\n  prose two\n    * a nested bullet\n**/\ndata _null_;\nrun;\n`
+      `/**\n  * prose one\n    continued\n  * prose two\n    * a nested bullet\n**/\ndata _null_;\nrun;\n`
     )
     expect(headerLayout(once, config())).toEqual(once)
 
     const single = `/**\n * prose one\n   continued\n */\ndata _null_;\nrun;\n`
     const singleOnce = headerLayout(single, config())
     expect(singleOnce).toEqual(
-      `/**\n  prose one\n    continued\n**/\ndata _null_;\nrun;\n`
+      `/**\n  * prose one\n    continued\n**/\ndata _null_;\nrun;\n`
     )
     expect(headerLayout(singleOnce, config())).toEqual(singleOnce)
   })
@@ -254,10 +262,10 @@ describe('headerLayout', () => {
     expect(headerLayout(once, config())).toEqual(once)
   })
 
-  it('accepts a tab after a tagless marker before the margin', () => {
+  it('preserves tagless bullets with tabs after the stars', () => {
     const text = header(`*\tprose one\n*\tprose two\n`)
     const once = headerLayout(text, config())
-    expect(once).toEqual(header(`  prose one\n  prose two\n`))
+    expect(once).toEqual(header(`  *\tprose one\n  *\tprose two\n`))
     expect(headerLayout(once, config())).toEqual(once)
   })
 
