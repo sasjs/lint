@@ -198,12 +198,51 @@ describe('headerLayout', () => {
     expect(headerLayout(once, config())).toEqual(once)
   })
 
+  it('preserves an unmarked emphasis beside starred tags', () => {
+    const text = `/**\n  *libref* is created here\n * @file a.sas\n */\ndata _null_;\nrun;\n`
+    expect(headerLayout(text, config())).toEqual(
+      `/**\n   *libref* is created here\n  @file a.sas\n**/\ndata _null_;\nrun;\n`
+    )
+  })
+
+  it('converts doubled tag markers before the macros rule reads them', () => {
+    const text = `/**\n ** @file a.sas\n ** @li mf_a.sas\n **/\ndata _null_;\nrun;\n`
+    const once = headerLayout(text, config())
+    expect(once).toEqual(
+      `/**\n  @file a.sas\n  @li mf_a.sas\n**/\ndata _null_;\nrun;\n`
+    )
+    expect(headerLayout(once, config())).toEqual(once)
+  })
+
+  it('converts a consistently starred prose-only header', () => {
+    const text = `/**\n * just a prose header\n * second line\n */\ndata _null_;\nrun;\n`
+    const once = headerLayout(text, config())
+    expect(once).toEqual(
+      `/**\n  just a prose header\n  second line\n**/\ndata _null_;\nrun;\n`
+    )
+    expect(headerLayout(once, config())).toEqual(once)
+  })
+
+  it('keeps tagless bullet lists written at the template margin', () => {
+    const text = header(`  * first bullet\n  * second bullet\n`)
+    expect(headerLayout(text, config())).toEqual(text)
+  })
+
   it('measures a body that carries no tag from its first line', () => {
     // Nothing to prefer over the opening line when there is no tag: a prose-only
     // header is laid out from what it opens with, which here is already the unit.
     const text = header(`  a header with no doxygen tags\n`)
 
     expect(headerLayout(text, config())).toEqual(text)
+  })
+
+  it('keeps every tag at or beyond the unit when a later tag is outdented', () => {
+    const text = `/**\n  * @file a.sas\n * @li mf_a.sas\n */\ndata _null_;\nrun;\n`
+    const once = headerLayout(text, config())
+    expect(once).toEqual(
+      `/**\n   @file a.sas\n  @li mf_a.sas\n**/\ndata _null_;\nrun;\n`
+    )
+    expect(headerLayout(once, config())).toEqual(once)
   })
 
   it('counts a tab as one unit rather than one column when it measures the body', () => {
