@@ -25,12 +25,18 @@ type LengthKey = 'maxLineLength' | 'maxHeaderLineLength' | 'maxDataLineLength'
  * @param headerLinesCount - how many of them the header holds
  * @returns the first and last line of the directive, or null when there is none
  */
+const directiveStart = /^[^\w]*@sasjslint\s*\{/i
+
 const directiveRange = (
   lines: string[],
   headerLinesCount: number
 ): { start: number; end: number } | null => {
   for (let start = 0; start < headerLinesCount; start++) {
-    if (!/@sasjslint\b/i.test(lines[start])) continue
+    // The reader's own predicate: the tag starts the line and the object opens
+    // straight after it. A prose line that merely mentions the tag is not a
+    // directive, and treating one as the start of the range scans to the *real*
+    // directive's closing brace - deleting every header line in between.
+    if (!directiveStart.test(lines[start])) continue
 
     let depth = 0
     let opened = false
@@ -185,13 +191,6 @@ export const adjustLineLength = (
   // A tag that does not parse is reported by the linter and belongs to its
   // author: rewriting it would discard whatever they were trying to say.
   if (range && !override) return text
-
-  // Nothing to write when the file already states what this pass would say. That
-  // is also what leaves a hand-written multi-line object as its author wrote it.
-  const settled = raised.every(
-    (key) => (override?.[key] ?? configuration[key]) >= needed[key]
-  )
-  if (settled) return text
 
   const merged = { ...(override ?? {}) }
   raised.forEach((key) => {

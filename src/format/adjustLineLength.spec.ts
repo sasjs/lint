@@ -1,4 +1,5 @@
 import { LintConfig } from '../types'
+import { applyLintOverride } from '../utils/parseLintOverride'
 import { adjustLineLength } from './adjustLineLength'
 
 const config = (json: any) => new LintConfig(json)
@@ -56,7 +57,9 @@ run;
   })
 
   it('leaves a multi-line directive alone when it already covers the line', () => {
-    // A hand-written object is its author's layout, and there is nothing to say.
+    // Through the pipeline this pass runs in, `processOnce` hands it the
+    // configuration with the file's own override already applied, so a limit that
+    // is already high enough raises nothing and the object stays as written.
     const text = `/**
   @file
   @sasjslint {
@@ -70,9 +73,69 @@ run;
     expect(
       adjustLineLength(
         text,
-        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+        applyLintOverride(
+          text,
+          config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+        )
       )
     ).toEqual(text)
+  })
+
+  it('does not read a prose mention of the tag as the directive', () => {
+    // The reader requires the tag to start a line with `{` after it. A `@brief`
+    // that mentions it is prose: taking it as the range start scans to the real
+    // directive's closing brace and replaces every header line in between, which
+    // is a silent, permanent deletion of @brief, @param and @version.
+    const text = `/**
+  @file
+  @brief Sends the settlement, and documents the @sasjslint directive here
+  @param libin input library
+  @version 9.4
+  @sasjslint {
+    "maxHeaderLineLength": 60
+  }
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      applyLintOverride(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    )
+
+    expect(output).toEqual(`/**
+  @file
+  @brief Sends the settlement, and documents the @sasjslint directive here
+  @param libin input library
+  @version 9.4
+  @sasjslint {"maxHeaderLineLength": 90}
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`)
+  })
+
+  it('writes the exception when the only mention of the tag is prose', () => {
+    // The loose predicate suppressed the write here: a header whose only mention
+    // is prose was returned unchanged, without the exception it needs.
+    const text = `/**
+  @brief Sends the settlement, and documents the @sasjslint directive here
+  @brief https://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm
+**/
+run;
+`
+
+    const output = adjustLineLength(
+      text,
+      config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+    )
+
+    expect(output).toContain('@sasjslint {"maxHeaderLineLength": 90}')
+    expect(output).toContain('@brief Sends the settlement')
   })
 
   it('raises maxHeaderLineLength for a header line, leaving maxLineLength alone', () => {
