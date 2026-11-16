@@ -1,54 +1,53 @@
 import { execFileSync } from 'child_process'
-import { mkdtempSync, writeFileSync } from 'fs'
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
 
-/**
- * Drives `scripts/audit-watch.mjs --gate` against fixture audit reports, so the
- * gate is proved on shapes the installed tree does not have: a copy of an
- * exempted package that npm resolves nested rather than hoisted, and an advisory
- * nobody has listed.
- *
- * The script takes the report from `--audit-json=<path>`, which is the seam that
- * lets a case describe a tree without installing one - an argument rather than
- * an environment variable, so the step that decides the build cannot have its
- * input replaced by a workflow `env:` entry.
- */
 const script = path.resolve(__dirname, 'audit-watch.mjs')
 
-const advisory = (id: string, packageName: string, nodes: string[]) => ({
-  vulnerabilities: {
-    [packageName]: {
-      severity: 'low',
-      nodes,
-      via: [
-        {
-          source: 1,
-          url: `https://github.com/advisories/${id}`,
-          severity: 'low',
-          title: 'fixture'
-        }
-      ]
+const report = (vulnerabilities: Record<string, unknown>, total: number) => ({
+  auditReportVersion: 2,
+  vulnerabilities,
+  metadata: {
+    vulnerabilities: {
+      info: 0,
+      low: total,
+      moderate: 0,
+      high: 0,
+      critical: 0,
+      total
     }
-  },
-  metadata: { vulnerabilities: { low: nodes.length, total: nodes.length } }
+  }
 })
 
-const run = (report: unknown) => {
-  const dir = mkdtempSync(path.join(tmpdir(), 'audit-watch-'))
-  const fixture = path.join(dir, 'audit.json')
-  writeFileSync(fixture, JSON.stringify(report))
-
-  try {
-    const stdout = execFileSync(
-      'node',
-      [script, '--gate', `--audit-json=${fixture}`],
-      {
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe']
+const advisory = (id: string, name: string, node: string) =>
+  report(
+    {
+      [name]: {
+        severity: 'low',
+        nodes: [node],
+        via: [
+          {
+            url: `https://github.com/advisories/${id}`,
+            severity: 'low',
+            title: 'fixture'
+          }
+        ]
       }
-    )
-    return { code: 0, output: stdout }
+    },
+    1
+  )
+
+const run = (args: string[], env = process.env) => {
+  try {
+    return {
+      code: 0,
+      output: execFileSync('node', [script, ...args], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env
+      })
+    }
   } catch (error: any) {
     return {
       code: error.status ?? 1,
@@ -57,62 +56,105 @@ const run = (report: unknown) => {
   }
 }
 
-describe('audit-watch gate', () => {
-  it('should pass when the exempted package is hoisted', () => {
-    const result = run(
-      advisory('GHSA-gcqx-w48m-w2h4', 'deepmerge', ['node_modules/deepmerge'])
-    )
+const runFixture = (value: unknown, gate = true) => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'audit-watch-'))
+  const fixture = path.join(dir, 'audit.json')
+  writeFileSync(fixture, JSON.stringify(value))
+  return run([...(gate ? ['--gate'] : []), `--audit-json=${fixture}`])
+}
 
-    expect(result.code).toBe(0)
+describe.each([true, false])('full audit (gate=%s)', (gate) => {
+  it('passes a clean report', () => {
+    expect(runFixture(report({}, 0), gate).code).toBe(0)
   })
 
-  it('should pass when npm nests the exempted package under the parent that asks for it', () => {
-    // The entry records both shapes the copy can take, so the gate covers the
-    // tree whether npm hoists it or nests it under jest-config.
-    const result = run(
-      advisory('GHSA-gcqx-w48m-w2h4', 'deepmerge', [
-        'node_modules/jest-config/node_modules/deepmerge'
-      ])
-    )
-
-    expect(result.code).toBe(0)
-  })
-
-  it('should fail on an advisory that is not exempt', () => {
-    const result = run(
-      advisory('GHSA-aaaa-bbbb-cccc', 'left-pad', ['node_modules/left-pad'])
-    )
-
+  it.each([
+    [
+      'new advisory',
+      'GHSA-aaaa-bbbb-cccc',
+      'left-pad',
+      'node_modules/left-pad'
+    ],
+    [
+      'formerly exempt advisory',
+      'GHSA-gcqx-w48m-w2h4',
+      'deepmerge',
+      'node_modules/deepmerge'
+    ],
+    [
+      'nested formerly exempt advisory',
+      'GHSA-gcqx-w48m-w2h4',
+      'deepmerge',
+      'node_modules/jest-config/node_modules/deepmerge'
+    ]
+  ])('fails on %s', (_label, id, name, node) => {
+    const result = runFixture(advisory(id, name, node), gate)
     expect(result.code).toBe(1)
-    expect(result.output).toContain('new advisory GHSA-aaaa-bbbb-cccc')
-    expect(result.output).toContain('at node_modules/left-pad')
+    expect(result.output).toContain(id)
   })
 
-  it('should fail when the exemption no longer appears in the tree', () => {
-    const result = run({
-      vulnerabilities: {},
-      metadata: { vulnerabilities: {} }
+  it('fails on vulnerabilities without a GHSA URL', () => {
+    const result = runFixture(
+      report(
+        {
+          indirect: {
+            severity: 'low',
+            nodes: ['node_modules/indirect'],
+            via: ['other']
+          }
+        },
+        1
+      ),
+      gate
+    )
+    expect(result.code).toBe(1)
+  })
+
+  it.each([
+    {},
+    { error: { code: 'EAUDIT', summary: 'audit failed' } },
+    report({}, 1)
+  ])('fails closed on an invalid report', (value) => {
+    expect(runFixture(value, gate).code).toBe(1)
+  })
+})
+
+describe('npm audit execution', () => {
+  it('explicitly includes dev dependencies and all severities despite npm configuration', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-npm-'))
+    const npm = path.join(dir, 'npm')
+    const argsFile = path.join(dir, 'args')
+    writeFileSync(
+      npm,
+      `#!/bin/sh\nprintf '%s\\n' "$@" > "$AUDIT_ARGS"\nprintf '%s\\n' '${JSON.stringify(report({}, 0))}'\n`
+    )
+    chmodSync(npm, 0o755)
+    const result = run(['--gate'], {
+      ...process.env,
+      PATH: `${dir}:${process.env.PATH}`,
+      AUDIT_ARGS: argsFile
     })
-
-    expect(result.code).toBe(1)
-    expect(result.output).toContain('no longer appears in the tree')
+    expect(result.code).toBe(0)
+    const args = readFileSync(argsFile, 'utf8')
+    expect(args).toContain('--include=prod')
+    expect(args).toContain('--include=dev')
+    expect(args).toContain('--include=optional')
+    expect(args).toContain('--include=peer')
+    expect(args).toContain('--audit-level=info')
   })
 
-  it('should fail when the same package arrives through a different dependency', () => {
-    // The name matches and only the parent differs, which is the case a
-    // package-name-only path cannot tell apart from the exempted copy: a second
-    // copy reached through a dependency the entry was not written about must not
-    // pass under the first one's argument.
-    const result = run(
-      advisory('GHSA-gcqx-w48m-w2h4', 'deepmerge', [
-        'node_modules/any-new-dep/node_modules/deepmerge'
-      ])
+  it('fails closed when npm exits unsuccessfully despite a clean-looking JSON report', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-npm-'))
+    const npm = path.join(dir, 'npm')
+    writeFileSync(
+      npm,
+      `#!/bin/sh\nprintf '%s\\n' '${JSON.stringify(report({}, 0))}'\nexit 1\n`
     )
-
+    chmodSync(npm, 0o755)
+    const result = run(['--gate'], {
+      ...process.env,
+      PATH: `${dir}:${process.env.PATH}`
+    })
     expect(result.code).toBe(1)
-    expect(result.output).toContain('does not cover')
-    expect(result.output).toContain(
-      'node_modules/any-new-dep/node_modules/deepmerge'
-    )
   })
 })
