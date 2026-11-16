@@ -40,43 +40,10 @@ jobs:
         # gitleaks-action requires a license key for organization repos.
         run: node_modules/.bin/gitleaks detect --source . --redact --no-banner -v
       - name: Security Audit
-        # The whole tree is audited, dev dependencies included: a dev-tree
-        # advisory is still a package this repo installs and runs, and excluding
-        # that half is how a scoped gate becomes permanent.
-        # `scripts/audit-watch.mjs` fails on any advisory that is not in its
-        # EXEMPTIONS list, on an exemption that stops appearing in the tree, and
-        # on an exempted advisory reported at a path its entry does not cover.
-        # `--gate` leaves out the registry check, so a new release of a watched
-        # package cannot turn a PR red for something the branch cannot fix.
-        #
-        # The one exemption is GHSA-gcqx-w48m-w2h4: deepmerge 4.3.1, reached
-        # through jest 30.5.2 -> @jest/core -> jest-config. 4.3.1 is the newest
-        # release, the advisory names no patched version at any range, and
-        # jest-config is at its latest published version; an `overrides` entry
-        # can only pin a version that does not exist. The input it poisons is
-        # this repository's own jest configuration, not package data or a
-        # request body - which is why the risk is small, and not a reason to
-        # keep the advisory out of the report.
-        #
-        # The allow-list is in this tree, so a PR that wants a new exemption
-        # edits the gate itself rather than only its code - it can add an entry
-        # to EXEMPTIONS and name it here in the same commit. Nothing in the repo
-        # can prevent that: a second copy of the list in workflow YAML is one
-        # more file in the same tree, and the weekly run executes the same
-        # in-tree script. What makes an exemption trustworthy is that a reviewer
-        # read the argument next to it, so a change to those files needs review
-        # on its own terms rather than as part of a larger diff.
-        #
-        # This step checks the tree: the advisory is present, at a path the entry
-        # covers, and named in this comment. It does not decide whether the
-        # exemption is still justified - `--gate` skips the registry check on
-        # purpose, so a package publishing a fix cannot turn a PR red.
-        # audit-watch.yml runs the same script weekly without `--gate`, and that
-        # run is what re-validates the exemption and raises an issue when
-        # deepmerge publishes a patched release. Keep the GHSA id named here and
-        # in EXEMPTIONS in scripts/audit-watch.mjs: the script fails when the two
-        # disagree.
-        run: node scripts/audit-watch.mjs --gate
+        # Audit every dependency type at every severity. The script fails on
+        # any vulnerability or an invalid or unsuccessful npm audit report;
+        # there are no exemptions. The weekly watch runs the same full audit.
+        run: node scripts/audit-watch.mjs
       - name: Check Code Style
         run: npm run lint
       - name: Run Unit Tests
