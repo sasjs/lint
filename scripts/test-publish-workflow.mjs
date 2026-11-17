@@ -1,11 +1,12 @@
-const { test } = require('node:test')
-const assert = require('node:assert/strict')
-const fs = require('node:fs')
-const os = require('node:os')
-const path = require('node:path')
-const { spawn, spawnSync } = require('node:child_process')
-const yaml = require('js-yaml')
-const { once } = require('node:events')
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { spawn, spawnSync } from 'node:child_process'
+import { once } from 'node:events'
+import { fileURLToPath } from 'node:url'
+import yaml from 'js-yaml'
 
 const workflow = yaml.load(fs.readFileSync('.github/workflows/publish.yml', 'utf8'))
 const steps = workflow.jobs.build.steps
@@ -46,7 +47,7 @@ test('real released tool and workflow shell gate events, tags, branches and regi
   const runner = path.join(root, 'runner')
   const bin = path.join(root, 'bin')
   fs.mkdirSync(repo); fs.mkdirSync(runner); fs.mkdirSync(bin)
-  fs.copyFileSync(require.resolve('@sasjs/release/release.mjs'), path.join(runner, 'sasjs-release.mjs'))
+  fs.copyFileSync(fileURLToPath(import.meta.resolve('@sasjs/release/release.mjs')), path.join(runner, 'sasjs-release.mjs'))
   const git = (...args) => {
     const result = spawnSync('git', args, { cwd: repo, encoding: 'utf8' })
     assert.equal(result.status, 0, result.stderr)
