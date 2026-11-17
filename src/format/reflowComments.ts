@@ -279,7 +279,11 @@ const readBlock = (
   lines: string[],
   block: Block,
   multiple: number
-): { read: CommentLine[]; contentIndent: number } => {
+): {
+  read: CommentLine[]
+  contentIndent: string
+  contentIndentWidth: number
+} => {
   const openLine = lines[block.open]
   const marker = openLine.indexOf('/*')
   // `/**` is one marker, so the second asterisk belongs to the lead.
@@ -302,33 +306,74 @@ const readBlock = (
     }
   ]
 
+  const body: {
+    line: string
+    whitespace: string
+    text: string
+    close: number
+    indent: number
+  }[] = []
+
   for (let index = block.open + 1; index <= block.close; index++) {
     const line = lines[index]
-    const lead = /^\s*/.exec(line)![0]
+    const whitespace = /^\s*/.exec(line)![0]
     const close = index === block.close ? line.indexOf('*/') : -1
-    const body = line.slice(lead.length, close > -1 ? close : undefined)
-    const content = body.trimEnd()
-
-    read.push({
-      raw: line,
-      lead,
-      content,
-      trail: body.slice(content.length) + (close > -1 ? line.slice(close) : ''),
-      indent: lead.length
+    body.push({
+      line,
+      whitespace,
+      text: line.slice(whitespace.length, close > -1 ? close : undefined),
+      close,
+      indent: whitespace.length
     })
   }
 
-  // The opener shares its paragraph with the line below it, when that line
-  // carries text: that is the indentation its continuation takes. When the line
-  // below is blank the opener stands alone, and its continuation is one
-  // `indentationMultiple` in from the marker.
+  // Whether a block decorates its body with `*` is a property of the block, not
+  // of a line. A header written as `/**` ... `    * prose` repeats the marker on
+  // every line and the marker is decoration; a `* item` at the margin of an
+  // ordinary `/*` comment is a bullet, where the `*` is the list marker and has
+  // to reach the content. The test is a marker past the block's own indentation
+  // followed by a space, which also keeps `**bold**` and `*emphasis*` as
+  // content: neither has a space after the first asterisk.
+  const firstBody = body.find((entry) => entry.text.trim() !== '')
+  const decorated =
+    firstBody !== undefined &&
+    firstBody.indent > 0 &&
+    /^\*[ \t]/.test(firstBody.text)
+
+  for (const entry of body) {
+    const marker = decorated ? /^\*(?:[ \t]+|$)/.exec(entry.text) : null
+    const marked = marker ? marker[0] : ''
+    const content = entry.text.slice(marked.length).trimEnd()
+    read.push({
+      raw: entry.line,
+      lead: entry.whitespace + marked,
+      content,
+      trail:
+        entry.text.slice(marked.length + content.length) +
+        (entry.close > -1 ? entry.line.slice(entry.close) : ''),
+      indent: entry.indent
+    })
+  }
+
   const below = read[1]
+  // The lead a continuation takes: the below line's, marker included, so a
+  // reflowed paragraph keeps its `*` decoration. With no body line to copy, the
+  // marker is the one the opener used.
   const contentIndent =
     below !== undefined && below.content !== ''
+      ? below.lead
+      : ' '.repeat(
+          indentOf(openLine) + (multiple - (indentOf(openLine) % multiple))
+        )
+  // The width the opener's paragraph is matched against is the body's
+  // indentation, not its lead: a line continues the opener when the whitespace
+  // before its marker is the same width.
+  const contentIndentWidth =
+    below !== undefined && below.content !== ''
       ? below.indent
-      : indentOf(openLine) + (multiple - (indentOf(openLine) % multiple))
+      : contentIndent.length
 
-  return { read, contentIndent }
+  return { read, contentIndent, contentIndentWidth }
 }
 
 /**
@@ -390,7 +435,11 @@ export const reflowComments = (
   }
 
   for (const block of collectBlocks(lines, configuration)) {
-    const { read, contentIndent } = readBlock(lines, block, multiple)
+    const { read, contentIndent, contentIndentWidth } = readBlock(
+      lines,
+      block,
+      multiple
+    )
     const limit =
       block.open < headerLinesCount ? headerLimit : configuration.maxLineLength
 
@@ -404,6 +453,7 @@ export const reflowComments = (
     const emitted: string[] = []
     let paragraph: CommentLine[] = []
     let paragraphIndent = -1
+    let paragraphLead = ''
 
     const flush = () => {
       if (!paragraph.length) return
@@ -421,7 +471,7 @@ export const reflowComments = (
             content,
             limit,
             paragraph[0].lead,
-            ' '.repeat(paragraphIndent),
+            paragraphLead,
             last.trail
           )
         : null
@@ -431,6 +481,7 @@ export const reflowComments = (
 
       paragraph = []
       paragraphIndent = -1
+      paragraphLead = ''
     }
 
     let inMacrosSection = false
@@ -508,8 +559,10 @@ export const reflowComments = (
         if (!continues) flush()
       }
 
-      if (!paragraph.length)
-        paragraphIndent = index === 0 ? contentIndent : line.indent
+      if (!paragraph.length) {
+        paragraphIndent = index === 0 ? contentIndentWidth : line.indent
+        paragraphLead = index === 0 ? contentIndent : line.lead
+      }
 
       paragraph.push(line)
     })
