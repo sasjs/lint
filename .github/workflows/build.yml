@@ -44,6 +44,8 @@ jobs:
         # any vulnerability or an invalid or unsuccessful npm audit report;
         # there are no exemptions. The weekly watch runs the same full audit.
         run: node scripts/audit-watch.mjs
+      - name: Verify publish workflow gates
+        run: node --test scripts/test-publish-workflow.cjs
       - name: Check Code Style
         run: npm run lint
       - name: Run Unit Tests

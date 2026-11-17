@@ -74,64 +74,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Resolve the tag
-        id: tag
-        env:
-          EVENT: ${{ github.event_name }}
-          REQUESTED: ${{ inputs.tag }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          set -euo pipefail
-          # there is deliberately no `github.event.release` fallback: neither
-          # trigger is `release`, and there cannot be one (see the header)
-          tag="$REQUESTED"
-
-          if [ -z "$tag" ] && [ "$EVENT" = "workflow_run" ]; then
-            # the tag the release run just created, at the commit it released
-            tag="$(git tag --points-at "$SHA" --sort=-v:refname | head -1)"
-            if [ -z "$tag" ]; then
-              # A shallow clone carries no tags, and the branch below would then
-              # report a green publish that published nothing. Only a checkout
-              # with the tags in it can say "that release cut no tag".
-              if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
-                echo "::error::this checkout is shallow, so the tag the release created cannot be seen - the job needs fetch-depth: 0"
-                exit 1
-              fi
-              echo "::notice::no tag at $SHA - that release had nothing to publish"
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
-
-          if [ -z "$tag" ]; then
-            echo "::error::no tag - dispatch this with the tag to publish"
-            exit 1
-          fi
-
-          # A dispatch can name any tag in the repository; only one cut from a
-          # commit on the default branch is a release this pipeline made. The
-          # checkout above pins main, so HEAD *is* the default branch here - the
-          # tag is checked out further down - and this needs no fetch: the
-          # checkout runs with persist-credentials: false, and asking origin for
-          # refs would lean on the repository being public.
-          if ! git merge-base --is-ancestor "${tag}^{commit}" HEAD; then
-            echo "::error::$tag is not on the default branch - refusing to publish it"
-            exit 1
-          fi
-
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
-          echo "publishing $tag (version ${tag#v})"
-
-      - name: Check out the tag
-        if: steps.tag.outputs.skip != 'true'
-        env:
-          TAG: ${{ steps.tag.outputs.tag }}
-        run: git checkout -q "refs/tags/$TAG"
-
       - name: Use Node.js ${{ matrix.node-version }}
-        if: steps.tag.outputs.skip != 'true'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node-version }}
@@ -139,36 +82,105 @@ jobs:
 
       # Node 22 ships npm 10.x - OIDC trusted publishing needs npm >= 11.5.1
       - name: Update npm
-        if: steps.tag.outputs.skip != 'true'
         run: npm install -g npm@latest
 
-      - name: Install Dependencies
-        if: steps.tag.outputs.skip != 'true'
-        run: npm ci
+      # Install from main's lockfile, not from the yet-unverified tag. Keep this
+      # exact released tool across checkout and the tag's own npm ci.
+      - name: Install the release tool
+        run: |
+          npm ci
+          cp node_modules/@sasjs/release/release.mjs "$RUNNER_TEMP/sasjs-release.mjs"
 
-      # the version npm reads is the tag, stamped into the tree and not committed.
-      # Before the build, while the tree is still clean enough for npm version to
-      # accept it.
-      - name: Stamp the version
-        if: steps.tag.outputs.skip != 'true'
+      - name: Resolve and gate the tag
+        id: resolve
+        timeout-minutes: 5
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          EVENT: ${{ github.event_name }}
+          REQUESTED: ${{ inputs.tag }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          REPUBLISH: ${{ inputs.republish }}
+        run: |
+          set -euo pipefail
+          args=(--prepare-publish --branch main --dry-run --output "$GITHUB_OUTPUT")
+          if [ "$EVENT" = workflow_dispatch ]; then
+            if [ -z "$REQUESTED" ]; then
+              echo "::error::no tag - dispatch this with the tag to publish"
+              exit 1
+            fi
+            # The tool accepts any commit-ish as --tag. This workflow accepts
+            # only actual tags, and must not let git revision syntax impersonate one.
+            git show-ref --verify --quiet "refs/tags/$REQUESTED" || { echo "::error::not a tag: $REQUESTED"; exit 1; }
+            [[ "$REQUESTED" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]] || { echo "::error::tag must start with v and a version"; exit 1; }
+            args+=(--tag "$REQUESTED")
+          elif [ "$EVENT" = workflow_run ] && [ -n "$SHA" ]; then
+            git cat-file -e "${SHA}^{commit}" || { echo "::error::unknown workflow run SHA"; exit 1; }
+            args+=(--sha "$SHA")
+          else
+            echo "::error::unexpected event or missing workflow run SHA"
+            exit 1
+          fi
+          if [ "$REPUBLISH" = true ]; then args+=(--republish); fi
+          node "$RUNNER_TEMP/sasjs-release.mjs" "${args[@]}"
+
+      - name: Report when no tag was created
+        if: steps.resolve.outputs.skip == 'true'
+        run: echo "::notice::the release run created no version tag at its commit"
+
+      - name: Verify the resolved tag is on the checked-out main
+        if: steps.resolve.outputs.skip == 'false'
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git show-ref --verify --quiet "refs/tags/$TAG"
+          git merge-base --is-ancestor "refs/tags/${TAG}^{commit}" HEAD || { echo "::error::$TAG is not on checked-out main"; exit 1; }
+
+      - name: Check out the tag
+        if: steps.resolve.outputs.skip == 'false'
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: git checkout -q "refs/tags/$TAG"
+
+      - name: Prepare publish from the tag
+        id: prepare
+        timeout-minutes: 5
+        if: steps.resolve.outputs.skip == 'false'
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+          REPUBLISH: ${{ inputs.republish }}
+        run: |
+          set -euo pipefail
+          [ -n "$TAG" ] || { echo "::error::missing resolved tag"; exit 1; }
+          args=(--prepare-publish --branch main --tag "$TAG" --output "$GITHUB_OUTPUT")
+          if [ "$REPUBLISH" = true ]; then args+=(--republish); fi
+          node "$RUNNER_TEMP/sasjs-release.mjs" "${args[@]}"
+
+      # The release tool stamps package.json; npm validates the complete semver
+      # and updates the lockfile as the previous workflow did.
+      - name: Validate and synchronize the stamped version
+        if: steps.prepare.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.prepare.outputs.version }}
         run: npm version "$VERSION" --no-git-tag-version --allow-same-version
 
+      - name: Install Dependencies
+        if: steps.prepare.outputs.skip == 'false'
+        run: npm ci
+
       - name: Check Code Style
-        if: steps.tag.outputs.skip != 'true'
+        if: steps.prepare.outputs.skip == 'false'
         run: npm run lint
 
       - name: Run Unit Tests
-        if: steps.tag.outputs.skip != 'true'
+        if: steps.prepare.outputs.skip == 'false'
         run: npm test
 
       - name: Build Project
-        if: steps.tag.outputs.skip != 'true'
+        if: steps.prepare.outputs.skip == 'false'
         run: npm run build
 
       - name: Clean up ready for publishing
-        if: steps.tag.outputs.skip != 'true'
+        if: steps.prepare.outputs.skip == 'false'
         run: npm run publishInit
 
       # `files` names build outputs, which do not exist in a checkout, and npm
@@ -176,7 +188,7 @@ jobs:
       # publishes a package quietly missing that surface. This fails before the
       # package goes to the registry rather than in a consumer.
       - name: Check the tarball carries the public API
-        if: steps.tag.outputs.skip != 'true'
+        if: steps.prepare.outputs.skip == 'false'
         run: npm run check:package
 
       - name: The version is the tag's
@@ -184,9 +196,9 @@ jobs:
         # re-enables it with --ignore-scripts=false, so that case is already
         # covered. This checks what prepublishOnly cannot see: that the version
         # npm is about to read is the tag's, not merely non-placeholder.
-        if: steps.tag.outputs.skip != 'true'
+        if: steps.prepare.outputs.skip == 'false'
         env:
-          VERSION: ${{ steps.tag.outputs.version }}
+          VERSION: ${{ steps.prepare.outputs.version }}
         run: |
           set -euo pipefail
           stamped="$(node -p "require('./package.json').version")"
@@ -196,26 +208,8 @@ jobs:
             exit 1
           fi
 
-      - name: Already on the registry?
-        id: existing
-        if: steps.tag.outputs.skip != 'true'
-        env:
-          VERSION: ${{ steps.tag.outputs.version }}
-          # through env like every other input: boolean today, but an input that
-          # is interpolated into shell text is only safe while its type holds
-          REPUBLISH: ${{ inputs.republish }}
-        run: |
-          set -euo pipefail
-          published="$(npm view "@sasjs/lint@${VERSION}" version --prefer-online 2>/dev/null || true)"
-          if [ "$published" = "$VERSION" ] && [ "${REPUBLISH:-false}" != "true" ]; then
-            echo "already=true" >> "$GITHUB_OUTPUT"
-            echo "$VERSION is already on the registry - nothing to publish"
-          else
-            echo "already=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Publish to npm with trusted publisher
-        if: steps.tag.outputs.skip != 'true' && steps.existing.outputs.already != 'true'
+        if: steps.prepare.outputs.skip == 'false' && steps.prepare.outputs.publish == 'true'
         # no NODE_AUTH_TOKEN: the OIDC token is exchanged for a short-lived
         # credential, so there is no long-lived secret in this repository.
         # --ignore-scripts=false re-enables this package's own prepublishOnly,
