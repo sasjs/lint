@@ -648,4 +648,92 @@ run;`
       )
     ).toEqual(text)
   })
+
+  it('leaves a bullet list at the margin alone', () => {
+    // `*` at the margin of an ordinary comment is the list marker, not
+    // decoration: with no marker past the block's indentation the block is
+    // undecorated, and every line of it stays as written.
+    const text = `/**
+  @file x
+**/
+
+/*
+* item one that runs well past the width of the limit
+* item two is here
+*/
+`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(text)
+  })
+
+  it('keeps emphasis at the start of a line as content', () => {
+    // `*emphasis*` has no space after the asterisk, so it is not a marker: the
+    // paragraph wraps like prose and no continuation line grows a `*`.
+    const text = `/**
+  @file x
+**/
+
+/*
+*emphasis* is what this sentence is about, and it runs past the limit
+and continues here
+*/
+`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @file x
+**/
+
+/*
+*emphasis* is what this sentence is
+about, and it runs past the limit and
+continues here
+*/
+`)
+  })
+
+  it('strips one marker from a decorated line whose text starts with another', () => {
+    const text = `/**
+  @file x
+**/
+
+%macro x();
+  %let a=1;
+
+  /*
+    * **Note:** this sentence runs past the configured width of the limit
+    * and continues here
+  */
+%mend x;
+`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @file x
+**/
+
+%macro x();
+  %let a=1;
+
+  /*
+    * **Note:** this sentence runs past
+    * the configured width of the limit
+    * and continues here
+  */
+%mend x;
+`)
+  })
 })

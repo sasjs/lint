@@ -306,35 +306,55 @@ const readBlock = (
     }
   ]
 
+  const body: {
+    line: string
+    whitespace: string
+    text: string
+    close: number
+    indent: number
+  }[] = []
+
   for (let index = block.open + 1; index <= block.close; index++) {
     const line = lines[index]
     const whitespace = /^\s*/.exec(line)![0]
     const close = index === block.close ? line.indexOf('*/') : -1
-    const body = line.slice(whitespace.length, close > -1 ? close : undefined)
-    // The `*` that decorates a body line is part of the lead, not the text. Left
-    // in the content it reads as a list marker - the same character a bullet
-    // uses - so every starred paragraph looked line-oriented, was never
-    // reflowed, and a header line could sit over the limit with no pass willing
-    // to shorten it.
-    const decoration = /^\*(?:\s+)?/.exec(body)
-    const marked = decoration ? decoration[0] : ''
-    const content = body.slice(marked.length).trimEnd()
-
-    read.push({
-      raw: line,
-      lead: whitespace + marked,
-      content,
-      trail:
-        body.slice(marked.length + content.length) +
-        (close > -1 ? line.slice(close) : ''),
+    body.push({
+      line,
+      whitespace,
+      text: line.slice(whitespace.length, close > -1 ? close : undefined),
+      close,
       indent: whitespace.length
     })
   }
 
-  // The opener shares its paragraph with the line below it, when that line
-  // carries text: that is the indentation its continuation takes. When the line
-  // below is blank the opener stands alone, and its continuation is one
-  // `indentationMultiple` in from the marker.
+  // Whether a block decorates its body with `*` is a property of the block, not
+  // of a line. A header written as `/**` ... `    * prose` repeats the marker on
+  // every line and the marker is decoration; a `* item` at the margin of an
+  // ordinary `/*` comment is a bullet, where the `*` is the list marker and has
+  // to reach the content. The test is a marker past the block's own indentation
+  // followed by a space, which also keeps `**bold**` and `*emphasis*` as
+  // content: neither has a space after the first asterisk.
+  const firstBody = body.find((entry) => entry.text.trim() !== '')
+  const decorated =
+    firstBody !== undefined &&
+    firstBody.indent > 0 &&
+    /^\*[ \t]/.test(firstBody.text)
+
+  for (const entry of body) {
+    const marker = decorated ? /^\*(?:[ \t]+|$)/.exec(entry.text) : null
+    const marked = marker ? marker[0] : ''
+    const content = entry.text.slice(marked.length).trimEnd()
+    read.push({
+      raw: entry.line,
+      lead: entry.whitespace + marked,
+      content,
+      trail:
+        entry.text.slice(marked.length + content.length) +
+        (entry.close > -1 ? entry.line.slice(entry.close) : ''),
+      indent: entry.indent
+    })
+  }
+
   const below = read[1]
   // The lead a continuation takes: the below line's, marker included, so a
   // reflowed paragraph keeps its `*` decoration. With no body line to copy, the
