@@ -585,4 +585,67 @@ run;`
     expect(reflowComments(text, configuration)).toBe(text)
     expect(reflowComments('', configuration)).toBe('')
   })
+
+  it('wraps a starred body line and keeps the marker on every line', () => {
+    // A `*` that decorates a block-comment body line reads as a list marker if
+    // it is left in the content, so a starred paragraph used to be treated as
+    // line-oriented and never wrapped - the line sat over the limit and no pass
+    // would shorten it. The marker belongs to the lead, not the text.
+    const text = `/**
+  @file x
+**/
+
+%macro x();
+  %let a=1;
+
+    /**
+      * First check we are not in the tests/macros folder
+      * or in the testsetup services
+    */
+  %let b=2;
+%mend x;
+`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(`/**
+  @file x
+**/
+
+%macro x();
+  %let a=1;
+
+    /**
+      * First check we are not in the
+      * tests/macros folder or in the
+      * testsetup services
+    */
+  %let b=2;
+%mend x;
+`)
+  })
+
+  it('leaves a bulleted list in a starred comment alone', () => {
+    // The decoration is stripped, a real bullet is not: `- item` still reads as
+    // a list and every one of its lines stays as written.
+    const text = `/**
+  @file x
+**/
+
+/*
+  * - a bullet item that runs well past the width of the configured limit
+  * - another bullet
+*/
+`
+
+    expect(
+      reflowComments(
+        text,
+        config({ maxLineLength: 40, maxHeaderLineLength: 40 })
+      )
+    ).toEqual(text)
+  })
 })

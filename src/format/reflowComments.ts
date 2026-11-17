@@ -279,7 +279,11 @@ const readBlock = (
   lines: string[],
   block: Block,
   multiple: number
-): { read: CommentLine[]; contentIndent: number } => {
+): {
+  read: CommentLine[]
+  contentIndent: string
+  contentIndentWidth: number
+} => {
   const openLine = lines[block.open]
   const marker = openLine.indexOf('/*')
   // `/**` is one marker, so the second asterisk belongs to the lead.
@@ -304,17 +308,26 @@ const readBlock = (
 
   for (let index = block.open + 1; index <= block.close; index++) {
     const line = lines[index]
-    const lead = /^\s*/.exec(line)![0]
+    const whitespace = /^\s*/.exec(line)![0]
     const close = index === block.close ? line.indexOf('*/') : -1
-    const body = line.slice(lead.length, close > -1 ? close : undefined)
-    const content = body.trimEnd()
+    const body = line.slice(whitespace.length, close > -1 ? close : undefined)
+    // The `*` that decorates a body line is part of the lead, not the text. Left
+    // in the content it reads as a list marker - the same character a bullet
+    // uses - so every starred paragraph looked line-oriented, was never
+    // reflowed, and a header line could sit over the limit with no pass willing
+    // to shorten it.
+    const decoration = /^\*(?:\s+)?/.exec(body)
+    const marked = decoration ? decoration[0] : ''
+    const content = body.slice(marked.length).trimEnd()
 
     read.push({
       raw: line,
-      lead,
+      lead: whitespace + marked,
       content,
-      trail: body.slice(content.length) + (close > -1 ? line.slice(close) : ''),
-      indent: lead.length
+      trail:
+        body.slice(marked.length + content.length) +
+        (close > -1 ? line.slice(close) : ''),
+      indent: whitespace.length
     })
   }
 
@@ -323,12 +336,24 @@ const readBlock = (
   // below is blank the opener stands alone, and its continuation is one
   // `indentationMultiple` in from the marker.
   const below = read[1]
+  // The lead a continuation takes: the below line's, marker included, so a
+  // reflowed paragraph keeps its `*` decoration. With no body line to copy, the
+  // marker is the one the opener used.
   const contentIndent =
     below !== undefined && below.content !== ''
+      ? below.lead
+      : ' '.repeat(
+          indentOf(openLine) + (multiple - (indentOf(openLine) % multiple))
+        )
+  // The width the opener's paragraph is matched against is the body's
+  // indentation, not its lead: a line continues the opener when the whitespace
+  // before its marker is the same width.
+  const contentIndentWidth =
+    below !== undefined && below.content !== ''
       ? below.indent
-      : indentOf(openLine) + (multiple - (indentOf(openLine) % multiple))
+      : contentIndent.length
 
-  return { read, contentIndent }
+  return { read, contentIndent, contentIndentWidth }
 }
 
 /**
@@ -390,7 +415,11 @@ export const reflowComments = (
   }
 
   for (const block of collectBlocks(lines, configuration)) {
-    const { read, contentIndent } = readBlock(lines, block, multiple)
+    const { read, contentIndent, contentIndentWidth } = readBlock(
+      lines,
+      block,
+      multiple
+    )
     const limit =
       block.open < headerLinesCount ? headerLimit : configuration.maxLineLength
 
@@ -404,6 +433,7 @@ export const reflowComments = (
     const emitted: string[] = []
     let paragraph: CommentLine[] = []
     let paragraphIndent = -1
+    let paragraphLead = ''
 
     const flush = () => {
       if (!paragraph.length) return
@@ -421,7 +451,7 @@ export const reflowComments = (
             content,
             limit,
             paragraph[0].lead,
-            ' '.repeat(paragraphIndent),
+            paragraphLead,
             last.trail
           )
         : null
@@ -431,6 +461,7 @@ export const reflowComments = (
 
       paragraph = []
       paragraphIndent = -1
+      paragraphLead = ''
     }
 
     let inMacrosSection = false
@@ -508,8 +539,10 @@ export const reflowComments = (
         if (!continues) flush()
       }
 
-      if (!paragraph.length)
-        paragraphIndent = index === 0 ? contentIndent : line.indent
+      if (!paragraph.length) {
+        paragraphIndent = index === 0 ? contentIndentWidth : line.indent
+        paragraphLead = index === 0 ? contentIndent : line.lead
+      }
 
       paragraph.push(line)
     })
