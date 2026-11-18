@@ -250,7 +250,7 @@ const main = () => {
   const summary = [
     '## Full dependency audit',
     '',
-    `Full audit: ${advisories.length} distinct advisory/advisories, ${allowlist.length} allowlisted.`,
+    `Full audit: ${advisories.filter((one) => !one.through).length} distinct advisory/advisories, ${allowlist.length} allowlisted.`,
     '',
     ...refused.map(
       (one) =>

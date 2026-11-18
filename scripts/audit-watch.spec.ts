@@ -178,6 +178,9 @@ describe('full audit', () => {
       const result = runFixture(chained, false, report({}, 0))
       expect(result.code).toBe(0)
       expect(result.output).toContain(
+        'Full audit: 1 distinct advisory/advisories'
+      )
+      expect(result.output).toContain(
         'carried through a waived advisory: jest-core'
       )
     })
