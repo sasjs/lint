@@ -56,11 +56,17 @@ const run = (args: string[], env = process.env) => {
   }
 }
 
-const runFixture = (value: unknown, gate = false) => {
+const runFixture = (value: unknown, gate = false, production?: unknown) => {
   const dir = mkdtempSync(path.join(tmpdir(), 'audit-watch-'))
   const fixture = path.join(dir, 'audit.json')
   writeFileSync(fixture, JSON.stringify(value))
-  return run([...(gate ? ['--gate'] : []), `--audit-json=${fixture}`])
+  const args = [...(gate ? ['--gate'] : []), `--audit-json=${fixture}`]
+  if (production !== undefined) {
+    const shipped = path.join(dir, 'production.json')
+    writeFileSync(shipped, JSON.stringify(production))
+    args.push(`--production-json=${shipped}`)
+  }
+  return run(args)
 }
 
 describe('full audit', () => {
@@ -91,6 +97,90 @@ describe('full audit', () => {
     const result = runFixture(advisory(id, name, node))
     expect(result.code).toBe(1)
     expect(result.output).toContain(id)
+  })
+
+  describe('the allowlist', () => {
+    const waived = (severity = 'high') =>
+      report(
+        {
+          picomatch: {
+            severity,
+            nodes: ['node_modules/picomatch'],
+            via: [
+              {
+                source: 1247710,
+                url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf',
+                severity,
+                title: 'fixture'
+              }
+            ]
+          }
+        },
+        1
+      )
+
+    it('passes an advisory it carries, once the production set is clean', () => {
+      const result = runFixture(waived(), false, report({}, 0))
+      expect(result.code).toBe(0)
+      expect(result.output).toContain('waived high (dev-only)')
+    })
+
+    it('refuses it when the same advisory reaches the production set', () => {
+      const result = runFixture(waived(), false, waived())
+      expect(result.code).toBe(1)
+      expect(result.output).toContain('reaches the production set')
+    })
+
+    it('refuses it at a severity it was not waived at', () => {
+      // the reason covers a high, so a critical is news rather than something the
+      // old entry still explains
+      const result = runFixture(waived('critical'), false, report({}, 0))
+      expect(result.code).toBe(1)
+      expect(result.output).toContain('REFUSED critical')
+    })
+
+    it('reports a stale entry without failing the build', () => {
+      const result = runFixture(report({}, 0))
+      expect(result.code).toBe(0)
+      expect(result.output).toContain('stale: picomatch 1247710')
+    })
+
+    it('carries a package that reaches the waived advisory through others', () => {
+      // npm reports the chain, not the leaf: jest-util names picomatch, and a
+      // package naming jest-util names the same advisory
+      const chained = report(
+        {
+          picomatch: {
+            severity: 'high',
+            nodes: ['node_modules/picomatch'],
+            via: [
+              {
+                source: 1247710,
+                url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf',
+                severity: 'high',
+                title: 'fixture'
+              }
+            ]
+          },
+          'jest-util': {
+            severity: 'high',
+            nodes: ['node_modules/jest-util'],
+            via: ['picomatch']
+          },
+          'jest-core': {
+            severity: 'high',
+            nodes: ['node_modules/jest-core'],
+            via: ['jest-util']
+          }
+        },
+        3
+      )
+      const result = runFixture(chained, false, report({}, 0))
+      expect(result.code).toBe(0)
+      expect(result.output).toContain(
+        'carried through a waived advisory: jest-core'
+      )
+    })
   })
 
   it('fails on vulnerabilities without a GHSA URL', () => {
