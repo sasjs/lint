@@ -26,6 +26,64 @@ describe('parseMacros', () => {
     expect(macros[0].hasMacroNameInMend).toEqual(true)
   })
 
+  it('does not split a %mend inside a double-quoted value', () => {
+    const macros = parseMacros(
+      `%macro test;\n  %put "the %mend keyword";\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(3)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('closes a macro when %mend follows a call with no whitespace', () => {
+    const macros = parseMacros(`%macro test;\n%quote(&x)%mend test;`)
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(2)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('finds a real %mend after a quoted mention on the same line', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put "the %mend keyword" %mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(2)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('does not split a %mend inside a multiline quoted value', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put "first\ncontinued %mend keyword";\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(4)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('ignores a %mend inside a masking function', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put %nrstr(text %mend keyword);\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(3)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('leaves a commented %mend out of the statements', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put /* was: %mend */ x;\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(3)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
   it('should return an array with a single macro', () => {
     const text = ` %macro test;\n  %put 'hello';\n%mend`
 

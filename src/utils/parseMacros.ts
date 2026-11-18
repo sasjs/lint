@@ -1,6 +1,7 @@
 import { LintConfig, Macro } from '../types'
 import { trimComments } from './trimComments'
 import { splitLines } from './splitLines'
+import { maskedArgumentEnd, maskingFunctionStart } from './maskingFunction'
 
 /** The `%macro` statement, in any capitalisation. */
 const macroStatement = /^%macro\b/i
@@ -27,20 +28,6 @@ const getName = (statement: string, pattern: RegExp): string => {
 }
 
 /**
- * A `%mend` that follows other text on the same statement, as written.
- *
- * `%mend` always starts a statement of its own, so `  %quote(&x) %mend f;` is
- * two: a macro call that ends without a semicolon, and the closing keyword.
- * Matching at a whitespace boundary keeps the keyword inside an identifier out
- * of it.
- */
-const mendAfterText = /\s(%mend\b)/i
-
-/** Whether a position sits inside a quoted value, counted from the quotes before it. */
-const isQuotedAt = (text: string, index: number): boolean =>
-  (text.slice(0, index).match(/'/g) ?? []).length % 2 === 1
-
-/**
  * Splits one `;`-delimited statement where a `%mend` starts a statement of its own.
  *
  * A statement that ends without a semicolon - how every value-returning macro in
@@ -50,16 +37,34 @@ const isQuotedAt = (text: string, index: number): boolean =>
  * a macro that visibly closes. The quoted check keeps a `%mend` that is only text
  * - `%put 'the %mend keyword';` - inside the statement it belongs to.
  */
-const splitAtMend = (statement: string): string[] => {
-  const match = mendAfterText.exec(statement)
-
-  if (!match || isQuotedAt(statement, match.index + 1)) {
-    return [statement]
+const splitAtMend = (statement: string, quoteBefore: string): string[] => {
+  let quote = quoteBefore
+  for (let at = 0; at < statement.length; at++) {
+    const character = statement[at]
+    if (character === '%' && quote !== "'") {
+      const mask = maskingFunctionStart.exec(statement.slice(at))
+      if (mask) {
+        at = maskedArgumentEnd(statement, at + mask[0].length) - 1
+        continue
+      }
+    }
+    if (quote) {
+      if (character === quote) quote = ''
+      continue
+    }
+    if (character === "'" || character === '"') {
+      quote = character
+      continue
+    }
+    if (
+      at > 0 &&
+      /[\s)]/.test(statement[at - 1]) &&
+      /^%mend\b/i.test(statement.slice(at))
+    ) {
+      return [statement.slice(0, at), ...splitAtMend(statement.slice(at), '')]
+    }
   }
-
-  const at = match.index + 1
-
-  return [statement.slice(0, at), ...splitAtMend(statement.slice(at))]
+  return [statement]
 }
 
 export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
@@ -80,6 +85,7 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
     // loop swallowed the code that precedes a comment opening mid-line
     // (sasjs/lint#274).
     const stateBeforeLine = isCommentStarted
+    const quoteBeforeLine = isQuoteStarted
     const {
       statement: trimmedLine,
       commentStarted: stateAfterLine,
@@ -90,9 +96,17 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
 
     isStatementContinues = !trimmedLine.endsWith(';')
 
-    const statements: string[] = trimmedLine
-      .split(';')
-      .flatMap((statement) => splitAtMend(statement))
+    let quoteBeforeStatement = quoteBeforeLine
+    const statements: string[] = trimmedLine.split(';').flatMap((statement) => {
+      const split = splitAtMend(statement, quoteBeforeStatement)
+      quoteBeforeStatement = trimComments(
+        statement,
+        false,
+        false,
+        quoteBeforeStatement
+      ).quoteStarted
+      return split
+    })
 
     if (isReadingMacroDefinition) {
       // checking if code is split into statements based on `;` is a part of HTML Encoded Character
