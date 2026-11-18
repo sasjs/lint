@@ -2,6 +2,103 @@ import { LintConfig } from '../types'
 import { parseMacros } from './parseMacros'
 
 describe('parseMacros', () => {
+  it('closes a macro whose %mend follows a semicolon-less statement', () => {
+    // a value-returning macro ends without a semicolon, so the closing keyword
+    // can share a line with the last statement - it still starts a statement of
+    // its own, and a parser that missed it reported "Missing %mend statement"
+    // for a macro that visibly closes
+    const text = `%macro test;\n  %quote(&x) %mend test;`
+
+    const macros = parseMacros(text, new LintConfig())
+
+    expect(macros.length).toEqual(1)
+    expect(macros[0].endLineNumber).toEqual(2)
+    expect(macros[0].hasMacroNameInMend).toEqual(true)
+  })
+
+  it('leaves a %mend that is only text inside its statement', () => {
+    const text = `%macro test;\n  %put 'the %mend keyword';\n%mend test;`
+
+    const macros = parseMacros(text, new LintConfig())
+
+    expect(macros.length).toEqual(1)
+    expect(macros[0].endLineNumber).toEqual(3)
+    expect(macros[0].hasMacroNameInMend).toEqual(true)
+  })
+
+  it('does not split a %mend inside a double-quoted value', () => {
+    const macros = parseMacros(
+      `%macro test;\n  %put "the %mend keyword";\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(3)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('closes a macro when %mend follows a call with no whitespace', () => {
+    const macros = parseMacros(`%macro test;\n%quote(&x)%mend test;`)
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(2)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it.each([
+    [`%macro s;\n  %put &x%mend s;`, 2],
+    [`%macro s;\n  %put "x"%mend s;`, 2],
+    [`%macro s;\n  %do i=1 %to 2;\n  %end%mend s;`, 3]
+  ])(
+    'closes after a semicolon-less statement without a separator: %s',
+    (text, endLine) => {
+      const macros = parseMacros(text)
+
+      expect(macros).toHaveLength(1)
+      expect(macros[0].endLineNumber).toBe(endLine)
+      expect(macros[0].hasMacroNameInMend).toBe(true)
+    }
+  )
+
+  it('finds a real %mend after a quoted mention on the same line', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put "the %mend keyword" %mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(2)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('does not split a %mend inside a multiline quoted value', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put "first\ncontinued %mend keyword";\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(4)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('ignores a %mend inside a masking function', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put %nrstr(text %mend keyword);\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(3)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
+  it('leaves a commented %mend out of the statements', () => {
+    const macros = parseMacros(
+      `%macro test;\n%put /* was: %mend */ x;\n%mend test;`
+    )
+
+    expect(macros).toHaveLength(1)
+    expect(macros[0].endLineNumber).toBe(3)
+    expect(macros[0].hasMacroNameInMend).toBe(true)
+  })
+
   it('should return an array with a single macro', () => {
     const text = ` %macro test;\n  %put 'hello';\n%mend`
 

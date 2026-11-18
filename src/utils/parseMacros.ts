@@ -1,6 +1,7 @@
 import { LintConfig, Macro } from '../types'
 import { trimComments } from './trimComments'
 import { splitLines } from './splitLines'
+import { maskedArgumentEnd, maskingFunctionStart } from './maskingFunction'
 
 /** The `%macro` statement, in any capitalisation. */
 const macroStatement = /^%macro\b/i
@@ -26,6 +27,42 @@ const getName = (statement: string, pattern: RegExp): string => {
   return match ? match[1].trim() : ''
 }
 
+/**
+ * Splits one `;`-delimited statement where a `%mend` starts a statement of its own.
+ *
+ * A statement that ends without a semicolon - how every value-returning macro in
+ * @sasjs/core ends - leaves the closing keyword inside the same statement when
+ * the two share a line. A `%mend` that is not at the start of a statement is one
+ * `hasMacroNameInMend` never sees, so it reported "Missing %mend statement" for
+ * a macro that visibly closes. The quoted check keeps a `%mend` that is only text
+ * - `%put 'the %mend keyword';` - inside the statement it belongs to.
+ */
+const splitAtMend = (statement: string, quoteBefore: string): string[] => {
+  let quote = quoteBefore
+  for (let at = 0; at < statement.length; at++) {
+    const character = statement[at]
+    if (character === '%' && quote !== "'") {
+      const mask = maskingFunctionStart.exec(statement.slice(at))
+      if (mask) {
+        at = maskedArgumentEnd(statement, at + mask[0].length) - 1
+        continue
+      }
+    }
+    if (quote) {
+      if (character === quote) quote = ''
+      continue
+    }
+    if (character === "'" || character === '"') {
+      quote = character
+      continue
+    }
+    if (at > 0 && /^%mend\b/i.test(statement.slice(at))) {
+      return [statement.slice(0, at), ...splitAtMend(statement.slice(at), '')]
+    }
+  }
+  return [statement]
+}
+
 export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
   const lines = splitLines(text)
   const macros: Macro[] = []
@@ -44,6 +81,7 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
     // loop swallowed the code that precedes a comment opening mid-line
     // (sasjs/lint#274).
     const stateBeforeLine = isCommentStarted
+    const quoteBeforeLine = isQuoteStarted
     const {
       statement: trimmedLine,
       commentStarted: stateAfterLine,
@@ -54,7 +92,17 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
 
     isStatementContinues = !trimmedLine.endsWith(';')
 
-    const statements: string[] = trimmedLine.split(';')
+    let quoteBeforeStatement = quoteBeforeLine
+    const statements: string[] = trimmedLine.split(';').flatMap((statement) => {
+      const split = splitAtMend(statement, quoteBeforeStatement)
+      quoteBeforeStatement = trimComments(
+        statement,
+        false,
+        false,
+        quoteBeforeStatement
+      ).quoteStarted
+      return split
+    })
 
     if (isReadingMacroDefinition) {
       // checking if code is split into statements based on `;` is a part of HTML Encoded Character
