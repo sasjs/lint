@@ -44,6 +44,21 @@ describe('parseMacros', () => {
     expect(macros[0].hasMacroNameInMend).toBe(true)
   })
 
+  it.each([
+    [`%macro s;\n  %put &x%mend s;`, 2],
+    [`%macro s;\n  %put "x"%mend s;`, 2],
+    [`%macro s;\n  %do i=1 %to 2;\n  %end%mend s;`, 3]
+  ])(
+    'closes after a semicolon-less statement without a separator: %s',
+    (text, endLine) => {
+      const macros = parseMacros(text)
+
+      expect(macros).toHaveLength(1)
+      expect(macros[0].endLineNumber).toBe(endLine)
+      expect(macros[0].hasMacroNameInMend).toBe(true)
+    }
+  )
+
   it('finds a real %mend after a quoted mention on the same line', () => {
     const macros = parseMacros(
       `%macro test;\n%put "the %mend keyword" %mend test;`

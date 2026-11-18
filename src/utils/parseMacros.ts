@@ -56,11 +56,7 @@ const splitAtMend = (statement: string, quoteBefore: string): string[] => {
       quote = character
       continue
     }
-    if (
-      at > 0 &&
-      /[\s)]/.test(statement[at - 1]) &&
-      /^%mend\b/i.test(statement.slice(at))
-    ) {
+    if (at > 0 && /^%mend\b/i.test(statement.slice(at))) {
       return [statement.slice(0, at), ...splitAtMend(statement.slice(at), '')]
     }
   }
