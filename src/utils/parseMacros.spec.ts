@@ -2,6 +2,30 @@ import { LintConfig } from '../types'
 import { parseMacros } from './parseMacros'
 
 describe('parseMacros', () => {
+  it('closes a macro whose %mend follows a semicolon-less statement', () => {
+    // a value-returning macro ends without a semicolon, so the closing keyword
+    // can share a line with the last statement - it still starts a statement of
+    // its own, and a parser that missed it reported "Missing %mend statement"
+    // for a macro that visibly closes
+    const text = `%macro test;\n  %quote(&x) %mend test;`
+
+    const macros = parseMacros(text, new LintConfig())
+
+    expect(macros.length).toEqual(1)
+    expect(macros[0].endLineNumber).toEqual(2)
+    expect(macros[0].hasMacroNameInMend).toEqual(true)
+  })
+
+  it('leaves a %mend that is only text inside its statement', () => {
+    const text = `%macro test;\n  %put 'the %mend keyword';\n%mend test;`
+
+    const macros = parseMacros(text, new LintConfig())
+
+    expect(macros.length).toEqual(1)
+    expect(macros[0].endLineNumber).toEqual(3)
+    expect(macros[0].hasMacroNameInMend).toEqual(true)
+  })
+
   it('should return an array with a single macro', () => {
     const text = ` %macro test;\n  %put 'hello';\n%mend`
 

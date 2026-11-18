@@ -3,6 +3,16 @@ import { Severity } from '../../types/Severity'
 import { hasMacroNameInMend } from './hasMacroNameInMend'
 
 describe('hasMacroNameInMend - test', () => {
+  it('should return an empty array when %mend shares a line with a semicolon-less statement', () => {
+    // how every value-returning macro in @sasjs/core ends, and what a formatter
+    // that joins the keyword onto the last line leaves behind: the macro does
+    // close, so nothing is missing
+    const content = `%macro somemacro();
+  %quote(&sysmacroname) %mend somemacro;`
+
+    expect(hasMacroNameInMend.test(content)).toEqual([])
+  })
+
   it('should return an empty array when %mend has correct macro name', () => {
     const content = `
   %macro somemacro();

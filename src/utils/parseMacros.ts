@@ -26,6 +26,42 @@ const getName = (statement: string, pattern: RegExp): string => {
   return match ? match[1].trim() : ''
 }
 
+/**
+ * A `%mend` that follows other text on the same statement, as written.
+ *
+ * `%mend` always starts a statement of its own, so `  %quote(&x) %mend f;` is
+ * two: a macro call that ends without a semicolon, and the closing keyword.
+ * Matching at a whitespace boundary keeps the keyword inside an identifier out
+ * of it.
+ */
+const mendAfterText = /\s(%mend\b)/i
+
+/** Whether a position sits inside a quoted value, counted from the quotes before it. */
+const isQuotedAt = (text: string, index: number): boolean =>
+  (text.slice(0, index).match(/'/g) ?? []).length % 2 === 1
+
+/**
+ * Splits one `;`-delimited statement where a `%mend` starts a statement of its own.
+ *
+ * A statement that ends without a semicolon - how every value-returning macro in
+ * @sasjs/core ends - leaves the closing keyword inside the same statement when
+ * the two share a line. A `%mend` that is not at the start of a statement is one
+ * `hasMacroNameInMend` never sees, so it reported "Missing %mend statement" for
+ * a macro that visibly closes. The quoted check keeps a `%mend` that is only text
+ * - `%put 'the %mend keyword';` - inside the statement it belongs to.
+ */
+const splitAtMend = (statement: string): string[] => {
+  const match = mendAfterText.exec(statement)
+
+  if (!match || isQuotedAt(statement, match.index + 1)) {
+    return [statement]
+  }
+
+  const at = match.index + 1
+
+  return [statement.slice(0, at), ...splitAtMend(statement.slice(at))]
+}
+
 export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
   const lines = splitLines(text)
   const macros: Macro[] = []
@@ -54,7 +90,9 @@ export const parseMacros = (text: string, config?: LintConfig): Macro[] => {
 
     isStatementContinues = !trimmedLine.endsWith(';')
 
-    const statements: string[] = trimmedLine.split(';')
+    const statements: string[] = trimmedLine
+      .split(';')
+      .flatMap((statement) => splitAtMend(statement))
 
     if (isReadingMacroDefinition) {
       // checking if code is split into statements based on `;` is a part of HTML Encoded Character
